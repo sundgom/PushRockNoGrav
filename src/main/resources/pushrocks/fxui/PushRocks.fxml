@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane fx:id="anchorPane" prefHeight="460.0" prefWidth="480.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pushrocks.fxui.PushRocksController">
+   <children>
+      <GridPane fx:id="mapContainer" alignment="BOTTOM_CENTER" prefHeight="460.0" prefWidth="360.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <columnConstraints>
+          <ColumnConstraints hgrow="ALWAYS" maxWidth="480.0" minWidth="10.0" percentWidth="100.0" prefWidth="471.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints fx:id="mapContainer" minHeight="10.0" prefHeight="330.0" valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints fx:id="controlsContainer" maxHeight="70.0" minHeight="70.0" prefHeight="70.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            <GridPane alignment="CENTER" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.valignment="BOTTOM" GridPane.vgrow="ALWAYS">
+               <columnConstraints>
+                  <ColumnConstraints halignment="CENTER" hgrow="NEVER" minWidth="10.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints fx:id="mapGridPaneH" valignment="TOP" vgrow="NEVER" />
+               </rowConstraints>
+               <children>
+                  <Pane fx:id="map" prefHeight="660.0" prefWidth="1011.0" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.valignment="BOTTOM" GridPane.vgrow="ALWAYS">
+            </Pane>
+               </children>
+            </GridPane>
+            <GridPane GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS">
+               <columnConstraints>
+                  <ColumnConstraints fx:id="controlsGridPane" halignment="CENTER" hgrow="NEVER" minWidth="10.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints fx:id="controlBoxRowConstraints" maxHeight="70.0" minHeight="10.0" valignment="TOP" vgrow="NEVER" />
+               </rowConstraints>
+               <children>
+                  <HBox fx:id="inputBox" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="283.0" prefWidth="711.0" spacing="15.0" GridPane.hgrow="ALWAYS" GridPane.valignment="TOP" GridPane.vgrow="NEVER">
+                     <children>
+                        <HBox alignment="CENTER" spacing="3.0">
+                           <children>
+                              <VBox alignment="BOTTOM_CENTER" spacing="3.0">
+                                 <children>
+                                    <Button fx:id="handleScore" mnemonicParsing="false" prefWidth="60.0" text="Score: 9" />
+                                    <Button mnemonicParsing="false" onMouseClicked="#handleMenu" prefWidth="60.0" text="Menu" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </HBox>
+                        <HBox fx:id="playerBox" alignment="CENTER" spacing="10.0">
+                           <children>
+                              <HBox fx:id="playerControls" alignment="CENTER" spacing="3.0">
+                                 <children>
+                                    <VBox alignment="BOTTOM_CENTER" spacing="3.0">
+                                       <children>
+                                          <Button mnemonicParsing="false" onMouseClicked="#handlePortalOne" prefWidth="60.0" style="-fx-background-color: #00adef;" text="Portal 1" />
+                                          <Button layoutX="10.0" layoutY="45.0" mnemonicParsing="false" onMouseClicked="#handleLeft" prefWidth="60.0" text="Left" />
+                                       </children>
+                                    </VBox>
+                                    <VBox alignment="BOTTOM_CENTER" spacing="3.0">
+                                       <children>
+                                          <Button mnemonicParsing="false" onMouseClicked="#handleUp" prefWidth="60.0" text="Up" />
+                                          <Button mnemonicParsing="false" onMouseClicked="#handleDown" prefWidth="60.0" text="Down" />
+                                       </children>
+                                    </VBox>
+                                    <VBox alignment="BOTTOM_CENTER" spacing="3.0">
+                                       <children>
+                                          <Button mnemonicParsing="false" onMouseClicked="#handlePortalTwo" prefWidth="60.0" style="-fx-background-color: #ff6a00;" text="Portal 2" />
+                                          <Button layoutX="10.0" layoutY="45.0" mnemonicParsing="false" onMouseClicked="#handleRight" prefWidth="60.0" text="Right" />
+                                       </children>
+                                    </VBox>
+                                 </children>
+                              </HBox>
+                           </children>
+                        </HBox>
+                        <HBox alignment="CENTER" spacing="3.0">
+                           <children>
+                              <VBox alignment="BOTTOM_CENTER" spacing="3.0">
+                                 <children>
+                                    <Button mnemonicParsing="false" onMouseClicked="#handleGravity" prefWidth="60.0" text="Gravity" />
+                  
+                                                                                                                                                            
+                                                                                                                              
+                                                                                                                                                                              <Button mnemonicParsing="false" onMouseClicked="#resetLevel" prefWidth="60.0" text="Reset" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </HBox>
+                     </children>
+                     <GridPane.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </GridPane.margin>
+                  </HBox>
+               </children>
+            </GridPane>
+         </children>
+      </GridPane>
+   </children>
+</AnchorPane>
