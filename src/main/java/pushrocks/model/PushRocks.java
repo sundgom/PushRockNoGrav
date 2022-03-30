@@ -1,8 +1,9 @@
 package pushrocks.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
-public class PushRocks {
+public class PushRocks implements IObservablePushRocks {
 
     private int width;
     private int height;
@@ -21,20 +22,14 @@ public class PushRocks {
     private int gravityZone;
     private boolean isGravityInverted;
 
+    ArrayList<IObserverPushRocks> observers = new ArrayList<>();
+
     public int getHeight() {
         return this.height;
     }
 
-    private void setHeight(int height) { //redundant? Should I be using "setHeight()"" instead of "this.height = " when changing this attribute within this code?
-        this.height = height;
-    }
-
     public int getWidth() {
         return this.width;
-    }
-
-    private void setWidth(int width) { //redundant? See height comment
-        this.width = width;
     }
 
     public int getRockCount() {
@@ -116,8 +111,8 @@ public class PushRocks {
     }
 
     private void updateTeleporters() {
-        if (this.teleporters.size() < 1) {
-            System.out.println("There are no teleporters, thus there is nothing to update.");
+        if (this.teleporters.size() < 2) {
+            System.out.println("There are not enough teleporters, thus there is nothing to update.");
             return;
         }
         System.out.println("Updating Teleporters. Score:" + this.score);
@@ -262,10 +257,10 @@ public class PushRocks {
         }
     }
 
-    //Returns true if the game is over. The game is over once the every rock is placed
-    //ontop of a plate block, since the score equals the amount of rocks 
-    //that are placed ontop of plates it follows that the game must be over once
-    //the score equals the amount of rocks 
+    //Returns true if the game is over. The game is over once there is weight placed
+    //ontop of every pressure plate, since the score equals the amount of pressure plates
+    //that are pressed down, it follows that the game is over once the score equals
+    //the total amount of pressure plates.
     public boolean isGameOver() {
         if (this.getScore() >= this.getPlateCount()) {
             return true;
@@ -341,8 +336,9 @@ public class PushRocks {
             for (int i = 0; i < moveableBlocks.size(); i++) {
                 if (moveableBlocks.get(i).isPlayer() && hasPlayerMoved) {
                 }
-                else if (moveableBlocks.get(i).getY() < this.gravityZone) {
-                    moveBlockTwoStrength(moveableBlocks.get(i), "up", 1);
+                // else if (moveableBlocks.get(i).getY() < this.gravityZone) {
+                else if (!isInBirdView(moveableBlocks.get(i))) {
+                    moveBlockTwoStrength(moveableBlocks.get(i), "up", 1, "gravity");
                 }
             }
         }
@@ -352,12 +348,32 @@ public class PushRocks {
             for (int i = moveableBlocks.size() - 1; i >= 0; i--) {
                 if (moveableBlocks.get(i).isPlayer() && hasPlayerMoved) {
                 }
-                else if (moveableBlocks.get(i).getY() < this.gravityZone) {
-                        moveBlockTwoStrength(moveableBlocks.get(i), "down", 1);
+                // else if (moveableBlocks.get(i).getY() < this.gravityZone) {
+                else if (!isInBirdView(moveableBlocks.get(i))) {
+                        moveBlockTwoStrength(moveableBlocks.get(i), "down", 1, "gravity");
                 }
             }
         }
         this.isGameOver();
+        this.notifyObservers();
+    }
+
+    //Checks if the given block is placed at a corrdinate where bird-view is enabled
+    private boolean isInBirdView(BlockAbstract block) {
+        // if (block == null) {
+        //     //Bird-view is the default view-angle, since there is no block to inform us about a specified 
+        //     //view angle, then we assume the default
+        //     return true;
+        // }
+        // else {
+            if(block== null) {
+                System.out.println("what");
+            }
+            TraversableBlock traversableBlock = getTraversableBlock(block.getX(), block.getY());
+
+            return traversableBlock.isBirdView();
+        // }
+        
     }
 
     private boolean isCoordinateMatch2(BlockAbstract block1, BlockAbstract block2) {
@@ -376,33 +392,81 @@ public class PushRocks {
         int footingBlockY = block.getY();
 
         //Block is not airborne when not inside the gravity zone
-        if (block.getY() > gravityZone) {
+        //Block is not considered to be airborne when the view-angle is set to birdview, as that view-angle does not
+        //support free-fall
+        // if (block.getY() > gravityZone) {
+        if (isInBirdView(block)) {
             return false;
         }
+        //If gravity is not inverted, then the footing block will have a y-coordinate one less than the given block
         if (! isGravityInverted) {
             footingBlockY--;
         }
+        //Otherwise gravity must be inverted, and thus the footing block will have a y-coordinate one greater than the given block
         else {
             footingBlockY++;
         }
+        //The footing block for the given block must be at the coordinates matching the given block's x-coordinate
+        //and the now established footing y-coordinate. We thus set the footing block to be the top block at this coordinate.
+        BlockAbstract footingBlock = this.getTopBlock(block.getX(), footingBlockY);
 
-        DirectedBlock footingBlock = this.getDirectedBlock(block.getX(), footingBlockY);
-        //If there are no blocks of the directed block sub class at the given coordinates, then there is no footing, thus
-        //the block must be airborne
+        // //If this footing block is null, then there must not have been any blocks of any kind at the footing-coordinate, thus
+        // //the footing coordinates are out of bounds. The block must thus be standing in such a way that the borders of the map are
+        // //at its feet, the borders will thus serve as its footing, and since it then has footing it will not be considered to be airborne.
+        // if (footingBlock == null) {
+        //     return false;
+        // }
+        // //Otherwise a block must exist, and if that block is not of the directed type, then it will not have collision, and as such
+        // //there will exist no footing for the given block, and as such it must be airborne.
+        // else if (!(footingBlock instanceof DirectedBlock)) {
+        //     return true;
+        // }
+
+
         // if (this.getDirectedBlock(block.getX(), footingBlockY) == null) {
         //     return true;
         // }
+        // if (footingBlock == null) {
+        //     return true; 
+        // }
+        
+
+        //Otherwise the block must be an existing directed block, which could have collision to serve as footing.
+
+        //Should this directed block be an active portal, then the footing block will instead be located at the exit point of that active portal.
+        if (footingBlock instanceof ObstacleBlock) {
+            if ( ( ((ObstacleBlock) footingBlock).isTransporter() ) && footingBlock.getState() ) {
+                //Since the footing block was an active portal, then the footingblock should instead be the block placed at the exit point of the portal
+                ObstacleBlock entryTransporter = this.getObstacleBlock(footingBlock.getX(), footingBlock.getY());
+                //Then search 
+                footingBlock = this.getTopBlock(entryTransporter.getExitPoint(block)[0], entryTransporter.getExitPoint(block)[1]);
+                footingBlockY = footingBlock.getY();
+            }
+
+
+        }
+
+
+                //If this footing block is null, then there must not have been any blocks of any kind at the footing-coordinate, thus
+        //the footing coordinates are out of bounds. The block must thus be standing in such a way that the borders of the map are
+        //at its feet, the borders will thus serve as its footing, and since it then has footing it will not be considered to be airborne.
         if (footingBlock == null) {
-            return true; 
+            return false;
         }
-        //If the footingblock is an active portal, then set the footingBlock to the footing of the exit point of that active portal.
-        if ((footingBlock.getType() == 'v' || footingBlock.getType() == 'u') && footingBlock.getState()) {
-            ObstacleBlock entryPortal = this.getObstacleBlock(footingBlock.getX(), footingBlock.getY());
-            footingBlock = this.getDirectedBlock(entryPortal.getPortalExitPoint()[0], entryPortal.getPortalExitPoint()[1]);
-            footingBlockY = entryPortal.getPortalExitPoint()[1];
+        //Otherwise a block must exist, and if that block is not of the directed type, then it will not have collision, and as such
+        //there will exist no footing for the given block, and as such it must be airborne.
+        else if (!(footingBlock instanceof DirectedBlock)) {
+            return true;
         }
-        else if (footingBlock.getType() == 't') { //should check if this needs something more
+        // if (footingBlock == null) {
+        //     return false;
+        // }
+        else if (footingBlock == block) {
+            return true;
         }
+        else if (footingBlock instanceof TraversableBlock) {
+            return true;
+        }   
 
         //A moveable block can not be its own footing. This could happen in cases where the original footing block of the moveable 
         //block was an active portal with an exit point above the moveable block (in relation to current gravity direction).
@@ -410,9 +474,14 @@ public class PushRocks {
         if (footingBlock == block) {
             return true;
         }
+        // if (footingBlock == null) {
+        //     return false;
+        // }
+        
         //If footing block has no collision and the block is at a coordinate where gravity is in effect, then the block
         //is airborne.
-        if (footingBlockY < gravityZone) {
+        // if (footingBlockY < gravityZone) {
+        if (!isInBirdView(footingBlock)) {
             if (footingBlock == null) {
                 return true;
             }
@@ -448,31 +517,34 @@ public class PushRocks {
                 wasMoved = false;
             }
             //Attempt to move player, check this one move was enough to win the game, update the variable "wasMoved" 
-            else if (moveBlockTwoStrength(player, direction, 1)) {
+            else if (moveBlockTwoStrength(player, direction, 1, "player")) {
                 this.isGameOver();
                 wasMoved = true;
             }
         }
 
-        this.gravityStep(wasMoved);
+        // this.gravityStep(wasMoved);
         System.out.println(this.prettyString());
+        this.notifyObservers();
         return wasMoved;
     }
 
     public boolean pushMoveable(MoveableBlock block, String direction, int strength, boolean hasTakenPortal) { //CHECK THIS !!!!!!!!!!!!!! may work against intent
         //A block can not push another block in the same direction as the gravity affecting it
-        if (direction == "up" && this.isGravityInverted && block.getY() < this.gravityZone) {
+        // if (direction == "up" && this.isGravityInverted && block.getY() < this.gravityZone) {
+        if (direction == "up" && this.isGravityInverted && !isInBirdView(block)) {
             if (!hasTakenPortal) {
                 return false;
             }
         }
-        if (direction == "down" && !this.isGravityInverted && block.getY() < this.gravityZone) {
+        // if (direction == "down" && !this.isGravityInverted && block.getY() < this.gravityZone) {
+        if (direction == "down" && !this.isGravityInverted && !isInBirdView(block)) {
             if (!hasTakenPortal) {
                 return false;
             }
         }   
         if (block.isPlayer()) {
-            if (moveBlockTwoStrength(block, direction, strength+1)) {
+            if (moveBlockTwoStrength(block, direction, strength+1, "push")) {
                 this.isGameOver();
                 return true;
             }
@@ -481,7 +553,7 @@ public class PushRocks {
             }
         }
         if (block.isRock()) {
-            if (moveBlockTwoStrength(block, direction, strength-1)) {
+            if (moveBlockTwoStrength(block, direction, strength-1, "push")) {
                 this.isGameOver();
                 return true;
             }
@@ -492,7 +564,7 @@ public class PushRocks {
         return false;
     }
 
-    public boolean moveBlockTwoStrength(MoveableBlock block, String direction, int strength) {
+    private boolean moveBlockTwoStrength(MoveableBlock block, String direction, int strength, String movementSource) {
         System.out.println(block.getX() + "," + block.getY() + " to move: " + direction + ".");
         boolean hasFooting = true; //after taking portals it can become unclear whether or not the block still has footing, so we keep track of this
         boolean hasTakenPortal = false;
@@ -512,18 +584,16 @@ public class PushRocks {
 
         
         if (getObstacleBlock(blockNew.getX(), blockNew.getY()) != null) {
-            // Block should be teleported if the given movement would place it at a connected teleporter
+            //Block should be teleported if the given movement would place it at a connected teleporter
             if (getObstacleBlock(blockNew.getX(), blockNew.getY()).isTeleporter()) {
-                //If the teleporter is not connected, then it will hinder any the block's movement
+                //If the teleporter is not connected, then it will instead hinder any of the block's movement
                 if (! getObstacleBlock(blockNew.getX(), blockNew.getY()).getState()) {
                     System.out.println("Can not move further: you have hit a disconnected teleporter");
                     return false;
                 }
-                //If the teleporter is connected, then the moving block should be transported out of the connected teleporter in
+                //Otherwise the teleporter must be connected, thus the moving block should be transported out of the connected teleporter in
                 //direction of the movment if possible
                 else {
-                    // int newX = obstacleBlocks[-blockNew.getY()][blockNew.getX()].getConnection().getX();
-                    // int newY = obstacleBlocks[-blockNew.getY()][blockNew.getX()].getConnection().getY();
                     int newX = getObstacleBlock(blockNew.getX(), blockNew.getY()).getConnection().getX();
                     int newY = getObstacleBlock(blockNew.getX(), blockNew.getY()).getConnection().getY();
                     blockNew.setX(newX);
@@ -531,9 +601,10 @@ public class PushRocks {
                     blockNew.moveInDirection(direction);
                 }
             } 
+            //If the new coordinates for the copy-block are empty of obstacle blocks, then do nothing
             if (getObstacleBlock(blockNew.getX(), blockNew.getY()) == null) {
             }
-            // Block should be teleported if the given movement would place it at a connected portal
+            //Block should be teleported if the given movement would place it at a connected portal
             else if (getObstacleBlock(blockNew.getX(), blockNew.getY()).isPortal()) {
                 //If the portal is not connected, then it will act as a wall instead of transporting the block
                 if (!getObstacleBlock(blockNew.getX(), blockNew.getY()).getState()) {
@@ -562,7 +633,8 @@ public class PushRocks {
                     hasTakenPortal = true;
                     //If the block has taken a portal, then it should not be able to use itself as footing for further movement
                     
-                    if (blockNew.getY() < gravityZone) {
+                    // if (blockNew.getY() < gravityZone) {
+                    if (!isInBirdView(blockNew)) {
                         if (!this.isGravityInverted) {
                             if (blockNew.getX() == blockOld.getX() && blockNew.getY()-1 == blockOld.getY()) {
                                 hasFooting = false;
@@ -576,6 +648,7 @@ public class PushRocks {
                     } 
                 }
             }
+            //If the new coordinates for the copy-block are still empty of obstacle blocks, then do nothing
             if (getObstacleBlock(blockNew.getX(), blockNew.getY()) == null) {
 
             }
@@ -606,7 +679,11 @@ public class PushRocks {
             //the coordinates should be legal for the original too
             block.setX(blockNew.getX());
             block.setY(blockNew.getY());
-            block.setDirection(blockNew.getDirection());
+            //If the block's movement was not caused by gravity, then set the direction of the moved block to that of the copy
+            if (movementSource != "gravity") {
+                block.setDirection(blockNew.getDirection());
+            }
+            
 
             //if the moved block was a rock or player, then update its state to reflect wether or not it 
             //is placed ontop of a plate block
@@ -627,14 +704,14 @@ public class PushRocks {
             return true;
         }
         
-        // If the movement places this block at coordinates that are already occupied by another block, and that block has collision,
+        // If the movement places this block at coordinates that are already occupied by another block and that block has collision,
         // then try to first move that block, and if successful move this block afterwards.
 
         if (getMoveableBlock(blockNew.getX(), blockNew.getY()) != null && strength > 0) {
 
             if (! getMoveableBlock(blockNew.getX(), blockNew.getY()).hasCollision()) {
-                //Since the copy block was able to navigate to its coordinates without breaking any rules, then 
-                //the coordinates should be legal for the original too
+                //Since the copy-block was able to navigate to its coordinates without breaking any rules, then 
+                //the coordinates should be legal for the original as well
                 block.setX(blockNew.getX());
                 block.setY(blockNew.getY());
 
@@ -644,13 +721,13 @@ public class PushRocks {
             }
 
             if (pushMoveable(getMoveableBlock(blockNew.getX(), blockNew.getY()), direction, strength, hasTakenPortal) == true) {
-                //Since the copy block was able to navigate to its coordinates without breaking any rules, then 
-                //the coordinates should be legal for the original too
+                //Since the copy-block was able to navigate to its coordinates without breaking any rules, then 
+                //the coordinates should be legal for the original as well
                 block.setX(blockNew.getX());
                 block.setY(blockNew.getY());
 
                 //if the moved block was a rock or player, then update its state to reflect wether or not it 
-                //is placed ontop of a plate block
+                //is placed ontop of a pressure plate block
                 if (block.isRock() || block.isPlayer()) {
                     block.setState(getTraversableBlock(block.getX(), block.getY()).isPlate());
                 }
@@ -676,16 +753,17 @@ public class PushRocks {
             return;
         }
 
-        if (movedBlock.getY() < gravityZone) {
+        // if (movedBlock.getY() < gravityZone) {
+        if (!isInBirdView(movedBlock)) {
             if (! isGravityInverted) {
                 if (getMoveableBlock(movedBlock.getX(), movedBlock.getY() + 1) != null) {
-                    moveBlockTwoStrength(getMoveableBlock(movedBlock.getX(), movedBlock.getY() + 1), direction, 0);
+                    moveBlockTwoStrength(getMoveableBlock(movedBlock.getX(), movedBlock.getY() + 1), direction, 0, "baggage");
                 }
                 
             }
             else {
                 if (getMoveableBlock(movedBlock.getX(), movedBlock.getY() - 1) != null) {
-                    moveBlockTwoStrength(getMoveableBlock(movedBlock.getX(), movedBlock.getY() - 1), direction, 0);
+                    moveBlockTwoStrength(getMoveableBlock(movedBlock.getX(), movedBlock.getY() - 1), direction, 0, "baggage");
                 }
             }
         }
@@ -858,6 +936,10 @@ public class PushRocks {
             this.levelLayout = levelLayout;
             this.directionLayout = directionLayout;
             this.buildWorld();
+            
+            GravityIncrementer gravityIncrementer = new GravityIncrementer(this, 1000);
+            Thread thread = new Thread(gravityIncrementer);
+            thread.start();
         }
 
         public void buildWorld() {
@@ -1266,6 +1348,25 @@ public class PushRocks {
         
         // BlockAbstract mBlock = new MoveableBlock(0, 0, 'p', "right");
         // ((ObstacleBlock) block2).clearPortal();
+    }
+
+    @Override
+    public void addObserver(IObserverPushRocks observer) {
+        if (!this.observers.contains(observer)) {
+            this.observers.add(observer);
+        }
+    }
+
+    @Override
+    public void removeObserver(IObserverPushRocks observer) {
+        if (this.observers.contains(observer)) {
+            this.observers.remove(observer);
+        }
+    }
+
+    @Override
+    public void notifyObservers() {
+        this.observers.forEach(observer -> observer.updateMap(this));
     }   
     
 }

@@ -93,7 +93,7 @@ public class MoveableBlock extends DirectedBlock {
     //established by the BlockAbstract superclass accordingly.
     @Override
     protected String getValidTypes() {
-        return super.getValidTypes() + "pr";
+        return super.getValidTypes() + "pr"; //!!! instead of expanding the pool, restrict it to these values
     }
 
     @Override

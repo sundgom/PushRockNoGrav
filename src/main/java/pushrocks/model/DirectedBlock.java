@@ -10,7 +10,7 @@ public abstract class DirectedBlock  extends BlockAbstract {
 
     //Sets the direction to the input, a direction set to null indicates that the block is not directed 
     //in a specific direction.
-    protected void setDirection(String direction) {
+    public void setDirection(String direction) {
         if (! isValidDirection(direction)) {
             throw new IllegalArgumentException("Invalid input for direction. Direction must be: up, down, left or right, but was: " + direction + ".");
         }

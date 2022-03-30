@@ -35,7 +35,7 @@ public abstract class BlockAbstract {
     }
     protected void setType(char type) {
         if (! isValidType(type)) {
-            throw new IllegalArgumentException("Type '" + type + "' is not a valid for the " + this.getClass() + " class. Must be one of the : " + this.getValidTypes());
+            throw new IllegalArgumentException("Type '" + type + "' is not a valid for the " + this.getClass().getSimpleName() + " class. Must be one of the : " + this.getValidTypes());
         }
         this.type = type;
     }
@@ -43,7 +43,7 @@ public abstract class BlockAbstract {
     //getValidTypes() is set to protected because what characters are considered valid will depend on the sub-class
     //calling the method. 
     protected String getValidTypes() {
-        return "w";
+        return "";
     }
     private boolean isValidType(char type) {
         return this.getValidTypes().contains(type + "");

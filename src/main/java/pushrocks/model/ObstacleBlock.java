@@ -117,6 +117,56 @@ public class ObstacleBlock extends DirectedBlock {
     }
 
     //Returns the entry point of the given portal if it exists
+
+    public int[][] getTeleporterEntryPoints() {
+        // Only portals and teleporters can have an exit point
+        if ( !this.isTeleporter()) {
+            System.out.println("getTeleporterEntryPoint is only valid for portals and teleporters.");
+            return null;
+        }
+        // A portal that is not connected will have no entry point
+        if ( this.connection == null) {
+            return null;
+        }
+        int[][] entryPoints = new int[4][2];
+        //Entry from above
+        entryPoints[0][0] = this.getX();
+        entryPoints[0][1] = this.getY() + 1;
+        //Entry from below
+        entryPoints[3][0] = this.getX();
+        entryPoints[3][1] = this.getY() - 1;
+        //Entry from right
+        entryPoints[1][0] = this.getX() + 1;
+        entryPoints[1][1] = this.getY();
+        //Entry from left
+        entryPoints[2][0] = this.getX() - 1;
+        entryPoints[2][1] = this.getY();
+
+        return entryPoints;
+    }
+
+    //The exit point of a given teleporter/portal will be equal to the connected portal's entry point
+    public int[] getTeleporterExitPoint(BlockAbstract entryBlock) {
+        if (this.connection == null) {
+            return null;
+        }
+        if (!this.isTeleporter()) {
+            return null;
+        }
+        int entryBlockX = entryBlock.getX();
+        int entryBlockY = entryBlock.getY();
+        int[][] entryPoints = this.getTeleporterEntryPoints();
+        for (int x = 0; x < 4; x++) {
+            if ((entryPoints[x][0] == entryBlockX) && (entryPoints[x][1] == entryBlockY)) {
+                int[] exitPoint = new int[2];
+                exitPoint[0] = this.getConnection().getTeleporterEntryPoints()[3-x][0];
+                exitPoint[1] = this.getConnection().getTeleporterEntryPoints()[3-x][1];
+                return exitPoint;
+            }
+        }
+        return null;
+    }
+    
     public int[] getPortalEntryPoint() {
         // Only portals and teleporters can have an exit point
         if ( !(this.isPortal() || this.isTeleporter())) {
@@ -157,6 +207,8 @@ public class ObstacleBlock extends DirectedBlock {
         return entryPoint;
     }
 
+
+
     //The exit point of a given teleporter/portal will be equal to the connected portal's entry point
     public int[] getPortalExitPoint() {
         if (this.connection == null) {
@@ -164,6 +216,21 @@ public class ObstacleBlock extends DirectedBlock {
         }
         return this.connection.getPortalEntryPoint();
     }
+
+    //The exit point of a given teleporter/portal will be equal to the connected portal's entry point
+    public int[] getExitPoint(BlockAbstract entryBlock) {
+        if (this.isPortal()) {
+            return this.getPortalExitPoint();
+        }
+        else if (this.isTeleporter()) {
+            return this.getTeleporterExitPoint(entryBlock);
+        }
+        else {
+            return null;
+        }
+    }
+
+
 
     //Expands the pool of valid types established in the BlockAbstract superclass to include those valid for this sub-class.
     //Valid obstacle types include: wall 'w', teleporter 't', portal one 'u', and portal two 'v'.
@@ -180,16 +247,20 @@ public class ObstacleBlock extends DirectedBlock {
         return this.getType() == 't';
     }
 
-    public boolean isPortal() { 
-        return (this.getType() == 'v' || this.getType() == 'u');
-    }
-
     public boolean isPortalOne() {
         return (this.getType() == 'v');
     }
 
     public boolean isPortalTwo() { 
         return (this.getType() == 'u');
+    }
+
+    public boolean isPortal() { 
+        return (this.isPortalOne() || this.isPortalTwo());
+    }
+
+    public boolean isTransporter() {
+        return (this.isTeleporter() || this.isPortal());
     }
 
     @Override
