@@ -69,6 +69,27 @@ public class PushRocksController implements IObserverPushRocks {
         //     WWWWWWWWWWWWWWWWWWW""";
         // String directionLayout1 = "rrrrrr";
 
+        // // String levelLayout1 = """
+        // //     wwwwwwwwwwwwwwwwwww
+        // //     w  w     w        w
+        // //     w  w r   w  r     w
+        // //     w  wwww ww        w
+        // //     w   r    w        w
+        // //     w      d www      w
+        // //     w        w        w
+        // //     w    d d w        w
+        // //     w        w        w
+        // //     wwwwwwwwwwwwwwwwwww
+        // //     W--------W--PT----W
+        // //     W--------W---R--D-W
+        // //     W--------WWW----WWW
+        // //     W--------W---R--D-W
+        // //     W--------W--------W
+        // //     W--------W-WW-----W
+        // //     W- ------W-T------W
+        // //     W--------W--------W
+        // //     WWWWWWWWWWWWWWWWWWW""";
+        // // String directionLayout1 = "rrrrrr";
         String levelLayout1 = """
             wwwwwwwwwwwwwwwwwww
             w  w     w        w
@@ -81,15 +102,59 @@ public class PushRocksController implements IObserverPushRocks {
             w        w        w
             wwwwwwwwwwwwwwwwwww
             W--------W--PT----W
-            W--------W---R--D-W
+            W--------W------D-W
             W--------WWW----WWW
-            W--------W---R--D-W
+            W--------W------D-W
             W--------W--------W
-            W--------W-WW-----W
-            W- ------W-T------W
-            W--------W--------W
-            WWWWWWWWWWWWWWWWWWW""";
-        String directionLayout1 = "rrrrrr";
+            W--------W--WR----W
+            W- ------W-T-R--R-W
+            W--------W---R--R-W
+            WWWWWWWWWWWWWVWWUWW""";
+        String directionLayout1 = "rrrrrrrrruu";
+
+        // //GravityTest
+        // String levelLayout1 = """
+        //     wwwwwwwwwwwwwwwwwww
+        //     w  w     w        w
+        //     w  w r   w  r     w
+        //     w  wwww ww        w
+        //     w   r    w        w
+        //     w      d www      w
+        //     w        w        w
+        //     w    d d w        w
+        //     w        w        w
+        //     wwwwwwwwwwwwwwwwwww
+        //     W--------W---T----W
+        //     W--------W------D-W
+        //     W--------WWW----WWW
+        //     W--------W------D-W
+        //     W--------W--------W
+        //     W--------W-WWP----W
+        //     W- ------W-T-R----W
+        //     W--------W---R----W
+        //     WWWWWWWWWWWWWWWWWWW""";
+        // String directionLayout1 = "rrrrrr";
+        // String levelLayout1 = """
+        //     wwwwwwwwwwwwwwwwwww
+        //     w  w     w        w
+        //     w  w r   w  r     w
+        //     w  wwww ww        w
+        //     w   r    w        w
+        //     w      d www      w
+        //     w        w        w
+        //     w    d d w        w
+        //     w        w        w
+        //     wwwwwwwwwwwwwwwwwww
+        //     W--------W---T----W
+        //     W--------W------D-W
+        //     W--------WWW----WWW
+        //     W--------W------D-W
+        //     W--------W---P----W
+        //     W--------W-WVR----W
+        //     W- ------W-T------W
+        //     W--------W---R----W
+        //     WWWWWWWWWWWWWUWWWWW""";
+        // String directionLayout1 = "rrrrrrru";
 
 		pushRocks = new PushRocks(levelLayout1, directionLayout1);
         pushRocks.addObserver(this);
@@ -147,7 +212,6 @@ public class PushRocksController implements IObserverPushRocks {
             //Floor
             case ' ':
                 System.out.println(((TraversableBlock) blockAbstract).isBirdView()); 
-                // if (blockAbstract.getY() < this.pushRocks.getGravityZone()) {
                 if (!((TraversableBlock) blockAbstract).isBirdView() ) {
                     return "#5b82bb"; //this color made things look ugly
                     // return "#1db121";
@@ -306,6 +370,9 @@ public class PushRocksController implements IObserverPushRocks {
     void handleGravity() {
         pushRocks.gravityInverter();
         drawMap();
+        // System.out.println("TEST");
+        // this.pushRocks.gravityStep(false);
+        drawMap();
     }
 
     @FXML
@@ -323,8 +390,21 @@ public class PushRocksController implements IObserverPushRocks {
     @FXML
     void handleMenu() {
         System.out.println("Open menu.");
-        System.out.println(pushRocks.toGameToSaveFormat());
+        // System.out.println(pushRocks.toGameToSaveFormat());
+        this.pushRocks.gravityStep(false);
+
     }
+
+    @FXML
+    void handleScore() {
+        System.out.println("Bug-search.");
+        // System.out.println(pushRocks.toGameToSaveFormat());
+        // this.pushRocks.gravityStep(false);
+        // this.pushRocks.movePlayer(1, "right");
+        this.pushRocks.getGravityFallOrder();
+    }
+
+
 
     private void updateScore() {
         handleScore.setText("Score: " + pushRocks.getScore());

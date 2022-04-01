@@ -47,7 +47,7 @@
                            <children>
                               <VBox alignment="BOTTOM_CENTER" spacing="3.0">
                                  <children>
-                                    <Button fx:id="handleScore" mnemonicParsing="false" prefWidth="60.0" text="Score: 9" />
+                                    <Button fx:id="handleScore" mnemonicParsing="false" onMouseClicked="#handleScore" prefWidth="60.0" text="Score: 9" />
                                     <Button mnemonicParsing="false" onMouseClicked="#handleMenu" prefWidth="60.0" text="Menu" />
                                  </children>
                               </VBox>

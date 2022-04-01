@@ -166,7 +166,7 @@ public class ObstacleBlock extends DirectedBlock {
         }
         return null;
     }
-    
+
     public int[] getPortalEntryPoint() {
         // Only portals and teleporters can have an exit point
         if ( !(this.isPortal() || this.isTeleporter())) {
@@ -217,10 +217,25 @@ public class ObstacleBlock extends DirectedBlock {
         return this.connection.getPortalEntryPoint();
     }
 
+    //The exit point of a given teleporter/portal will be equal to the connected portal's entry point,
+    //but only if the given entryBlock matches the coordinates for the portal's entry point
+    public int[] getPortalExitPoint(BlockAbstract entryBlock) {
+        if (this.connection == null) {
+            return null;
+        }
+        //If the given entry block is not standing at the portal's entry point, then
+        //return null as to indicate that the block would not be able to enter the portal from its current position
+        int[] entryBlockCoordinates = new int[]{entryBlock.getX(), entryBlock.getY()};
+        if ( !(entryBlockCoordinates[0] == this.getPortalEntryPoint()[0] && entryBlockCoordinates[1] == this.getPortalEntryPoint()[1]) ) {
+            return null;
+        }
+        return this.connection.getPortalEntryPoint();
+    }
+
     //The exit point of a given teleporter/portal will be equal to the connected portal's entry point
     public int[] getExitPoint(BlockAbstract entryBlock) {
         if (this.isPortal()) {
-            return this.getPortalExitPoint();
+            return this.getPortalExitPoint(entryBlock);
         }
         else if (this.isTeleporter()) {
             return this.getTeleporterExitPoint(entryBlock);
@@ -228,6 +243,41 @@ public class ObstacleBlock extends DirectedBlock {
         else {
             return null;
         }
+    }
+
+    //Checks if this obstacle block can be entered by the given block
+    public boolean canBlockEnter(BlockAbstract entryBlock) {
+        //Obstacle blocks can not be entered unless they are transporters
+        if (!this.isTransporter()) {
+            return false;
+        }  
+        //Further a transporter can only be entered if it is active
+        if (this.getState()) {
+            //And at last the entring block is only allowed to enter if it is standing
+            //at one of the transporter's entry points
+            int[] blockPoint = new int[]{entryBlock.getX(), entryBlock.getY()};
+            if (this.isPortal()) {
+                //A portal will only have a single entry point
+                System.out.println("WHATINTHEWORLD");
+                System.out.println(blockPoint);
+                System.out.println(this.getPortalEntryPoint());
+                System.out.println(blockPoint == this.getPortalEntryPoint());
+                System.out.println("Port x" + this.getPortalEntryPoint()[0] + "y" + this.getPortalEntryPoint()[1]);
+                System.out.println("Bloc x" + blockPoint[0] + "y" + blockPoint[1]);
+                System.out.println(blockPoint[0] == this.getPortalEntryPoint()[0] && blockPoint[1] == this.getPortalEntryPoint()[1]);
+                return blockPoint[0] == this.getPortalEntryPoint()[0] && blockPoint[1] == this.getPortalEntryPoint()[1];
+            }
+            else {
+                //A teleporter will have four entry points
+                int[][] entryPoints = this.getTeleporterEntryPoints();
+                for (int i = 0; i < 4; i++) {
+                    if (blockPoint[0] == entryPoints[i][0] && blockPoint[1] == entryPoints[i][1]) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
 
@@ -265,7 +315,7 @@ public class ObstacleBlock extends DirectedBlock {
 
     @Override
     public String getCollisionTypes() {
-        return super.getCollisionTypes() + "wt"; //can potentially replace "wt" with getValidTypes() if portals can have collision
+        return super.getCollisionTypes() + "wtuv"; //can potentially replace "wt" with getValidTypes() if portals can have collision
     }
 
 
