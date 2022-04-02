@@ -400,8 +400,8 @@ public class PushRocksController implements IObserverPushRocks {
         System.out.println("Bug-search.");
         // System.out.println(pushRocks.toGameToSaveFormat());
         // this.pushRocks.gravityStep(false);
-        // this.pushRocks.movePlayer(1, "right");
-        this.pushRocks.getGravityFallOrder();
+        this.pushRocks.movePlayer(1, "right");
+        // this.pushRocks.getGravityFallOrder();
     }
 
 

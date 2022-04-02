@@ -2,9 +2,7 @@ package pushrocks.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PushRocks implements IObservablePushRocks {
@@ -45,7 +43,7 @@ public class PushRocks implements IObservablePushRocks {
             return "up";
         }
     }
-    private int getGravityDirectionInt() {
+    private int getGravityDirectionY() {
         if (!this.isGravityInverted) {
             return -1;
         }
@@ -369,10 +367,10 @@ public class PushRocks implements IObservablePushRocks {
         this.moveableBlocks.remove(block);
     }
 
-    private List<BlockAbstract> getBlockTypeChain(BlockAbstract startBlock, int xDirection, int yDirection) {
-        //A block is considered to be a part of the block chain if, in a search starting from the given start block
-        //and moving in the direction made out of the sum of the given x and y directions, that block is the next found
-        //block in the search and also shares the same class type as the start-block.
+    //Returns a list of all blocks that are of the same type as the given block and are positioned such that they together
+    //make out an uninterrupted chain in the given direction. The given block is placed first in the list, and the remainder
+    //are placed in sequence from that position
+    private List<BlockAbstract> getBlockChain(BlockAbstract startBlock, int directionX, int directionY) {
         int x = startBlock.getX();
         int y = startBlock.getY();
         //The chain will be represented by a list containing all blocks that are a part of the chain
@@ -384,8 +382,8 @@ public class PushRocks implements IObservablePushRocks {
         boolean isSearchDone = false;
         while (!isSearchDone) {
             //Determine the coordinates for block that is next in the search
-            x += xDirection;
-            y += yDirection;
+            x += directionX;
+            y += directionY;
             //Obtain the block representing those coord
             BlockAbstract nextBlock = this.getTopBlock(x, y);
             //If  be of the same type as the start block, then it will be part of the block chain
@@ -400,19 +398,16 @@ public class PushRocks implements IObservablePushRocks {
         return chain;
     }
 
-    //Returns a list of moveable blocks that are stacked ontop of the given block
-    private List<MoveableBlock> getBlockStack(MoveableBlock moveableBlock) {
-        int yDirection = 0;
+    //Returns a list of moveable blocks that are stacked ontop of the given block, with the given block being placed first in the list,
+    //as to represent
+    private List<MoveableBlock> getBlockStack(MoveableBlock moveableBlock) {  
         //A block is considered to be stacked ontop of another if it is positioned in such a way that
         //gravity would push it down on that other block. As such the search for these blocks must start 
         //from the position of the given block then move in the direction opposite to the gravitational pull.
-        if (!isGravityInverted) {
-            yDirection++;
-        } else {
-            yDirection--;
-        }
+        int directionY = -this.getGravityDirectionY();
+
         List<MoveableBlock> chainMoveableBlocks= new ArrayList<MoveableBlock>();
-        this.getBlockTypeChain(moveableBlock, 0, yDirection).stream()
+        this.getBlockChain(moveableBlock, 0, directionY).stream()
             .forEach(a -> chainMoveableBlocks.add((MoveableBlock) a));
         return chainMoveableBlocks;
     }
@@ -455,7 +450,6 @@ public class PushRocks implements IObservablePushRocks {
             ObstacleBlock entryPorter = (ObstacleBlock) blockChain.get(1);
             ObstacleBlock exitPorter = (ObstacleBlock) blockChain.get(2);
             MoveableBlock blockAtEntry = (MoveableBlock) blockChain.get(0);
-            int[] blockAtExitXY = entryPorter.getExitPoint(blockAtEntry);
             BlockAbstract blockAtExit = this.getFootingBlock(blockAtEntry, true);
 
             int entryDirectionX = 0;
@@ -467,7 +461,7 @@ public class PushRocks implements IObservablePushRocks {
             //The blocks leaving the exit portal will fall out in the direction that the exit portal is facing.
             if (entryPorter.isPortal()) {
                 entryDirectionX = 0;
-                entryDirectionY = (-1)*this.getGravityDirectionInt();
+                entryDirectionY = (-1)*this.getGravityDirectionY();
                 exitDirectionX = exitPorter.getDirectionInt()[0];
                 exitDirectionY = exitPorter.getDirectionInt()[1];
             }
@@ -478,42 +472,63 @@ public class PushRocks implements IObservablePushRocks {
             //is faced in the same direction as gravity for its used exit point.
             else {
                 entryDirectionX = exitDirectionX = 0;
-                entryDirectionY = (-1)*this.getGravityDirectionInt();
-                exitDirectionY = this.getGravityDirectionInt();
+                entryDirectionY = (-1)*this.getGravityDirectionY();
+                exitDirectionY = this.getGravityDirectionY();
             }
             //The entry chain is thus obtained and put into its own list
             List<BlockAbstract> entryChain = new ArrayList<BlockAbstract>();
-            entryChain = getBlockTypeChain(blockAtEntry, entryDirectionX, entryDirectionY);
+            entryChain = getBlockChain(blockAtEntry, entryDirectionX, entryDirectionY);
             
             //The process is thus repeated for the exit chain as long as the block at the exit was in fact a moveable
             //block, otherwise it has no place in a moveable block chain
             List<BlockAbstract> exitChain = new ArrayList<BlockAbstract>();
             if (blockAtExit instanceof MoveableBlock) {
-                exitChain = getBlockTypeChain(blockAtExit, exitDirectionX, exitDirectionY);
-            }
+                exitChain = getBlockChain(blockAtExit, exitDirectionX, exitDirectionY);
+            } 
 
             //The two moveable block lists should thus put be together, bound together by the entry and exit porter, which forms the complete chain
             List<BlockAbstract> completeChain = new ArrayList<BlockAbstract>();
-
-            int entryChainWeight;
 
             if (exitChain.size() >= 1) {
                 //If the exit porter faces the opposite direction of gravity, then there will be blocks falling into both the entry and exit portal
                 //at the same time, and thus colliding. In this case the direction the chain as a whole should move in will be determined by the amount
                 //of moveable blocks falling on each side, whichever side is heavier will steer the movement. Should both sides be perfectly balanced, 
                 //then the chain will not move at all.
-                if  (exitPorter.getDirectionInt()[1] == -(this.getGravityDirectionInt()) ) {
+                if  (exitDirectionY == -(this.getGravityDirectionY()) ) {
                     //if the entry side is heavier than the exit side
                     if (entryChain.size() > exitChain.size()) {
+                        completeChain.add(exitPorter);
+                        Collections.reverse(exitChain);
+                        completeChain.addAll(exitChain);
                         completeChain.add(entryPorter);
+                        completeChain.addAll(entryChain);
+                        fallOrderComplete.add(completeChain);
+                    }
+                    //if the exit side is heavier than the entry side
+                    else if (entryChain.size() < exitChain.size()) {
+                        completeChain.add(entryPorter);
+                        //But first the entry chain list is reversed as to represent the order in which the blocks would fall into the entry transporter.
                         Collections.reverse(entryChain);
                         completeChain.addAll(entryChain);
                         completeChain.add(exitPorter);
                         completeChain.addAll(exitChain);
                         fallOrderComplete.add(completeChain);
                     }
-                    //if the exit side is heavier than the entry side
-                    else if (entryChain.size() < exitChain.size()) {
+                    //Otherwise the sides are perfectly balanced, and so gravity will have no effect, to signify that these blocks should not be considered
+                    //we do not include the transporters
+                    //in the gravity fall order.
+                    else {
+                        // completeChain.addAll(entryChain);
+                        // completeChain.addAll(exitChain);
+                        continue;
+                    }
+
+                }
+                //If the exit direction is non-vertical, then the blocks on that side will not move into or out of the portal, but since they
+                //are equal to or outnumber the other side they will hinder the movement of that other side, thus the entry side are excluded from the gravity
+                //fall order, wheras the heavier side remain, as they can still fall down from where they are currently standing.
+                else if (exitDirectionX != 0) {
+                    if (entryChain.size() > exitChain.size()) {
                         completeChain.add(exitPorter);
                         Collections.reverse(exitChain);
                         completeChain.addAll(exitChain);
@@ -521,80 +536,134 @@ public class PushRocks implements IObservablePushRocks {
                         completeChain.addAll(entryChain);
                         fallOrderComplete.add(completeChain);
                     }
-                    //Otherwise the sides are perfectly balanced, and so gravity will have no effect, thus there is no need to include any of those blocks
-                    //in the gravity fall order.
-                    else {
-                        continue;
-                    }
-
-                }
-                //If the exit direction is non-vertical, then the blocks on that side will not move into or out of the portal, but since they
-                //outnumber the other side they will hinder the movement of that other side, thus the entry side are excluded from the gravity
-                //fall order, wheras the heavier side remain, as they can still fall down from where they are currently standing.
-                else if (exitDirectionX != 0) {
-                    if (entryChain.size() < exitChain.size()) {
+                    else if (entryChain.size() <= exitChain.size()) { //This could be !!!!NEEDS TO BE CHANGED SOMEHOW
                         completeChain.add(exitPorter);
                         Collections.reverse(exitChain);
                         completeChain.addAll(exitChain);
                         fallOrderComplete.add(completeChain);
                     }
+                    
+                }
+                //Otherwise the exit direction must be the same as the gravity direction, thus the chain at the entry portal are at the top of the chain,
+                //and the ones at the exit are at the bottom
+                else { 
+                    completeChain.add(exitPorter);
+                    Collections.reverse(exitChain);
+                    completeChain.addAll(exitChain);
+                    completeChain.add(entryPorter);
+                    completeChain.addAll(entryChain);
+                    fallOrderComplete.add(completeChain);
                 }
             }
-            
-
-            //The two moveable block lists should thus put be together, bound together by the entry and exit porter, which forms the complete chain
-            List<BlockAbstract> completeChain = new ArrayList<BlockAbstract>();
-            //But first the entry chain list is reversed as to represent the order in which the blocks would fall into the entry teleporter.
-            Collections.reverse(entryChain);
-
-            completeChain.addAll(entryChain);
-            completeChain.add(entryPorter);
-            completeChain.add(exitPorter);
-            completeChain.addAll(exitChain);
-
-            fallOrderComplete.add(completeChain);
+            else {
+                completeChain.add(exitPorter);
+                completeChain.add(entryPorter);
+                completeChain.addAll(entryChain);
+                fallOrderComplete.add(completeChain);
+            }
         }
-        
+        //In this list, the chains are ordered such that the first block chain will be the one whose last block has the lowest y-coordinate, 
+        //and then according to the lowest x-coordinate should the y-coordinate be shared
+        fallOrderComplete = fallOrderComplete.stream()
+            .sorted( (a, b) -> a.get(a.size()-1).getX() - b.get(b.size()-1).getX())
+            .sorted( (a, b) -> a.get(a.size()-1).getY() - b.get(b.size()-1).getY())
+            .collect(Collectors.toList());
         return fallOrderComplete;
     }
 
     public void gravityStep(boolean hasPlayerMoved) {
         //The first blocks that should fall down are the ones furthest down in the gravity's direction, thus
         //these blocks should be issued to move first.
-        List<MoveableBlock> transportersAsFooting = this.moveableBlocks.stream()
-        .filter(a -> this.getFootingBlock(a, false) instanceof ObstacleBlock)
-        .filter(a -> ((ObstacleBlock) this.getFootingBlock(a, false)).isTransporter())
-        .collect(Collectors.toList());
-        System.out.println(transportersAsFooting);
-        List<MoveableBlock> list = this.moveableBlocks.stream()
-            .sorted( (a, b) -> (b.getX() - a.getX()))
-            .sorted( (a, b) -> (b.getY() - a.getY()))
-            .collect(Collectors.toList());
-        this.moveableBlocks = new ArrayList<MoveableBlock>(list);
-        //When gravity is inverted the blocks with the highest value for their Y coordinates should fall first
-        if (this.isGravityInverted) {
-            for (int i = 0; i < moveableBlocks.size(); i++) {
-                if (moveableBlocks.get(i).isPlayer() && hasPlayerMoved) {
-                }
-                else if (!isInBirdView(moveableBlocks.get(i))) {
-                    moveBlock(moveableBlocks.get(i), "up", 1, "gravity");
-                }
-                System.out.println(this.prettyString());
-            }
-        }
+        // // // // List<MoveableBlock> transportersAsFooting = this.moveableBlocks.stream()
+        // // // // .filter(a -> this.getFootingBlock(a, false) instanceof ObstacleBlock)
+        // // // // .filter(a -> ((ObstacleBlock) this.getFootingBlock(a, false)).isTransporter())
+        // // // // .collect(Collectors.toList());
+        // // // // System.out.println(transportersAsFooting);
+        // // // // List<MoveableBlock> list = this.moveableBlocks.stream()
+        // // // //     .sorted( (a, b) -> (b.getX() - a.getX()))
+        // // // //     .sorted( (a, b) -> (b.getY() - a.getY()))
+        // // // //     .collect(Collectors.toList());
+        // // // // this.moveableBlocks = new ArrayList<MoveableBlock>(list);
+        // // // // //When gravity is inverted the blocks with the highest value for their Y coordinates should fall first
+        // // // // if (this.isGravityInverted) {
+        // // // //     for (int i = 0; i < moveableBlocks.size(); i++) {
+        // // // //         if (moveableBlocks.get(i).isPlayer() && hasPlayerMoved) {
+        // // // //         }
+        // // // //         else if (!isInBirdView(moveableBlocks.get(i))) {
+        // // // //             moveBlock(moveableBlocks.get(i), "up", 1, "gravity");
+        // // // //         }
+        // // // //         System.out.println(this.prettyString());
+        // // // //     }
+        // // // // }
 
-        //When gravity is not inverted the blocks with the lowest value for their Y coordinates should fall first
-        else {
-            for (int i = moveableBlocks.size() - 1; i >= 0; i--) {
-                if (moveableBlocks.get(i).isPlayer() && hasPlayerMoved) {
+        // // // // //When gravity is not inverted the blocks with the lowest value for their Y coordinates should fall first
+        // // // // else {
+        // // // //     for (int i = moveableBlocks.size() - 1; i >= 0; i--) {
+        // // // //         if (moveableBlocks.get(i).isPlayer() && hasPlayerMoved) {
+        // // // //         }
+        // // // //         else if (!isInBirdView(moveableBlocks.get(i))) {
+        // // // //                 moveBlock(moveableBlocks.get(i), "down", 1, "gravity");
+        // // // //         }
+        // // // //         System.out.println(this.prettyString());
+        // // // //         notifyObservers();
+        // // // //     }
+        // // // // }
+        List<List<BlockAbstract>> fallOrder = this.getGravityFallOrder();
+        String porterDirection = "";
+        List<BlockAbstract> movedBlocks = new ArrayList<BlockAbstract>();
+        for (List<BlockAbstract> blockChain : fallOrder) {
+            for (int i = 0; i < blockChain.size(); i++) {
+                BlockAbstract block = blockChain.get(i);
+                if (movedBlocks.contains(block)) {
+                    continue;
                 }
-                else if (!isInBirdView(moveableBlocks.get(i))) {
-                        moveBlock(moveableBlocks.get(i), "down", 1, "gravity");
+                movedBlocks.add(block);
+                if (!(blockChain.get(0) instanceof ObstacleBlock)) {
+                    break; //porterDirection null perhaps?
+                }
+                if (i == 0) {
+                    BlockAbstract block2 = blockChain.get(i+1);
+                    int directionY = block.getY() -block2.getY();
+                    int directionX = block.getX() - block2.getX();
+                    
+                    if (directionY < 0) {
+                        porterDirection = "up";
+                    }
+                    else if (directionY > 0) {
+                        porterDirection = "down";
+                    }
+                    else if (directionX < 0) {
+                        porterDirection = "right";
+                    }
+                    else {
+                        porterDirection = "left";
+                    }
+                    
+                }
+                else if (block instanceof ObstacleBlock && i < blockChain.size()-1) {
+                    porterDirection = this.getGravityDirection();
+                }
+                else if (block instanceof MoveableBlock) {
+                    if ((porterDirection == "right" || porterDirection == "left") && isBlockAirborne((MoveableBlock) block)) {
+                        if (!moveBlock((MoveableBlock) block, this.getGravityDirection(), 1, "gravity")) {
+                            moveBlock((MoveableBlock) block, porterDirection, 1, "gravity");
+                        }
+                    }
+                    else if (isBlockAirborne((MoveableBlock) block)) {
+                        moveBlock((MoveableBlock) block, porterDirection, 1, "gravity");
+                    }
+                    
                 }
                 System.out.println(this.prettyString());
-                notifyObservers();
             }
         }
+        this.moveableBlocks.stream()
+            .filter(a -> !movedBlocks.contains(a))
+            .filter(a -> isBlockAirborne(a))
+            .sorted((a, b) -> a.getX() - b.getX())
+            .sorted((a, b) -> a.getY() - b.getY())
+            .forEach(a -> moveBlock(a, this.getGravityDirection(), 1, "gravity"));
+
         this.isGameOver();
         this.notifyObservers();
     }
@@ -635,13 +704,13 @@ public class PushRocks implements IObservablePushRocks {
                 //If the given moveable block can enter the transporter, then that block's footing should be set
                 //to the block positioned at the transporter's exit point
                 if (entryTransporter.canBlockEnter(block)) {
-                    footingBlock = getTopBlock(entryTransporter.getExitPoint(block)[0], entryTransporter.getExitPoint(block)[1]);
+                    footingBlock = getTopBlock(entryTransporter.getExitPointXY(block)[0], entryTransporter.getExitPointXY(block)[1]);
                 }
             }
         }
         //The footing block will at last be returned
         return footingBlock;
-
+        
     }
 
     //Checks if the given block is placed at a corrdinate where bird-view is enabled
@@ -654,8 +723,6 @@ public class PushRocks implements IObservablePushRocks {
     }
 
     public boolean isBlockAirborne(MoveableBlock block) {
-        // int footingBlockY = block.getY();
-
         //Block is not considered to be airborne when the view-angle is set to birdview, as that view-angle does not
         //support free-fall. When bird view is off, the traversable blocks are assumed to serve as a surface to walk on.
         //Wheras in birdview these blocks are assumed to be air to walk/fall through.
@@ -672,22 +739,119 @@ public class PushRocks implements IObservablePushRocks {
             return false;
         }
         //Otherwise a block must exist, and if that block is not of the directed type, then it will not have collision, and as such
-        //there will exist no footing for the given block, and as such it must be airborne.
+        //there will exist no footing for the given block, thus it must be airborne.
         else if (footingBlock instanceof TraversableBlock) { //Case: footing is not a DirectedBlock (alternatively: block is a TraversableBlock) meaning it has no collision -> must be airborne
             return true;
         }
+        else if (footingBlock instanceof ObstacleBlock) {
+            return false;
+        }
         //If the block is neither null nor traversable, then it follows that it must be a directed block, which could have collision to serve as footing.
-        else { //Could have used "else" instead here, but left it like this in case further classes extending BlockAbstract are added.
-
+        else { 
             //A moveable block can not be its own footing. This could happen in cases where the original footing block was moveable 
             //and stood ontop of an active portal with an exit point above itself (in relation to current gravity direction).
             //If the footing block is the block itself, then the block has no footing and is thus considered airborne.
             if (footingBlock == block) {
                 return true;
             }
+            //In the case that the footing block is itself airborne, then it follows that the block using it as footing is also airborne.
+            else if (footingBlock instanceof MoveableBlock) {
+                //If the footing block is different depending on wether or not transportation is accounted for, then there must be a transporter
+                //below the given block, and its effective footing is the block at the exit point of that transporter
+                BlockAbstract potentialTransporter = getFootingBlock(block, false);
+                if (footingBlock != potentialTransporter) {
+                    //It is now confirmed that the potential transporter was in fact a transporter. However before we proceed we should check for potential infinite loops.
+                    
+                    
+
+
+                    //In the case that the block serving as footing is on the exit point of the porter, then it is confirmed that the potential transporter is an actual transporter.
+                    //The block at the exit point may be standing still, falling down out from the porter, or falling down into it. To find out which is the case we will need to find 
+                    //which direction the exit porter pushes out entering blocks.
+                    int[] exitDirectionXY = ((ObstacleBlock) potentialTransporter).getExitDirectionXY(block);
+                    List<BlockAbstract> blockChain = getBlockChain(block, 0, -this.getGravityDirectionY());
+                    if (blockChain.contains(footingBlock)) {
+                        System.out.println("HEEEEEEEEEELLLLOOOOOOOOOOOOOOO");
+                        return true;
+                    }
+
+                    //Case1: If the exit direction matches the gravity direction, then the footing block will fall away from the block standing ontop of it unless it is itself not airborne
+                    //and will thus carry that block instead. Thus this block airborne if it's footing block is airborne.
+                    if (exitDirectionXY[1] == this.getGravityDirectionY()) {
+                        return isBlockAirborne((MoveableBlock) footingBlock);
+                    }
+                    //If the exit direction is opposite to gravity, then the footing block will be falling towards the given block, thus they will both serve as the other's footing. 
+                    //However should one side be heavier than the other, then gravity will pull down the heavier side to even out the difference, thus blocks on the lighter side will be airborne.
+                    else if (exitDirectionXY[1] == -this.getGravityDirectionY()) {
+                        List<BlockAbstract> blockSide = this.getBlockChain(block, 0, -this.getGravityDirectionY());
+                        List<BlockAbstract> footingSide = this.getBlockChain(footingBlock, 0, -this.getGravityDirectionY());
+                        // // // Collections.reverse(blockSide);
+                        // // // Collections.reverse(footingSide);
+                        int blockSideWeight = getBlockChainWeight(blockSide, 0, -this.getGravityDirectionY());
+                        int footingSideWeight = getBlockChainWeight(footingSide, 0, -this.getGravityDirectionY());
+                        if (blockSideWeight >= footingSideWeight) {
+                            return true;
+                        }
+                    }
+                    //If the exit direction is horizontal rather than vertical, then the footing block is either standing still due to not being airborne, or it is about to fall 
+                    //down in the direction of gravity, and would thus move out of the way, and as such the block ontop of it would be airborne as well.
+                    else if (exitDirectionXY[0] != 0) {
+                        //If this footing block is airborne, then the given block is also airborne.
+                        if (isBlockAirborne((MoveableBlock) footingBlock)) {
+                            return true;
+                        }
+                        //Otherwise the footing block must be standing still. 
+                        else {
+                            List<BlockAbstract> blockSide = this.getBlockChain(block, 0, -this.getGravityDirectionY());
+                            List<BlockAbstract> footingSide = this.getBlockChain(footingBlock, exitDirectionXY[0], 0);
+                            // // // Collections.reverse(blockSide);
+                            // // // Collections.reverse(footingSide);
+                            int blockSideWeight = getBlockChainWeight(blockSide, 0, -this.getGravityDirectionY());
+                            int footingSideWeight = getBlockChainWeight(footingSide, exitDirectionXY[0], 0);
+                            if (blockSideWeight > footingSideWeight) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                return isBlockAirborne((MoveableBlock) footingBlock);
+            }
             //Otherwise the footing block must have collision and be able to serve as footing, thus the block must not be airborne.
             return false;
         }
+    }
+
+    // 3 - 4 = -1  index 0 y-value lower than index 9 
+    // 4 - 3 = 1   index 9 y-value lower than index 0
+
+    // (+1)*-1 > 0 -> false  index 0 y-value lower than 9 && gravity -1 -> no reverse
+    // (-1)*-1 > 0 -> true   index 9 y-value lower than 0 && gravity -1 -> yes reverse
+
+    // (+1)*+1 > 0 -> false  index 0 y-value lower than 9 && gravity +1 -> yes reverse
+    // (-1)*+1 > 0 -> true   index 9 y-value lower than 0 && gravity +1 -> no reverse
+
+    private int getBlockChainWeight(List<BlockAbstract> blockChain, int directionX, int directionY) {
+        // int stackDirectionY = blockStack.get(0).getY() - blockStack.get(blockStack.size()-1).getY();
+        // int stackDirectionX = blockStack.get(0).getX() - blockStack.get(blockStack.size()-1).getX();
+        if (directionY == 0) {
+
+        }
+        if (directionY * this.getGravityDirectionY() > 0) {
+            Collections.reverse(blockChain);
+        } 
+        int stackWeight = 0;
+        for (BlockAbstract moveableBlock : blockChain) {
+            if (!isInBirdView(moveableBlock)) {
+                if (stackWeight > 0) {
+                    stackWeight--;
+                }
+                else {
+                    stackWeight = 0;
+                }
+            }
+        }
+        return stackWeight;
     }
 
     public void gravityInverter() {
@@ -704,8 +868,9 @@ public class PushRocks implements IObservablePushRocks {
         boolean wasMoved = false;
 
         if (player != null) {
-            //Can not move while airborne
-            if (isBlockAirborne(player)) {
+            //Can not move while airborne, unless the player's footing is another moveable block other than itself
+            BlockAbstract footingBlock = getFootingBlock(player, true);
+            if (isBlockAirborne(player) && !(footingBlock instanceof MoveableBlock) && footingBlock != player) {
                 wasMoved = false;
             }
             //Attempt to move player, check this one move was enough to win the game, update the variable "wasMoved" 
@@ -783,7 +948,7 @@ public class PushRocks implements IObservablePushRocks {
                 //Otherwise the transporter must be connected, thus the moving block should be transported out of the connected transporter in
                 //direction of the movement if possible
                 else {
-                    int[] transportExit = obstacleBlock.getExitPoint(blockOld);
+                    int[] transportExit = obstacleBlock.getExitPointXY(blockOld);
                     blockNew.setX(transportExit[0]);
                     blockNew.setY(transportExit[1]);
                     if (obstacleBlock.isPortal()) {
@@ -822,19 +987,16 @@ public class PushRocks implements IObservablePushRocks {
             //the coordinates should be legal for the original too
             block.setX(blockNew.getX());
             block.setY(blockNew.getY());
-            //If the block's movement was not caused by gravity, then set the direction of the moved block to that of the copy.
+            //If the block's movement was caused by gravity, then set the direction of the moved block to that of the copy.
             if (movementSource != "gravity") {
                 block.setDirection(blockNew.getDirection());
             }
-            //if the moved block was a moveable block, then update its state to reflect wether or not it 
-            //is placed ontop of a pressure plate
-            if (block instanceof MoveableBlock) {
-                System.out.println("Width=" + this.width + "Height=" + this.height + "x=" + block.getX() + "y=" + block.getY());
-                block.setState(getTraversableBlock(block.getX(), block.getY()).isPlate());
-            }
+            //Update the state to of the moveable block to reflect wether or not it is placed ontop of a pressure plate
+            block.setState(getTraversableBlock(block.getX(), block.getY()).isPlate());
+            
             //When a block has successfully entered a portal, they are relocated in a flash, thus the baggage loses its carrier, meaning they are left to fall      !!!!!!!!!!!!!!!IS THIS EVEN NEEDED ANYMORE?
             if (!hasTakenPortal) {
-                updateBaggage(blockOld, direction);
+                moveBaggage(blockOld, direction);
             }
             return true;
         }
@@ -852,7 +1014,7 @@ public class PushRocks implements IObservablePushRocks {
                 //Then
 
                 block.setState(getTraversableBlock(block.getX(), block.getY()).isPlate());
-                updateBaggage(blockOld, directionOriginal);
+                moveBaggage(blockOld, directionOriginal);
                 System.out.println(this.prettyString());
                 return true;
             }
@@ -865,25 +1027,44 @@ public class PushRocks implements IObservablePushRocks {
     }
 
     //Where gravity applies, a block stacked ontop of another block should attempt to match the movement of the block below. 
-    // Thus check if the given block has "baggage", and if they do: issue them to follow the movement of the original block
-    private void updateBaggage(MoveableBlock movedBlock, String direction) {
+    // Thus check if the given block has "baggage", and if they do: issue them to follow the movement of the original block, unless
+    // Obstacles hinder the movement.
+    //Input is the instance of the block prior to being moved, and the direction is the direction it was moved in
+    private void moveBaggage(MoveableBlock movedBlock, String direction) {
         //Blocks that are stacked ontop of eachother will already fall together due to gravity, they will also make it too heavy to jump for the carrier
         if (direction == "up" || direction == "down") {
             return;
         }
         //
-        if (!isInBirdView(movedBlock)) {
-            int yDirection = 0;
-            if(!isGravityInverted) {
-                yDirection++;
+        if (!isInBirdView(movedBlock) && !isBlockAirborne(movedBlock)) { //A block can not carry baggage while they are airborne
+            List<BlockAbstract> blockBaggage = getBlockChain(movedBlock, 0, -this.getGravityDirectionY());
+            blockBaggage.remove(movedBlock);
+
+            int directionX = 0;
+            if (direction == "left") {
+                directionX = -1;
+            } else {
+                directionX = 1;
             }
-            else {
-                yDirection--;
+            List<BlockAbstract> moveableBaggage = new ArrayList<BlockAbstract>();
+            for (BlockAbstract baggage : blockBaggage) {
+                BlockAbstract blockAtNewCoordinates = getTopBlock(baggage.getX() + directionX, baggage.getY());
+                if (blockAtNewCoordinates instanceof TraversableBlock) {
+                    moveableBaggage.add(baggage);
+                }
+                //Otherwise the baggage block must be a directed block
+                else {
+                    if (blockAtNewCoordinates instanceof ObstacleBlock) {
+                        if ( ((ObstacleBlock) blockAtNewCoordinates).isTransporter() && ((ObstacleBlock) blockAtNewCoordinates).canBlockEnter(baggage) ) {
+                            moveableBaggage.add(baggage);
+                        }
+                    }
+                    moveableBaggage.clear();
+                }
             }
 
-            MoveableBlock baggageBlock = getMoveableBlock(movedBlock.getX(), movedBlock.getY() + yDirection);
-            if (baggageBlock != null) {
-                moveBlock(baggageBlock, direction, 0, "baggage");
+            for (BlockAbstract block : blockBaggage) {
+                moveBlock((MoveableBlock) block, direction, 0, "baggage");
             }
         }
     }
@@ -995,9 +1176,9 @@ public class PushRocks implements IObservablePushRocks {
         this.directionLayout = directionLayout;
         this.buildWorld();
         
-        this.isGravityOnInterval = false;
+        this.isGravityOnInterval = true;
         if (this.isGravityOnInterval == true) { //Should include something about this in the build/hasWon/pause/menu interactions
-            GravityIncrementer gravityIncrementer = new GravityIncrementer(this, 1000);
+            GravityIncrementer gravityIncrementer = new GravityIncrementer(this, 3000);
             Thread thread = new Thread(gravityIncrementer);
             thread.start();
         }

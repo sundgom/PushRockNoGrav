@@ -8,18 +8,17 @@ public abstract class DirectedBlock  extends BlockAbstract {
         return this.direction;
     }
     public int[] getDirectionInt() {
-        int[] directionXY;
         switch (this.direction) {
             case "up":
-                return directionXY = new int[]{0,1};
+                return new int[]{0,1};
             case "down":
-                return directionXY = new int[]{0,-1};   
+                return new int[]{0,-1};   
             case "right":
-                return directionXY = new int[]{1,0};
+                return new int[]{1,0};
             case "left":
-                return directionXY = new int[]{-1,0};
+                return new int[]{-1,0};
         }
-        return directionXY = new int[]{1,0};
+        return new int[]{0,0};
     }
 
     //Sets the direction to the input, a direction set to null indicates that the block is not directed 

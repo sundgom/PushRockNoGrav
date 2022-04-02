@@ -16,6 +16,11 @@ public abstract class BlockAbstract {
     public int getY() {
         return y;
     }
+
+    public int[] getCoordinatesXY() {
+        return new int[]{this.x, this.y};
+    }
+
     protected void setX(int x) {
         this.x = x;
     }
