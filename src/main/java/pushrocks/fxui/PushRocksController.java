@@ -407,10 +407,11 @@ public class PushRocksController implements IObserverPushRocks {
 
 
     private void updateScore() {
-        handleScore.setText("Score: " + pushRocks.getScore());
+        handleScore.setText("Score: " + pushRocks.getScore()); 
+        //exception hits here when using another thread for timed gravity step
     }
 
-    public void updateMap() {
+    public void update() {
         this.drawMap();
     }
 
@@ -430,10 +431,11 @@ public class PushRocksController implements IObserverPushRocks {
 
 
     @Override
-    public void updateMap(IObservablePushRocks observable) {
+    public void update(IObservablePushRocks observable) {
         if (observable == this.pushRocks) {
             this.drawMap();
         }
     }
+
 }
 

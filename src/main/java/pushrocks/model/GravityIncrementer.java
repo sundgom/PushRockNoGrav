@@ -1,6 +1,6 @@
 package pushrocks.model;
 
-public class GravityIncrementer implements Runnable{
+public class GravityIncrementer implements Runnable, IObserverPushRocks{
     private PushRocks pushRocks;
     private int interval;
 
@@ -20,6 +20,12 @@ public class GravityIncrementer implements Runnable{
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void update(IObservablePushRocks observable) {
+        // TODO Auto-generated method stub
+        
     }
     
 }

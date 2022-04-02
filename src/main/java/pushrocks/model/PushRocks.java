@@ -15,7 +15,7 @@ public class PushRocks implements IObservablePushRocks {
     private TraversableBlock[][] traversableBlocks;                                         //Blocks that make out the surface on which other blocks can move through/be placed ontop of
     private ObstacleBlock[][] obstacleBlocks;                                               //Blocks that are placed ontop of the traversable plane, which can hinder or redirect movement of moveable blocks
     private ArrayList<MoveableBlock> moveableBlocks = new ArrayList<MoveableBlock>();       //Blocks that are free to move around on the traversable plane, but are restricted by placements of directed blocks, which
-                                                                                            //  includes both obstacle and other moveable blocks.
+                                                                                            // includes both obstacle and other moveable blocks.
 
     private ArrayList<ObstacleBlock> teleporters = new ArrayList<ObstacleBlock>();
     private ArrayList<ObstacleBlock> portals = new ArrayList<ObstacleBlock>();
@@ -398,20 +398,6 @@ public class PushRocks implements IObservablePushRocks {
         return chain;
     }
 
-    //Returns a list of moveable blocks that are stacked ontop of the given block, with the given block being placed first in the list,
-    //as to represent
-    private List<MoveableBlock> getBlockStack(MoveableBlock moveableBlock) {  
-        //A block is considered to be stacked ontop of another if it is positioned in such a way that
-        //gravity would push it down on that other block. As such the search for these blocks must start 
-        //from the position of the given block then move in the direction opposite to the gravitational pull.
-        int directionY = -this.getGravityDirectionY();
-
-        List<MoveableBlock> chainMoveableBlocks= new ArrayList<MoveableBlock>();
-        this.getBlockChain(moveableBlock, 0, directionY).stream()
-            .forEach(a -> chainMoveableBlocks.add((MoveableBlock) a));
-        return chainMoveableBlocks;
-    }
-
     public List<List<BlockAbstract>> getGravityFallOrder() {
         //If the footing block of a given moveable block is different depending on wether or not potential traversal through a 
         //transporter is accounted for, then that means that the given block must be placed at an active transporter's
@@ -457,7 +443,7 @@ public class PushRocks implements IObservablePushRocks {
             int exitDirectionX = 0;
             int exitDirectionY = 0;
             //If the entry porter was a portal, then it follows that the exit porter is also a portal.
-            //The blocks entering the entry portal will fall in the direction of gravity, the entry portal faces in the direction opposite to gravity .
+            //The blocks entering the entry portal will fall in the direction of gravity, thus the entry portal faces in the direction opposite to gravity .
             //The blocks leaving the exit portal will fall out in the direction that the exit portal is facing.
             if (entryPorter.isPortal()) {
                 entryDirectionX = 0;
@@ -468,8 +454,8 @@ public class PushRocks implements IObservablePushRocks {
             //Otherwise the porter must have been a teleporter, which maintains an entering block's movement direction.
             //Since this has to do with gravity and falling objects, the blocks must be falling in the direction of gravity,
             //and thus entering the entry teleporter from above, and leaving the exit teleporter from below.
-            //Thus the entry teleporter is directed opposite to gravity to face the used entry point, and the exit teleporter
-            //is faced in the same direction as gravity for its used exit point.
+            //Thus the entry teleporter's entrance is directed in the opposite direction of gravity, and the exit teleporter's
+            //exit is directed in the same direction as gravity.
             else {
                 entryDirectionX = exitDirectionX = 0;
                 entryDirectionY = (-1)*this.getGravityDirectionY();
@@ -486,13 +472,14 @@ public class PushRocks implements IObservablePushRocks {
                 exitChain = getBlockChain(blockAtExit, exitDirectionX, exitDirectionY);
             } 
 
-            //The two moveable block lists should thus put be together, bound together by the entry and exit porter, which forms the complete chain
+            //The two moveable block lists should thus be put together, bound together by the entry and exit porter, which forms the complete chain
             List<BlockAbstract> completeChain = new ArrayList<BlockAbstract>();
 
             if (exitChain.size() >= 1) {
-                //If the exit porter faces the opposite direction of gravity, then there will be blocks falling into both the entry and exit portal
-                //at the same time, and thus colliding. In this case the direction the chain as a whole should move in will be determined by the amount
-                //of moveable blocks falling on each side, whichever side is heavier will steer the movement. Should both sides be perfectly balanced, 
+                //If there is at least one block at the exit point, and the exit porter faces the opposite direction to gravity, 
+                //then there will be blocks falling into both the entry and exit portal at the same time, and thus colliding. In 
+                //this case the direction the chain as a whole should move in will be determined by the amount of moveable blocks 
+                //falling on each side, whichever side is heavier will steer the movement. Should both sides be perfectly balanced, 
                 //then the chain will not move at all.
                 if  (exitDirectionY == -(this.getGravityDirectionY()) ) {
                     //if the entry side is heavier than the exit side
@@ -514,9 +501,9 @@ public class PushRocks implements IObservablePushRocks {
                         completeChain.addAll(exitChain);
                         fallOrderComplete.add(completeChain);
                     }
-                    //Otherwise the sides are perfectly balanced, and so gravity will have no effect, to signify that these blocks should not be considered
-                    //we do not include the transporters
-                    //in the gravity fall order.
+                    // // //Otherwise the sides are perfectly balanced, and so gravity will have no effect, to signify that these blocks should not be considered
+                    // // //we do not include the transporters
+                    // // //in the gravity fall order.
                     else {
                         // completeChain.addAll(entryChain);
                         // completeChain.addAll(exitChain);
@@ -525,8 +512,8 @@ public class PushRocks implements IObservablePushRocks {
 
                 }
                 //If the exit direction is non-vertical, then the blocks on that side will not move into or out of the portal, but since they
-                //are equal to or outnumber the other side they will hinder the movement of that other side, thus the entry side are excluded from the gravity
-                //fall order, wheras the heavier side remain, as they can still fall down from where they are currently standing.
+                //are equal to or outnumber the other side they will hinder the movement of that other side, wheras the heavier side remain 
+                //as they can still fall down from where they are currently standing.
                 else if (exitDirectionX != 0) {
                     if (entryChain.size() > exitChain.size()) {
                         completeChain.add(exitPorter);
@@ -562,18 +549,19 @@ public class PushRocks implements IObservablePushRocks {
                 fallOrderComplete.add(completeChain);
             }
         }
-        //In this list, the chains are ordered such that the first block chain will be the one whose last block has the lowest y-coordinate, 
-        //and then according to the lowest x-coordinate should the y-coordinate be shared
+        //In this list, the chains are ordered such that the first block chain will be the one whose last block has the 
+        //lowest y-coordinate (in relation to gravity) and then according to the lowest x-coordinate should the y-coordinate be shared
+        int g = this.getGravityDirectionY();
         fallOrderComplete = fallOrderComplete.stream()
-            .sorted( (a, b) -> a.get(a.size()-1).getX() - b.get(b.size()-1).getX())
-            .sorted( (a, b) -> a.get(a.size()-1).getY() - b.get(b.size()-1).getY())
+            .sorted( (a, b) -> g*(b.get(b.size()-1).getX() - a.get(a.size()-1).getX())) //g is not really needed here, but why not
+            .sorted( (a, b) -> g*(b.get(b.size()-1).getY() - a.get(a.size()-1).getY()))
             .collect(Collectors.toList());
         return fallOrderComplete;
     }
 
     public void gravityStep(boolean hasPlayerMoved) {
-        //The first blocks that should fall down are the ones furthest down in the gravity's direction, thus
-        //these blocks should be issued to move first.
+        // // // // // The first blocks that should fall down are the ones furthest down in the gravity's direction, thus
+        // // // // // these blocks should be issued to move first.
         // // // // List<MoveableBlock> transportersAsFooting = this.moveableBlocks.stream()
         // // // // .filter(a -> this.getFootingBlock(a, false) instanceof ObstacleBlock)
         // // // // .filter(a -> ((ObstacleBlock) this.getFootingBlock(a, false)).isTransporter())
@@ -593,6 +581,7 @@ public class PushRocks implements IObservablePushRocks {
         // // // //             moveBlock(moveableBlocks.get(i), "up", 1, "gravity");
         // // // //         }
         // // // //         System.out.println(this.prettyString());
+        // // // //         notifyObservers();
         // // // //     }
         // // // // }
 
@@ -657,11 +646,12 @@ public class PushRocks implements IObservablePushRocks {
                 System.out.println(this.prettyString());
             }
         }
+        int g = this.getGravityDirectionY();
         this.moveableBlocks.stream()
             .filter(a -> !movedBlocks.contains(a))
             .filter(a -> isBlockAirborne(a))
-            .sorted((a, b) -> a.getX() - b.getX())
-            .sorted((a, b) -> a.getY() - b.getY())
+            .sorted((a, b) -> g*(b.getX() - a.getX()))
+            .sorted((a, b) -> g*(b.getY() - a.getY()))
             .forEach(a -> moveBlock(a, this.getGravityDirection(), 1, "gravity"));
 
         this.isGameOver();
@@ -722,7 +712,7 @@ public class PushRocks implements IObservablePushRocks {
         return traversableBlock.isBirdView();
     }
 
-    public boolean isBlockAirborne(MoveableBlock block) {
+    private boolean isBlockAirborne(MoveableBlock block) {
         //Block is not considered to be airborne when the view-angle is set to birdview, as that view-angle does not
         //support free-fall. When bird view is off, the traversable blocks are assumed to serve as a surface to walk on.
         //Wheras in birdview these blocks are assumed to be air to walk/fall through.
@@ -1178,7 +1168,7 @@ public class PushRocks implements IObservablePushRocks {
         
         this.isGravityOnInterval = true;
         if (this.isGravityOnInterval == true) { //Should include something about this in the build/hasWon/pause/menu interactions
-            GravityIncrementer gravityIncrementer = new GravityIncrementer(this, 3000);
+            GravityIncrementer gravityIncrementer = new GravityIncrementer(this, 1000);
             Thread thread = new Thread(gravityIncrementer);
             thread.start();
         }
@@ -1331,7 +1321,7 @@ public class PushRocks implements IObservablePushRocks {
 
     @Override
     public void notifyObservers() {
-        this.observers.forEach(observer -> observer.updateMap(this));
+        this.observers.forEach(observer -> observer.update(this));
     } 
     
     
