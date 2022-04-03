@@ -7,7 +7,7 @@ public abstract class DirectedBlock  extends BlockAbstract {
     public String getDirection() {
         return this.direction;
     }
-    public int[] getDirectionInt() {
+    public int[] getDirectionXY() {
         switch (this.direction) {
             case "up":
                 return new int[]{0,1};
@@ -64,17 +64,6 @@ public abstract class DirectedBlock  extends BlockAbstract {
         String[] validDirections = {"up", "down", "left", "right", null};
         return validDirections;
     }
-
-    //The direction this block should be given when no specific direction is given upon creation.
-    protected String getDefaultDirection() {
-        return null;
-    }
-
-    // //Constructor without specified direction
-    // public DirectedBlock(int x, int y, char type) {
-    //     super(x, y, type);
-    //     this.setDirection(this.getDefaultDirection()); 
-    // }
 
     //Constructor with specified direction
     public DirectedBlock(int x, int y, char type, String direction) {
