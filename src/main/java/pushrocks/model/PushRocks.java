@@ -1452,6 +1452,21 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         this.buildWorld();
     }
 
+    public void gravitySetting(int n) {
+        //interval
+        if (n > 0) {
+            this.gravitySetting = n;
+        }
+        //manual
+        else if (n == 0) {
+
+        }
+        //onPlayerMove
+        else {
+            
+        }
+    }
+
 
     public static void main(String[] args) {
    

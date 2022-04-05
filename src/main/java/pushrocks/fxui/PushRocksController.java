@@ -10,6 +10,10 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -35,54 +39,64 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     private IntervalNotifier intervalNotifier;
     private boolean incrementGravityOnInterval;
 
+    @FXML 
+    AnchorPane anchorPane;
+
+    //GAME PAGE
     @FXML
     GridPane mapPage;
-
     @FXML
     Pane map;
 
     @FXML
-    Pane playerBox;
-
-    @FXML
-    Pane playerControls;
-
-    @FXML 
-    RowConstraints mapGridPaneH;
-
-    @FXML
     RowConstraints controlBoxRowConstraints;
-
-    @FXML 
-    AnchorPane anchorPane;
 
     @FXML
     HBox inputBox;
-
     @FXML 
-    Button handleScore;
-
+    Button scoreButton;
     @FXML
     Button gravityButton;
+    @FXML
+    Button gravityManualIncrementButton;
 
     //MENU PAGE
     @FXML
     Pane menuPage;
 
     @FXML 
-    Text levelMenuText;
-    
+    Text menuLevelText;
     @FXML 
-    Text scoreMenuText;
+    Text menuScoreText;
+    @FXML
+    Button menuContinueButton;
 
     @FXML
-    Button continueButton;
+    Button menuLevelButton;
+    @FXML
+    Button menuLoadButton;
+    @FXML
+    Button menuSaveButton;
 
     @FXML
-    ChoiceBox<String> levelChoiceBox;
+    ChoiceBox<String> menuLevelChoiceBox;
+    @FXML
+    TextField menuLoadFileLocationField;
+    @FXML
+    TextField menuSaveFileLocationField;
 
+    @FXML 
+    RadioButton menuGravityManualButton;
+    @FXML 
+    RadioButton menuGravityMoveInputButton;
+    @FXML 
+    RadioButton menuGravityIntervalButton;
 
-
+    @FXML
+    Button menuApplyChangesButton;
+    Button menuRevertChangesButton;
+    private int gravityChoice;
+    
 
     @FXML
     public void initialize() {
@@ -212,9 +226,10 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         // // returns an array of all files
         // String[] fileList = file.list();
 
-        levelChoiceBox.setValue("Select a level");
+        menuLevelChoiceBox.setValue("Select a level");
         ObservableList<String> levelList = FXCollections.observableArrayList("Level 1", "Level 2", "Level 3", "Level 4", "Level 5");
-        levelChoiceBox.setItems(levelList);
+        menuLevelChoiceBox.setItems(levelList);
+        handleGravityChoiceManual(); //Gravity application is set to manual until other is chosen.
 
 		pushRocks = new PushRocks(levelLayout1, directionLayout1);
         pushRocks.addObserver(this);
@@ -286,14 +301,18 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
                     // return "#1db121";
                 }
                 else {
-                    return "#84786a";
+                    // return "#84786a";
+                    return "#168c4d";
+                    // return "#32804e";
                 }
             //Wall
             case 'w':
-                return "#a0a0a1";
+                // return "#a0a0a1";
+                return "#b5b5b5";
             //PressurePlate
             case 'd':   
                 return "#a72702";
+                // // return "#f1b469";
             //Teleporter
             case 't':   
                 if (blockAbstract.getState()) {
@@ -342,7 +361,8 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 
     private String getBorderColor(DirectedBlock directedBlock) {
         if (directedBlock.getType() == 'v' || directedBlock.getType() == 'u') {
-            return "#a0a0a1";
+            // return "#a0a0a1";
+            return "#b5b5b5";
         }
         if (directedBlock.getType() == 'p') {
 			if (directedBlock.getState()) {
@@ -404,40 +424,82 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         return style;
     }
 
+    @FXML
+    void handlePlayerInput(KeyEvent keyEvent) {
+        if (keyEvent.getCode() == KeyCode.ESCAPE) {
+            System.out.println(mapPage.isVisible());
+            if (!menuPage.isVisible()) { //If score page is added, then ESC should make sure to close that before entering menu
+                handleMenu();
+            }
+            else {
+                handleContinue();
+            }
+        }
+        // These key-presses should only work when the actual game is visible.
+        else if (mapPage.isVisible()) {
+            if (keyEvent.getCode() == KeyCode.TAB) {
+                handleScore();
+            }
+            else if (keyEvent.getCode() == KeyCode.W) {
+                handleUp();
+            }
+            else if (keyEvent.getCode() == KeyCode.S) {
+                handleDown();
+            }
+            else if (keyEvent.getCode() == KeyCode.D) {
+                handleRight();
+            }
+            else if (keyEvent.getCode() == KeyCode.A) {
+                handleLeft();
+            }
+            else if (keyEvent.getCode() == KeyCode.Q) {
+                handlePortalOne();
+            }
+            else if (keyEvent.getCode() == KeyCode.E) {
+                handlePortalTwo();
+            }
+            else if (keyEvent.getCode() == KeyCode.R) {
+                handleGravityInverter();
+            }
+            else if (keyEvent.getCode() == KeyCode.F) {
+                handleResetLevel();
+            }
+            else if (keyEvent.getCode() == KeyCode.T) {
+                if (gravityManualIncrementButton.isVisible()) {
+                    handleManualGravityIncrement();
+                }
+            }
+        }
+    }
+
 	@FXML
     void handleUp() {
         pushRocks.movePlayer(1, "up");
     }
-
     @FXML
     void handleDown() {
         pushRocks.movePlayer(1, "down"); 
     }
-
     @FXML
     void handleLeft() {
         pushRocks.movePlayer(1, "left");
     }
-
     @FXML
     void handleRight() {
         pushRocks.movePlayer(1, "right");
     }
 
     @FXML
-    void resetLevel() {
-        // pushRocks.buildWorld();
-        // createMap();
-        
-        
-        if (this.incrementGravityOnInterval) {
-            this.intervalNotifier.stop();
-        }
-        pushRocks.resetLevel();
+    void handlePortalOne() {
+        pushRocks.placePortal(true, pushRocks.getPlayer(1));
+    }
+    @FXML
+    void handlePortalTwo() {
+        pushRocks.placePortal(false, pushRocks.getPlayer(1));
     }
 
     @FXML
-    void handleGravity() {
+    void handleGravityInverter() {
         pushRocks.gravityInverter();
         if (pushRocks.getGravityDirectionY() < 0) {
             gravityButton.setText("Gravity ▼");
@@ -448,15 +510,18 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         // System.out.println("TEST");
         // this.pushRocks.gravityStep(false);
     }
-
-    @FXML
-    void handlePortalOne() {
-        pushRocks.placePortal(true, pushRocks.getPlayer(1));
+    @FXML 
+    void handleManualGravityIncrement() {
+        pushRocks.gravityStep(false);
     }
-
     @FXML
-    void handlePortalTwo() {
-        pushRocks.placePortal(false, pushRocks.getPlayer(1));
+    void handleResetLevel() {
+        // pushRocks.buildWorld();
+        // createMap();        
+        if (this.incrementGravityOnInterval) {
+            this.intervalNotifier.stop();
+        }
+        pushRocks.resetLevel();
     }
 
     @FXML
@@ -467,49 +532,11 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         // this.pushRocks.movePlayer(1, "right");
         // this.pushRocks.getGravityFallOrder();
     }
-
-
-
-    private void updateScore() {
-        int score = this.pushRocks.getMoveCount();
-        handleScore.setText("Score: " + score); 
-        scoreMenuText.setText("Score: " + score);
-    }
-
-	private void drawMap() {
-		//for every possible block coordinate, set the background color according the block
-		//representing that specific coordinate
-		for (int y = 0; y < pushRocks.getHeight(); y++) {
-            for (int x = 0; x < pushRocks.getWidth(); x++) {
-                BlockAbstract block = pushRocks.getTopBlock(x, -y);
-                String style = getBlockStyle(block);
-                map.getChildren().get(y * pushRocks.getWidth() + x).setStyle(style);
-            }
-        }
-        this.updateScore();
-        
-	}
-
-
-    @Override
-    public void update(IObservablePushRocks observable) {
-        if (observable == this.pushRocks) {
-            this.drawMap();
-        }
-    }
-
-
-    @Override
-    public void update(IObservableIntervalNotifier observable) {
-        this.pushRocks.gravityStep(false);
-        
-    }
-
-
     @FXML
     void handleMenu() {
         System.out.println("Open menu.");
         mapPage.setVisible(false);
+        gravityManualIncrementButton.setVisible(false);
         menuPage.setVisible(true);
 
         if (this.incrementGravityOnInterval) {
@@ -528,42 +555,105 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         menuPage.setVisible(false);
         mapPage.setVisible(true);
 
+        if (this.gravityChoice <= 0) {
+            gravityManualIncrementButton.setVisible(false);
+        }
+        //Gravity was chosen to be manual, thus another button is made visible to support it.
+        else {
+            gravityManualIncrementButton.setVisible(true);
+        }
+        
         if (this.incrementGravityOnInterval) {
             this.intervalNotifier.run();
             this.pushRocks.pause(false);
         }
         this.pushRocks.pause(false);
     }
-    //MENU PAGE
     @FXML
     void handleLevelButton() {
         System.out.println("Level button");
     }
-    //MENU PAGE
     @FXML
     void handleLoadButton() {
         System.out.println("Load button");
     }
-    //MENU PAGE
     @FXML
     void handleSaveButton() {
         System.out.println("Save button");
     }
-    //MENU PAGE
+
+    @FXML 
+    void handleLoadBrowse() {
+        System.out.println("Load browse");
+    }
+    @FXML 
+    void handleSaveBrowse() {
+        System.out.println("Save browse");
+    }
+    
+
+    @FXML
+    void handleGravityChoiceManual() {
+        System.out.println("Gravity application: manual");
+        menuGravityChoice(1);
+    }
+    @FXML
+    void handleGravityChoiceMoveInput() {
+        System.out.println("Gravity application: move input");
+        menuGravityChoice(0);
+    }
+    @FXML
+    void handleGravityChoiceInterval() {
+        System.out.println("Gravity application: interval");
+        menuGravityChoice(-1);
+    }
+
     @FXML
     void handleApplyChanges() {
         System.out.println("Apply changes");
     }
-    //MENU PAGE
     @FXML
     void handleRevertChanges() {
         System.out.println("Revert changes");
     }
-    // //MENU PAGE
-    // @FXML
-    // void handleContinue() {
-    //     System.out.println("Bug-search.");
-    // }
+
+    private void menuGravityChoice(int c) {
+        this.gravityChoice = c;
+    }
+
+    private void updateScore() {
+        int score = this.pushRocks.getMoveCount();
+        scoreButton.setText("Score: " + score); 
+        menuScoreText.setText("Score: " + score);
+    }
+
+	private void drawMap() {
+		//for every possible block coordinate, set the background color according the block
+		//representing that specific coordinate
+		for (int y = 0; y < pushRocks.getHeight(); y++) {
+            for (int x = 0; x < pushRocks.getWidth(); x++) {
+                BlockAbstract block = pushRocks.getTopBlock(x, -y);
+                String style = getBlockStyle(block);
+                map.getChildren().get(y * pushRocks.getWidth() + x).setStyle(style);
+            }
+        }
+        this.updateScore();
+	}
+
+
+    @Override
+    public void update(IObservablePushRocks observable) {
+        if (observable == this.pushRocks) {
+            this.drawMap();
+        }
+    }
+
+
+    @Override
+    public void update(IObservableIntervalNotifier observable) {
+        this.pushRocks.gravityStep(false);
+        
+    }
 
 }   
 

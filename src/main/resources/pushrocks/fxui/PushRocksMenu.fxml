@@ -8,6 +8,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.paint.Color?>
@@ -21,168 +22,172 @@
 
 <AnchorPane fx:id="anchorPane" prefHeight="460.0" prefWidth="480.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pushrocks.fxui.PushRocksController">
    <children>
-      <GridPane layoutY="9.0" prefHeight="460.0" prefWidth="480.0">
-         <columnConstraints>
-            <ColumnConstraints fx:id="controlsGridPane" halignment="CENTER" hgrow="NEVER" minWidth="10.0" />
-         </columnConstraints>
-         <rowConstraints>
-            <RowConstraints maxHeight="107.0" minHeight="10.0" prefHeight="21.0" valignment="TOP" vgrow="NEVER" />
-            <RowConstraints maxHeight="167.0" minHeight="10.0" prefHeight="80.0" valignment="TOP" vgrow="NEVER" />
-            <RowConstraints fx:id="controlBoxRowConstraints" maxHeight="169.0" minHeight="8.0" prefHeight="74.0" valignment="TOP" vgrow="NEVER" />
-            <RowConstraints maxHeight="213.0" minHeight="81.0" prefHeight="114.0" valignment="TOP" vgrow="NEVER" />
-            <RowConstraints maxHeight="166.0" minHeight="0.0" prefHeight="88.0" valignment="TOP" vgrow="NEVER" />
-            <RowConstraints maxHeight="149.0" minHeight="10.0" prefHeight="83.0" valignment="TOP" vgrow="NEVER" />
-         </rowConstraints>
+      <Pane layoutY="9.0" prefHeight="10.0">
          <children>
-            <HBox fx:id="inputBox" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="30.0" prefWidth="427.0" spacing="12.0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="TOP" GridPane.vgrow="NEVER">
+            <GridPane prefHeight="460.0" prefWidth="480.0">
+               <columnConstraints>
+                  <ColumnConstraints fx:id="controlsGridPane" halignment="CENTER" hgrow="NEVER" minWidth="10.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints maxHeight="107.0" minHeight="10.0" prefHeight="21.0" valignment="TOP" vgrow="NEVER" />
+                  <RowConstraints maxHeight="167.0" minHeight="10.0" prefHeight="80.0" valignment="TOP" vgrow="NEVER" />
+                  <RowConstraints fx:id="controlBoxRowConstraints" maxHeight="169.0" minHeight="8.0" prefHeight="74.0" valignment="TOP" vgrow="NEVER" />
+                  <RowConstraints maxHeight="213.0" minHeight="81.0" prefHeight="114.0" valignment="TOP" vgrow="NEVER" />
+                  <RowConstraints maxHeight="166.0" minHeight="0.0" prefHeight="88.0" valignment="TOP" vgrow="NEVER" />
+                  <RowConstraints maxHeight="149.0" minHeight="10.0" prefHeight="83.0" valignment="TOP" vgrow="NEVER" />
+               </rowConstraints>
                <children>
-                  <HBox alignment="CENTER" spacing="3.0">
+                  <HBox fx:id="inputBox" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="30.0" prefWidth="427.0" spacing="12.0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="TOP" GridPane.vgrow="NEVER">
                      <children>
-                        <VBox alignment="BOTTOM_CENTER" spacing="3.0" />
-                     </children>
-                  </HBox>
-                  <HBox fx:id="playerBox" alignment="CENTER" spacing="10.0">
-                     <children>
-                        <HBox fx:id="playerControls" alignment="CENTER" prefWidth="166.0" spacing="3.0">
+                        <HBox alignment="CENTER" spacing="3.0">
                            <children>
                               <VBox alignment="BOTTOM_CENTER" spacing="3.0" />
-                              <VBox alignment="BOTTOM_CENTER" prefHeight="30.0" prefWidth="161.0" spacing="3.0">
+                           </children>
+                        </HBox>
+                        <HBox fx:id="playerBox" alignment="CENTER" spacing="10.0">
+                           <children>
+                              <HBox fx:id="playerControls" alignment="CENTER" prefWidth="166.0" spacing="3.0">
                                  <children>
-                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="LEVEL 1" textAlignment="CENTER" wrappingWidth="188.892578125">
-                                       <font>
-                                          <Font size="14.0" />
-                                       </font>
-                                    </Text>
-                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Score: 999" textAlignment="CENTER" wrappingWidth="188.892578125">
-                                       <font>
-                                          <Font size="14.0" />
-                                       </font>
-                                    </Text>
-                                    <Button fx:id="handleContinue" mnemonicParsing="false" onMouseClicked="#handleScore" prefHeight="25.0" prefWidth="110.0" text="Continue!" />
+                                    <VBox alignment="BOTTOM_CENTER" spacing="3.0" />
+                                    <VBox alignment="BOTTOM_CENTER" prefHeight="30.0" prefWidth="161.0" spacing="3.0">
+                                       <children>
+                                          <Text fx:id="levelMenuText" strokeType="OUTSIDE" strokeWidth="0.0" text="LEVEL 1" textAlignment="CENTER" wrappingWidth="188.892578125">
+                                             <font>
+                                                <Font size="14.0" />
+                                             </font>
+                                          </Text>
+                                          <Text fx:id="scoreMenuText" strokeType="OUTSIDE" strokeWidth="0.0" text="Score: 999" textAlignment="CENTER" wrappingWidth="188.892578125">
+                                             <font>
+                                                <Font size="14.0" />
+                                             </font>
+                                          </Text>
+                                          <Button fx:id="handleContinueButton" mnemonicParsing="false" onMouseClicked="#handleContinue" prefHeight="25.0" prefWidth="110.0" text="Continue!" />
+                                       </children>
+                                    </VBox>
+                                    <VBox alignment="BOTTOM_CENTER" spacing="3.0" />
                                  </children>
-                              </VBox>
+                              </HBox>
+                           </children>
+                        </HBox>
+                        <HBox alignment="CENTER" spacing="3.0">
+                           <children>
                               <VBox alignment="BOTTOM_CENTER" spacing="3.0" />
                            </children>
                         </HBox>
                      </children>
+                     <GridPane.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </GridPane.margin>
                   </HBox>
-                  <HBox alignment="CENTER" spacing="3.0">
+                  <HBox fx:id="inputBox1" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="108.0" prefWidth="480.0" spacing="12.0" GridPane.rowIndex="3">
                      <children>
-                        <VBox alignment="BOTTOM_CENTER" spacing="3.0" />
+                        <HBox alignment="CENTER" spacing="3.0">
+                           <children>
+                              <VBox alignment="BOTTOM_CENTER" spacing="3.0">
+                                 <children>
+                                    <Button fx:id="handleLevelButton" mnemonicParsing="false" onMouseClicked="#handleLevelButton" prefWidth="71.0" text="Level" />
+                                    <Button fx:id="handleLoadButton" mnemonicParsing="false" onMouseClicked="#handleLoadButton" prefWidth="71.0" text="Load" />
+                                    <Button fx:id="handleSaveButton" mnemonicParsing="false" onMouseClicked="#handleSaveButton" prefWidth="71.0" text="Save" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </HBox>
+                        <HBox fx:id="playerBox1" alignment="CENTER" spacing="10.0">
+                           <children>
+                              <HBox fx:id="playerControls1" alignment="CENTER" spacing="3.0">
+                                 <children>
+                                    <VBox alignment="BOTTOM_CENTER" prefHeight="114.0" prefWidth="227.0" spacing="3.0">
+                                       <children>
+                                          <ChoiceBox fx:id="handleLevelSelect" prefHeight="25.0" prefWidth="230.0" />
+                                          <TextField fx:id="loadFileLocationField" prefHeight="25.0" prefWidth="195.0" />
+                                          <TextField fx:id="saveFileLocationField" />
+                                       </children>
+                                    </VBox>
+                                 </children>
+                              </HBox>
+                           </children>
+                        </HBox>
+                        <HBox alignment="CENTER" spacing="3.0" />
                      </children>
                   </HBox>
-               </children>
-               <GridPane.margin>
-                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-               </GridPane.margin>
-            </HBox>
-            <HBox fx:id="inputBox1" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="108.0" prefWidth="480.0" spacing="12.0" GridPane.rowIndex="3">
-               <children>
-                  <HBox alignment="CENTER" spacing="3.0">
+                  <HBox fx:id="inputBox2" alignment="CENTER" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="44.0" prefWidth="480.0" spacing="12.0" GridPane.rowIndex="4">
+                     <children>
+                        <HBox alignment="CENTER" spacing="3.0">
+                           <children>
+                              <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="31.0" prefWidth="115.0" spacing="3.0">
+                                 <children>
+                                    <Button fx:id="applyChangesButton" mnemonicParsing="false" onMouseClicked="#handleRevertChanges" prefHeight="25.0" prefWidth="110.0" text="Apply changes" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </HBox>
+                        <HBox fx:id="playerBox2" alignment="CENTER" spacing="10.0" />
+                        <HBox alignment="CENTER" spacing="3.0" />
+                        <HBox alignment="CENTER" spacing="3.0" />
+                        <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="31.0" prefWidth="115.0" spacing="3.0">
+                           <children>
+                              <Button fx:id="revertChangesButton" mnemonicParsing="false" onMouseClicked="#handleRevertChanges" prefHeight="25.0" prefWidth="110.0" text="Revert changes" />
+                           </children>
+                        </VBox>
+                     </children>
+                  </HBox>
+                  <HBox fx:id="playerControls2" alignment="CENTER" fillHeight="false" prefHeight="51.0" prefWidth="480.0" GridPane.rowIndex="1">
                      <children>
                         <VBox alignment="BOTTOM_CENTER" spacing="3.0">
                            <children>
-                              <Button fx:id="handleLevel" mnemonicParsing="false" onMouseClicked="#handleMenu" prefWidth="71.0" text="Level" />
-                              <Button fx:id="handleLoad" mnemonicParsing="false" onMouseClicked="#handleMenu" prefWidth="71.0" text="Load" />
-                              <Button fx:id="handleSave" mnemonicParsing="false" onMouseClicked="#handleMenu" prefWidth="71.0" text="Save" />
+                              <Text fill="#454545" strokeType="OUTSIDE" strokeWidth="0.0" text="PUSH" textAlignment="RIGHT" wrappingWidth="60.0">
+                                 <font>
+                                    <Font name="System Bold" size="20.0" />
+                                 </font>
+                                 <VBox.margin>
+                                    <Insets right="5.0" />
+                                 </VBox.margin>
+                              </Text>
                            </children>
                         </VBox>
-                     </children>
-                  </HBox>
-                  <HBox fx:id="playerBox1" alignment="CENTER" spacing="10.0">
-                     <children>
-                        <HBox fx:id="playerControls1" alignment="CENTER" spacing="3.0">
+                        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#00adef" height="40.0" stroke="#00adef" strokeLineCap="ROUND" strokeType="INSIDE" width="7.0" />
+                        <VBox alignment="BOTTOM_CENTER" maxHeight="33.0" prefHeight="15.0" prefWidth="177.0" spacing="3.0">
                            <children>
-                              <VBox alignment="BOTTOM_CENTER" prefHeight="114.0" prefWidth="227.0" spacing="3.0">
-                                 <children>
-                                    <ChoiceBox fx:id="handleLevelSelect" prefHeight="25.0" prefWidth="230.0" />
-                                    <TextField fx:id="fileLocationNameField" prefHeight="25.0" prefWidth="195.0" />
-                                    <TextField fx:id="fileLocationNameField1" />
-                                 </children>
-                              </VBox>
-                           </children>
-                        </HBox>
-                     </children>
-                  </HBox>
-                  <HBox alignment="CENTER" spacing="3.0" />
-               </children>
-            </HBox>
-            <HBox fx:id="inputBox2" alignment="CENTER" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="44.0" prefWidth="480.0" spacing="12.0" GridPane.rowIndex="4">
-               <children>
-                  <HBox alignment="CENTER" spacing="3.0">
-                     <children>
-                        <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="31.0" prefWidth="115.0" spacing="3.0">
-                           <children>
-                              <Button fx:id="handleApply" mnemonicParsing="false" onMouseClicked="#handleMenu" prefHeight="25.0" prefWidth="110.0" text="Apply changes" />
+                              <CubicCurve controlX1="-83.04454040527344" controlX2="-31.921646118164062" controlY1="38.607479095458984" controlY2="-0.8023872375488281" endX="21.078353881835938" endY="19.999996185302734" startX="-154.81216430664062" startY="20.0" stroke="#00aeed00">
+                                 <fill>
+                                    <LinearGradient endX="0.5355450236966826" endY="0.5450236966824645" startX="0.5308056872037913" startY="0.6066350710900474">
+                                       <stops>
+                                          <Stop>
+                                             <color>
+                                                <Color red="0.050999999046325684" green="0.6369333267211914" blue="0.8500000238418579" />
+                                             </color>
+                                          </Stop>
+                                          <Stop offset="1.0">
+                                             <color>
+                                                <Color red="1.0" green="0.4156862795352936" />
+                                             </color>
+                                          </Stop>
+                                       </stops>
+                                    </LinearGradient>
+                                 </fill>
+                              </CubicCurve>
                            </children>
                         </VBox>
-                     </children>
-                  </HBox>
-                  <HBox fx:id="playerBox2" alignment="CENTER" spacing="10.0" />
-                  <HBox alignment="CENTER" spacing="3.0" />
-                  <HBox alignment="CENTER" spacing="3.0" />
-                  <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="31.0" prefWidth="115.0" spacing="3.0">
-                     <children>
-                        <Button fx:id="handleRevert" mnemonicParsing="false" onMouseClicked="#handleMenu" prefHeight="25.0" prefWidth="110.0" text="Revert changes" />
-                     </children>
-                  </VBox>
-               </children>
-            </HBox>
-            <HBox fx:id="playerControls2" alignment="CENTER" fillHeight="false" prefHeight="51.0" prefWidth="480.0" GridPane.rowIndex="1">
-               <children>
-                  <VBox alignment="BOTTOM_CENTER" spacing="3.0">
-                     <children>
-                        <Text fill="#454545" strokeType="OUTSIDE" strokeWidth="0.0" text="PUSH" textAlignment="RIGHT" wrappingWidth="60.0">
+                        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#ff6a00" height="40.0" stroke="#ff6a00" strokeLineCap="ROUND" strokeType="INSIDE" width="7.0" />
+                        <Text fill="#454545" strokeType="OUTSIDE" strokeWidth="0.0" text="ROCK" wrappingWidth="60.0">
                            <font>
                               <Font name="System Bold" size="20.0" />
                            </font>
-                           <VBox.margin>
-                              <Insets right="5.0" />
-                           </VBox.margin>
+                           <HBox.margin>
+                              <Insets left="5.0" />
+                           </HBox.margin>
                         </Text>
                      </children>
-                  </VBox>
-                  <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#00adef" height="40.0" stroke="#00adef" strokeLineCap="ROUND" strokeType="INSIDE" width="7.0" />
-                  <VBox alignment="BOTTOM_CENTER" maxHeight="33.0" prefHeight="15.0" prefWidth="177.0" spacing="3.0">
-                     <children>
-                        <CubicCurve controlX1="-83.04454040527344" controlX2="-31.921646118164062" controlY1="38.607479095458984" controlY2="-0.8023872375488281" endX="21.078353881835938" endY="19.999996185302734" startX="-154.81216430664062" startY="20.0" stroke="#00aeed00">
-                           <fill>
-                              <LinearGradient endX="0.5355450236966826" endY="0.5450236966824645" startX="0.5308056872037913" startY="0.6066350710900474">
-                                 <stops>
-                                    <Stop>
-                                       <color>
-                                          <Color red="0.050999999046325684" green="0.6369333267211914" blue="0.8500000238418579" />
-                                       </color>
-                                    </Stop>
-                                    <Stop offset="1.0">
-                                       <color>
-                                          <Color red="1.0" green="0.4156862795352936" />
-                                       </color>
-                                    </Stop>
-                                 </stops>
-                              </LinearGradient>
-                           </fill>
-                        </CubicCurve>
-                     </children>
-                  </VBox>
-                  <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#ff6a00" height="40.0" stroke="#ff6a00" strokeLineCap="ROUND" strokeType="INSIDE" width="7.0" />
-                  <Text fill="#454545" strokeType="OUTSIDE" strokeWidth="0.0" text="ROCK" wrappingWidth="60.0">
-                     <font>
-                        <Font name="System Bold" size="20.0" />
-                     </font>
-                     <HBox.margin>
-                        <Insets left="5.0" />
-                     </HBox.margin>
-                  </Text>
+                  </HBox>
+               </children>
+            </GridPane>
+            <HBox alignment="CENTER" layoutX="10.0" layoutY="1.0" spacing="3.0">
+               <children>
+                  <VBox alignment="BOTTOM_CENTER" spacing="3.0" />
                </children>
             </HBox>
+            <Circle centerX="56.0" centerY="-104.0" fill="#454545" layoutX="307.0" layoutY="165.0" radius="6.5" stroke="#454545" strokeLineCap="ROUND" strokeLineJoin="ROUND" translateZ="-155.0" />
          </children>
-      </GridPane>
-      <HBox alignment="CENTER" layoutX="10.0" layoutY="10.0" spacing="3.0">
-         <children>
-            <VBox alignment="BOTTOM_CENTER" spacing="3.0" />
-         </children>
-      </HBox>
-      <Circle centerX="56.0" centerY="-104.0" fill="#454545" layoutX="307.0" layoutY="176.0" radius="6.5" stroke="#454545" strokeLineCap="ROUND" strokeLineJoin="ROUND" translateZ="-155.0" />
+      </Pane>
    </children>
 </AnchorPane>
