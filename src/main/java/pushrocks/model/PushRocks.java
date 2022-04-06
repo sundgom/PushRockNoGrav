@@ -9,8 +9,12 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
     private int width;
     private int height;
+    private String levelName;
     private String levelLayout;
     private String directionLayout; //Contains 
+    private int score;
+    private int moveCount;
+    private boolean isGravityInverted;
 
     private TraversableBlock[][] traversableBlocks;                                         //Blocks that make out the surface on which other blocks can move through/be placed ontop of
     private ObstacleBlock[][] obstacleBlocks;                                               //Blocks that are placed ontop of the traversable plane, which can hinder or redirect movement of moveable blocks
@@ -20,23 +24,45 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     private ArrayList<ObstacleBlock> teleporters = new ArrayList<ObstacleBlock>();
     private ArrayList<ObstacleBlock> portals = new ArrayList<ObstacleBlock>();
 
-    private int score;
-    private int moveCount;
-    private boolean isGravityInverted;
 
     private ArrayList<IObserverPushRocks> observers = new ArrayList<>();
     private IntervalNotifier intervalNotifier;
 
-    private boolean isGravityOnInterval;
-    private Object intervalNotifierThread;
+
+    private Thread intervalNotifierThread;
     private boolean ignoreNotifier;
+    private int gravityApplicationChoice;
 
     public int getHeight() {
         return this.height;
     }
-
     public int getWidth() {
         return this.width;
+    }
+
+    public boolean isGravityApplicationManual() {
+        return gravityApplicationChoice > 0;
+    }
+    public boolean isGravityApplicationMoveInput() {
+        return gravityApplicationChoice == 0;
+    }
+    public boolean isGravityApplicationInterval() {
+        return gravityApplicationChoice < 0;
+    }
+
+    public void setGravityApplicationManual() {
+        this.gravityApplicationChoice = 1;
+    }
+    public void setGravityApplicationMoveInput() {
+        this.gravityApplicationChoice = 0;
+    }
+    public void setGravityApplicationInterval() {
+        this.gravityApplicationChoice = -1;
+        // this.intervalNotifierThread
+    }
+    public void setGravityApplicationChoice(int n) {
+        //manual: n > 0, moveInput: n == 0, interval: n < 0
+        this.gravityApplicationChoice = n;
     }
 
     private String getGravityDirection() {
@@ -47,7 +73,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             return "up";
         }
     }
-    public int getGravityDirectionY() { //public as to let controller know.
+    public int getGravityDirectionY() { 
         if (!this.isGravityInverted) {
             return -1;
         }
@@ -81,7 +107,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
 
     //Returns the given player block if it exists
-    public MoveableBlock getPlayer(int number) {
+    private MoveableBlock getPlayer(int number) {
         int playerNumber = 1;
         for (MoveableBlock block : this.moveableBlocks) {
             if (block.isPlayer()) {
@@ -97,7 +123,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     }
 
     //Returns any and all blocks that are placed at the given coordinates
-    public List<BlockAbstract> getAllBlocks(int x, int y) {
+    private List<BlockAbstract> getAllBlocks(int x, int y) {
         List<BlockAbstract> allBlocks = new ArrayList<BlockAbstract>();
         if (this.getDirectedBlock(x, y) != null) {          //There can only be a single directed block at any given coordinate
             allBlocks.add(this.getDirectedBlock(x, y));
@@ -108,9 +134,9 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         return allBlocks;                                   //Together they will make out all blocks placed at the given coordinate
     }
 
-    //Returns the top-most block at the given coordinate. There can be at most one directed block and one traversable block at any
+    //Returns only the top-most block at the given coordinate. There can be at most one directed block and one traversable block at any
     //given coordinate, of these two a directed block will be considered to be placed over the traversable block. 
-    public BlockAbstract getTopBlock(int x, int y) {
+    private BlockAbstract getTopBlock(int x, int y) {
         //We create a new list that will contain every block at the given coordinate
         List<BlockAbstract> allBlocks = this.getAllBlocks(x, y);
         //If this list size is less than one, then there must be no blocks at the given coordinate, thus we return null
@@ -121,6 +147,59 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         return this.getAllBlocks(x, y).get(0);
     }
 
+    //Similar to the method given above, except a copy of the block is returned instead.
+    public BlockAbstract getTopBlockCopy(int x, int y) {
+        BlockAbstract block = this.getTopBlock(x, y);
+        BlockAbstract blockCopy;
+        if (block instanceof MoveableBlock) {
+            blockCopy = new MoveableBlock(x, y, block.getType(), ((MoveableBlock) block).getDirection());
+            blockCopy.setState(block.getState());
+        }
+        else if (block instanceof ObstacleBlock) {
+            blockCopy = new ObstacleBlock(x, y, block.getType(), ((ObstacleBlock) block).getDirection(), null);
+            ObstacleBlock blockConnection = ((ObstacleBlock) block).getConnection();
+            if (blockConnection != null) {
+                ObstacleBlock blockCopyConnection = new ObstacleBlock(blockConnection.getX(), blockConnection.getY(), blockConnection.getType(), ((ObstacleBlock) blockConnection).getDirection(), ((ObstacleBlock) blockCopy));
+                ((ObstacleBlock) blockCopy).setConnection(blockCopyConnection);
+            }
+        }
+        //Otherwise it must be a traversable block.
+        else {
+            blockCopy = new TraversableBlock(x, y, block.getType(), ((TraversableBlock) block).isBirdView());
+            blockCopy.setState(block.getState());
+        }
+        return blockCopy;
+    }
+    //Returns a copy of the traversable block at the given coordinate
+    public TraversableBlock getTraversableBlockCopy(int x, int y) {
+        TraversableBlock block = this.getTraversableBlock(x, y);
+        return new TraversableBlock(x, y, block.getType(), block.isBirdView());
+    }
+
+
+    public char getTopBlockType(int x, int y) {
+        return this.getTopBlock(x, y).getType();
+    }
+    public String getTopBlockDirection(int x, int y) {
+        BlockAbstract block = this.getTopBlock(x, y);
+        if (!(block instanceof DirectedBlock)) {
+            return null;
+        }
+        else {
+            return ((DirectedBlock) block).getDirection();
+        }
+    }
+    public boolean getTopBlockState(int x, int y) {
+        return this.getTopBlock(x, y).getState();
+    }
+    public boolean getTopBlockBirdView(int x, int y) {
+        return this.getTraversableBlock(x, y).isBirdView();
+    }
+    public String getTopBlockClass(int x, int y) {
+        return this.getTopBlock(x, y).getClass().getSimpleName();
+    }
+
+    
     //Updates the score according to the current state of the game. The score increments by one for each movable block that is placed ontop
     //of a pressure plate.
     public void pressuredPlatesCount() {
@@ -161,12 +240,13 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         this.teleporters.get(this.score / this.teleporters.size()).setConnection(this.teleporters.get(this.score % this.teleporters.size()));
     }
 
-    //Attempts to place a portal (number 1 or 2), at the next wall in the direction the player aiming/looking. 
+    //Attempts to place a portal (number 1 or 2), at the next wall in the direction the player is aiming/looking. 
     //We assume that the player is able to aim the portal through other moveable blocks such as rocks. 
     //They can however aim at or past a teleporter. Aiming through other active teleporters and portals is also 
     //not supported.
-    public boolean placePortal(boolean inputIsPortalOne, MoveableBlock player) {
-        if (! player.isPlayer()) {
+    public boolean placePortal(boolean inputIsPortalOne) {
+        MoveableBlock player = this.getPlayer(1);
+        if (!player.isPlayer()) {
             return false; //only a player can place a portal
         }
         int x = player.getX();
@@ -222,7 +302,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         return false;
     }
 
-    public boolean addPortal(ObstacleBlock portal) {
+    private boolean addPortal(ObstacleBlock portal) {
         if (portal == null) {
             return false;
         }
@@ -236,7 +316,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         return true;
     }
 
-    public boolean removePortal(ObstacleBlock oldPortal) {
+    private boolean removePortal(ObstacleBlock oldPortal) {
         if (oldPortal == null) {
             return false;
         }
@@ -245,7 +325,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         return true;
     }
 
-    public ObstacleBlock getPortal(boolean inputIsPortalOne) {
+    private ObstacleBlock getPortal(boolean inputIsPortalOne) {
         if (portals.size() < 1) {
             return null;
         }
@@ -258,7 +338,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     }
 
     //Searches for the obstacle block in the given direction that is closest to the given coordinates
-    public ObstacleBlock findObstacle(String direction, int x, int y) {
+    private ObstacleBlock findObstacle(String direction, int x, int y) {
         int newX = x;
         int newY = y;
         switch (direction) {
@@ -301,7 +381,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         return false;
     }
 
-    public DirectedBlock getDirectedBlock(int x, int y) {
+    private DirectedBlock getDirectedBlock(int x, int y) {
         if (this.getMoveableBlock(x, y) != null) {
             return getMoveableBlock(x, y);
         }
@@ -310,7 +390,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         }
         return null;
     }
-    public MoveableBlock getMoveableBlock(int x, int y) {
+    private MoveableBlock getMoveableBlock(int x, int y) {
         for (MoveableBlock block : this.moveableBlocks) {
             if ((block.getY() == y) && (block.getX() == x)) {
                 return block;
@@ -318,7 +398,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         }
         return null;
     }
-    public ObstacleBlock getObstacleBlock(int x, int y) {
+    private ObstacleBlock getObstacleBlock(int x, int y) {
         if(x < 0 || x >= this.width) {
             System.out.println("x:" + x + " is out of bounds when the width of the map is " + this.width);
             return null;
@@ -329,7 +409,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         }
         return obstacleBlocks[-y][x];
     }
-    public TraversableBlock getTraversableBlock(int x, int y) {
+    private TraversableBlock getTraversableBlock(int x, int y) {
         if(x < 0 || x >= this.width) {
             System.out.println("x:" + x + " is out of bounds when the width of the map is " + this.width);
             return null;
@@ -356,7 +436,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     //     return block[-y][x];
     // }
 
-    public void addObstacleBlock(ObstacleBlock block) {
+    private void addObstacleBlock(ObstacleBlock block) {
         this.obstacleBlocks[-block.getY()][block.getX()] = block;
         if (block.isTeleporter()) {
             this.teleporters.add(block);
@@ -365,11 +445,8 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             this.portals.add(block);
         }
     }
-    public void addMoveableBlock(MoveableBlock block) {
+    private void addMoveableBlock(MoveableBlock block) {
         this.moveableBlocks.add(block);
-    }
-    public void removeMoveableBlock(MoveableBlock block) {
-        this.moveableBlocks.remove(block);
     }
 
     //Returns a list of all blocks that are of the same type as the given block and are positioned such that they together
@@ -403,7 +480,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         return chain;
     }
 
-    public List<List<BlockAbstract>> getGravityFallOrder() {
+    private List<List<BlockAbstract>> getGravityFallOrder() {
         //If the footing block of a given moveable block is different depending on wether or not potential traversal through a 
         //transporter is accounted for, then that means that the given block must be placed at an active transporter's
         //entry point which is also above (in relation to gravity) the transporter itself. All such moveable blocks
@@ -752,10 +829,11 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
     //Checks if the given block is placed at a corrdinate where bird-view is enabled
     private boolean isInBirdView(BlockAbstract block) {
-        if (block== null) {
-            System.out.println("what");
-        }
+        //At any given coordinate on the map, there must exist a traversable block with that coordinate.
         TraversableBlock traversableBlock = getTraversableBlock(block.getX(), block.getY());
+        if (traversableBlock == null) {
+            throw new IllegalStateException("At any given coordinate on the map, there must exist a traversable block with that coordinate.");
+        }
         return traversableBlock.isBirdView();
     }
 
@@ -931,7 +1009,9 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         }
         //If gravity does not move forward on a set interval, then let it instead move forward once every time 
         //the player block was issued to move
-        if (!this.isGravityOnInterval) {
+        System.out.println("Gravity is move input?" + this.isGravityApplicationMoveInput());
+        System.out.println(this.gravityApplicationChoice);
+        if (this.isGravityApplicationMoveInput()) {
             this.gravityStep(wasMoved);
         }
         System.out.println(this.prettyString());
@@ -945,7 +1025,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         return wasMoved;
     }
 
-    public boolean pushMoveable(MoveableBlock block, String direction, int strength, boolean hasTakenPortal, String movementSource) { //CHECK THIS !!!!!!!!!!!!!! may work against intent
+    private boolean pushMoveable(MoveableBlock block, String direction, int strength, boolean hasTakenPortal, String movementSource) { //CHECK THIS !!!!!!!!!!!!!! may work against intent
         //A block can not push another block in the same direction as the gravity affecting it
         if( (direction == "up" || direction == "down") && (direction == this.getGravityDirection()) && !isInBirdView(block) ) {
         // if ( ((direction == "down" && !this.isGravityInverted) || (direction == "up" && this.isGravityInverted)) && !isInBirdView(block) ) {
@@ -1242,12 +1322,8 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         this.directionLayout = directionLayout;
         this.buildWorld();
         
-        this.isGravityOnInterval = true;
-        if (this.isGravityOnInterval == true) { //Should include something about this in the build/hasWon/pause/menu interactions
-            // GravityIncrementer gravityIncrementer = new GravityIncrementer(this, 1000);
-            // Thread thread = new Thread(gravityIncrementer);
-            // thread.start();
-
+        this.setGravityApplicationInterval();
+        if (this.isGravityApplicationInterval() == true) { //Should include something about this in the build/hasWon/pause/menu interactions
             IntervalNotifier intervalNotifier = new IntervalNotifier(this, 1000, true);
             Thread intervalNotifierThread = new Thread(intervalNotifier);
             this.intervalNotifierThread = intervalNotifierThread;
@@ -1260,6 +1336,19 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
     }
 
+    // public void buildWorld(String levelName, String mapLayout, String directionLayout, int moveCount, boolean isGravityInverted, int gravityApplicationChoice, boolean isSave) {
+    //     this.levelName = levelName;
+    //     if (!isSave) {
+    //         this.levelLayout = mapLayout;
+            
+    //     }
+    //     else {
+    //         this.getLevelLayout(levelName);
+    //         this.moveCount = moveCount;
+    //     }
+    //     this.directionLayout = directionLayout;
+    // }
+
     public void buildWorld() {
         this.moveableBlocks.clear();
         this.teleporters.clear();
@@ -1268,9 +1357,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
         String layoutSingleLine = this.levelLayout.replace("\n", "");
         this.width = levelLayout.indexOf("\n");
-        System.out.println(this.width);
         this.height = layoutSingleLine.length() / this.width;
-        System.out.println(this.height);
 
         String[] directions = new String[this.directionLayout.length()];
         
@@ -1383,13 +1470,6 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         }
         this.notifyObservers();
     }
-
-
-
-
-    // public String loadFromFile() throws IOException {
-    //     return new String(Files.readAllBytes(Paths.get("src/main/resources/stephenking.txt")));
-    // }
     
     @Override
     public void addObserver(IObserverPushRocks observer) {
@@ -1419,7 +1499,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
     public void pause(boolean pauseGame) {
         if (pauseGame) {
-            if (this.isGravityOnInterval) {
+            if (this.isGravityApplicationInterval()) {
                 if (this.intervalNotifier != null) {
                     this.intervalNotifier.stop();
                 }
@@ -1429,7 +1509,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             }
         }
         else {
-            if (this.isGravityOnInterval) {
+            if (this.isGravityApplicationInterval()) {
                 if (this.intervalNotifier != null) {
                     this.intervalNotifier.start();
                 }
@@ -1441,7 +1521,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     }
 
     public void resetLevel() {
-        if (this.isGravityOnInterval) {
+        if (this.isGravityApplicationInterval()) {
             if (this.intervalNotifier != null) {
                 this.intervalNotifier.stop();
             }
@@ -1452,20 +1532,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         this.buildWorld();
     }
 
-    public void gravitySetting(int n) {
-        //interval
-        if (n > 0) {
-            this.gravitySetting = n;
-        }
-        //manual
-        else if (n == 0) {
 
-        }
-        //onPlayerMove
-        else {
-            
-        }
-    }
 
 
     public static void main(String[] args) {
@@ -1690,7 +1757,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
     }
 
-
-  
-    
+    public boolean isGravityInverted() {
+        return false;
+    }
 }

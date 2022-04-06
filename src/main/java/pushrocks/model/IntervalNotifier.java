@@ -26,6 +26,7 @@ public class IntervalNotifier implements Runnable, IObservableIntervalNotifier{
                 this.notifyObservers();
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                return;
             }
         }
     }
