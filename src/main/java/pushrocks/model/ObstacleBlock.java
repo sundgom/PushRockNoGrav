@@ -286,8 +286,6 @@ public class ObstacleBlock extends DirectedBlock {
         return false;
     }
 
-
-
     //Expands the pool of valid types established in the BlockAbstract superclass to include those valid for this sub-class.
     //Valid obstacle types include: wall 'w', teleporter 't', portal one 'u', and portal two 'v'.
     @Override
@@ -323,23 +321,6 @@ public class ObstacleBlock extends DirectedBlock {
     public String getCollisionTypes() {
         return super.getCollisionTypes() + "wtuv"; //can potentially replace "wt" with getValidTypes() if portals can have collision
     }
-
-
-
-    // //Constructor without specified direction
-    // public ObstacleBlock(int x, int y, char type) {
-    //     super(x, y, type);
-    //     this.setConnection(null);
-    // }
-
-    // //Constructor with specified direction
-    // public ObstacleBlock(int x, int y, char type, String direction) {
-    //     super(x, y, type, direction);
-    //     this.setConnection(null);
-    //     if (this.isPortal()) {
-    //         this.setPortal(this.isPortalOne(), direction, null)
-    //     }
-    // }
     
     //Constructor with specified direction and connection
     public ObstacleBlock(int x, int y, char type, String direction, ObstacleBlock connection) {

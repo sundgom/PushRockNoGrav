@@ -1,23 +1,23 @@
-Map layout:
-wwwwwwwwwwwwwwwwwww
-w  wp    w        w
-w  w r   w  r     w
-w  wwww ww        w
-w   r    w        w
-w      d w        w
-w        w        w
-w t  d d w  t     w
-w        w        w
-wwwwwwwwwwwwwwwwwww
-w        w        w
-w        w   r  d w
-w        www    www
-w        w   r  d w
-w        w        w
-w        w ww     w
-w t      w t      w
-w        w        w
-wwwwwwwwwwwwwwwwwww
+#Map layout:
+wwwwwwwwwwwwwwwwwww@
+w  wp    w        w@
+w  w r   w  r     w@
+w  wwww ww        w@
+w   r    w        w@
+w      d w        w@
+w        w        w@
+w t  d d w  t     w@
+w        w        w@
+wwwwwwwwwwwwwwwwwww@
+w        w        w@
+w        w   r  d w@
+w        www    www@
+w        w   r  d w@
+w        w        w@
+w        w ww     w@
+w t      w t      w@
+w        w        w@
+wwwwwwwwwwwwwwwwwww@
 
-Directions: 
+#Direction layout:
 rrrrrr

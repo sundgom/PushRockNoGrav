@@ -1,0 +1,23 @@
+#Map layout:
+wwwwwwwwwwwwwwwwwww@
+w  w     w        w@
+w  w r   w  r     w@
+w  wwww ww        w@
+w   r    w        w@
+w      d www      w@
+w        w        w@
+w t  d d w  t     w@
+w        w        w@
+wwwwwwwwwwwwwwwwwww@
+W--------W--P-----W@
+W--------W---R--D-W@
+W--------WWW----WWW@
+W--------W---R--D-W@
+W--------W--------W@
+W--------W-WW-----W@
+W-T------W-T------W@
+W--------W--------W@
+WWWWWWWWWWWWWWWWWWW@
+
+#Direction layout:
+rrrrrr

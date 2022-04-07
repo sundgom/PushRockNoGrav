@@ -25,7 +25,7 @@ public abstract class DirectedBlock  extends BlockAbstract {
     //in a specific direction.
     public void setDirection(String direction) {
         if (! isValidDirection(direction)) {
-            throw new IllegalArgumentException("Invalid input for direction. Direction must be: up, down, left or right, but was: " + direction + ".");
+            throw new IllegalArgumentException("Invalid input for direction. Direction must be: " + this.getValidDirections() + ", but was: " + direction + ".");
         }
         if (direction != null) {
             switch (direction) {
@@ -49,7 +49,7 @@ public abstract class DirectedBlock  extends BlockAbstract {
     }
 
     //Validation check for direction input.
-    private boolean isValidDirection(String direction) {
+    protected boolean isValidDirection(String direction) {
         String[] validDirections = this.getValidDirections();
         for (String validDirection : validDirections) {
             if (direction == validDirection) {
@@ -60,7 +60,7 @@ public abstract class DirectedBlock  extends BlockAbstract {
     }
 
     //Returns a string list of valid directions for this block.
-    private String[] getValidDirections() {
+    protected String[] getValidDirections() {
         String[] validDirections = {"up", "down", "left", "right", null};
         return validDirections;
     }

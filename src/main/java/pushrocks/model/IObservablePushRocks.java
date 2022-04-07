@@ -8,7 +8,7 @@ public interface IObservablePushRocks {
     // public BlockAbstract getTopBlock(int x, int y);
     public int getHeight();
     public int getWidth();
-    public int getScore();
+    public int getMoveCount();
 
     public char getTopBlockType(int x, int y);
     public String getTopBlockDirection(int x, int y); 

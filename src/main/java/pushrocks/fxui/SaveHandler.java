@@ -1,8 +1,14 @@
 package pushrocks.fxui;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -12,36 +18,7 @@ import pushrocks.model.DirectedBlock;
 import pushrocks.model.PushRocks;
 
 public class SaveHandler implements ISaveHandler {
-   
-    // @Override
-    // public void save(String fileName, PushRocks pushRocks) throws FileNotFoundException {
-        
-    //     // try (PrintWriter printWriter = new PrintWriter(new File(getFilePath(fileName))) {
-    //     try {
-    //         PrintWriter printWriter = new PrintWriter(new File(getFilePath(fileName, true)));
-    //         printWriter.println(pushRocks.toGameToSaveFormat());
 
-    //         printWriter.flush(); //ensures that the printwriter is done writing to the file
-    //         printWriter.close(); //closes the file
-            
-
-    //     }
-    //     catch (Exception e) {
-            
-    //     }
-        
-    // }
-
-    // @Override
-    // public void load(String fileName) throws FileNotFoundException {
-    //     Scanner scanner = new Scanner(new File(fileName));
-
-    //     while(scanner.hasNextLine()) {
-    //         String line = scanner.nextLine();
-    //         String[] lineInfo = line.split(",");
-    //     }
-        
-    // }
 
     public List<String> getLevelNames() {
         Path levelsFolderPath = getResourceFoldersPath("levels");
@@ -66,7 +43,6 @@ public class SaveHandler implements ISaveHandler {
 
     @Override
     public void loadGameLevel(String filename, PushRocks pushrocks) throws FileNotFoundException {
-        Path levelPath = this.getResourceFoldersPath("levels");
         
     }
 
@@ -88,8 +64,105 @@ public class SaveHandler implements ISaveHandler {
         
     }
 
+    public PushRocks loadGame(InputStream inputStream) {
+        PushRocks pushRocks = null;
+        try (var scanner = new Scanner(inputStream)) {
+            scanner.useDelimiter("#");
+            // PushRocks(String levelName, String mapLayout, String directionLayout, int moveCount, boolean isSave) //from save
+            // PushRocks(String levelName, String mapLayout, String directionLayout) //from levelLoad
+            String fileType = null;      //Save or Level
+            String levelName = null;     //Name of the level
+            String levelLayout = null;   
+            
+            
+            String mapLayout = null;
+            String directionLayout = null;
+            String moveCount = null;
 
-    public String toGameToSaveFormat(PushRocks pushRocks) {
+            while (scanner.hasNext()) {
+                String nextScan = scanner.next();
+                System.out.println(nextScan);
+                String fieldName = nextScan.substring(0, nextScan.indexOf(":"));
+                String fieldData = nextScan.substring(fieldName.length()+3).stripTrailing(); //Each fieldName is followed by a colon and a line shift (":\n"), the remainder will then be the data
+                System.out.println("fieldName:" + fieldName);
+                System.out.println("fieldData:" + fieldData);
+
+
+                if (fieldName.contains("Map layout")) {
+                    String garbage = fieldData.substring(fieldData.stripTrailing().length(), fieldData.length());
+                    System.out.println(garbage + "length:" + garbage.length());
+                    System.out.println(fieldData.replace("cr", "HELLLO"));
+                    mapLayout = fieldData;
+                }
+                else if (fieldName.contains("Direction layout")) {
+                    directionLayout = fieldData;
+                }
+                // if (fieldName == "Map layout") {
+
+                // }
+                // if (fieldName == "Map layout") {
+
+                // }
+                // if (fieldName == "Map layout") {
+
+                // }
+                
+            }
+            System.out.println("map:" + mapLayout + "|direction:" + directionLayout);
+            pushRocks = new PushRocks(mapLayout, directionLayout);
+        }
+        return pushRocks;
+    }
+
+    public PushRocks loadGame(String fileName, boolean isSave) throws FileNotFoundException, IOException {
+        Path folderPath = null;
+        if (isSave) {
+            folderPath = this.getResourceFoldersPath("saves");
+        }
+        else {
+            folderPath = this.getResourceFoldersPath("levels");
+        }
+        Path filePath = folderPath.resolve(fileName + ".txt");
+        try (var inputStream = new FileInputStream(filePath.toFile())) {
+            return loadGame(inputStream);
+        }
+    }
+    public PushRocks loadGame(Path filePath) {
+        return null;
+        
+    }
+
+    public PushRocks loadGame(String filePath) {
+        // System.out.println(filePath);
+        // Path path = Paths.get(filePath);
+
+        // try (var input = new FileInputStream(path.toFile())) {
+        //     // return readGameFile();
+        //     return null;
+        // }
+        return null;
+    }
+
+    public void saveGame(PushRocks pushRocks, OutputStream outputStream) {
+
+    }
+
+    // public void saveGame(PushRocks pushRocks) throws IOException {
+        
+    // }
+    public void saveGame(PushRocks pushRocks, String savePathString) throws IOException {
+        Path savePath = Paths.get(savePathString);
+        try (var outputStream = new FileOutputStream(savePath.toFile())) {
+            String layout = gameToSaveFormat(pushRocks);
+
+        }
+    }
+
+
+    public String gameToSaveFormat(PushRocks pushRocks) {
+        if (pushRocks.isGameOver()) {
+            throw new IllegalArgumentException("Can not save a completed game.");
+        }
         System.out.println("Save format start.");
         String mapLayoutSave = "";
         String directionLayoutSave = ">";
@@ -150,4 +223,17 @@ public class SaveHandler implements ISaveHandler {
         System.out.println("Save format end");
         return mapLayoutSave + directionLayoutSave;
     }
+    public static void main(String[] args) {
+        SaveHandler save = new SaveHandler();
+        try {
+            save.loadGame("Level 1", false);
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+    // C:\Users\magnu\Documents\LocalUNI\2022V\GIT\TDT4100_prosjekt_magnsu\src\main\resources\pushrocks\levels\Level 1.txt
 }

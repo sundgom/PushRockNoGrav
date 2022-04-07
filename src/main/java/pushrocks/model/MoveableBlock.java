@@ -52,9 +52,7 @@ public class MoveableBlock extends DirectedBlock {
 
     //Move this block in the given direction, return true if the block was moved successfully.
     public boolean moveInDirection(String direction) {
-        // if (! isValidDirection(direction)) {
-        //     throw new IllegalArgumentException("Direction must be: up, down, left, or right, but was: " + direction + ".");
-        // }
+        
         this.setDirection(direction); //Contains a validation check for direction
 
         switch (this.getDirection()) {
