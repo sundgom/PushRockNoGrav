@@ -40,61 +40,61 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     private SaveHandler saveHandler = new SaveHandler();
 
     @FXML 
-    AnchorPane anchorPane;
+    private AnchorPane anchorPane;
 
     //GAME PAGE
     @FXML
-    GridPane mapPage;
+    private GridPane mapPage;
     @FXML
-    Pane map;
+    private Pane map;
 
     @FXML
-    RowConstraints controlBoxRowConstraints;
+    private RowConstraints controlBoxRowConstraints;
 
     @FXML
-    HBox inputBox;
+    private HBox inputBox;
     @FXML 
-    Button scoreButton;
+    private Button scoreButton;
     @FXML
-    Button gravityButton;
+    private Button gravityButton;
     @FXML
-    Button gravityManualIncrementButton;
+    private Button gravityManualIncrementButton;
 
     //MENU PAGE
     @FXML
-    Pane menuPage;
+    private Pane menuPage;
 
     @FXML 
-    Text menuLevelText;
+    private Text menuLevelText;
     @FXML 
-    Text menuScoreText;
+    private Text menuScoreText;
     @FXML
-    Button menuContinueButton;
+    private Button menuContinueButton;
 
     @FXML
-    Button menuLevelButton;
+    private Button menuLevelButton;
     @FXML
-    Button menuLoadButton;
+    private Button menuLoadButton;
     @FXML
-    Button menuSaveButton;
+    private Button menuSaveButton;
 
     @FXML
-    ChoiceBox<String> menuLevelChoiceBox;
+    private ChoiceBox<String> menuLevelChoiceBox;
     @FXML
-    TextField menuLoadFileLocationField;
+    private TextField menuLoadFileLocationField;
     @FXML
-    TextField menuSaveFileLocationField;
+    private TextField menuSaveFileLocationField;
 
     @FXML 
-    RadioButton menuGravityManualButton;
+    private RadioButton menuGravityManualButton;
     @FXML 
-    RadioButton menuGravityMoveInputButton;
+    private RadioButton menuGravityMoveInputButton;
     @FXML 
-    RadioButton menuGravityIntervalButton;
+    private RadioButton menuGravityIntervalButton;
 
     @FXML
-    Button menuApplyChangesButton;
-    Button menuRevertChangesButton;
+    private Button menuApplyChangesButton;
+    private Button menuRevertChangesButton;
     private int gravityChoice;
     
 
@@ -432,7 +432,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     }
 
     @FXML
-    void handlePlayerInput(KeyEvent keyEvent) {
+    private void handlePlayerInput(KeyEvent keyEvent) {
         if (keyEvent.getCode() == KeyCode.ESCAPE) {
             if (!menuPage.isVisible()) { //If score page is added, then ESC should make sure to close that before entering menu
                 handleMenu();
@@ -479,33 +479,33 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     }
 
 	@FXML
-    void handleUp() {
+    private void handleUp() {
         pushRocks.movePlayer(1, "up");
     }
     @FXML
-    void handleDown() {
+    private void handleDown() {
         pushRocks.movePlayer(1, "down"); 
     }
     @FXML
-    void handleLeft() {
+    private void handleLeft() {
         pushRocks.movePlayer(1, "left");
     }
     @FXML
-    void handleRight() {
+    private void handleRight() {
         pushRocks.movePlayer(1, "right");
     }
 
     @FXML
-    void handlePortalOne() {
+    private void handlePortalOne() {
         pushRocks.placePortal(true);
     }
     @FXML
-    void handlePortalTwo() {
+    private void handlePortalTwo() {
         pushRocks.placePortal(false);
     }
 
     @FXML
-    void handleGravityInverter() {
+    private void handleGravityInverter() {
         pushRocks.gravityInverter();
         updateGravityButton();
     }
@@ -520,11 +520,11 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 
     }
     @FXML 
-    void handleManualGravityIncrement() {
+    private void handleManualGravityIncrement() {
         pushRocks.gravityStep(false);
     }
     @FXML
-    void handleResetLevel() {
+    private void handleResetLevel() {
         pushRocks.resetLevel();
         updateGravityButton();     
 
@@ -544,14 +544,14 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     }
 
     @FXML
-    void handleScore() {
+    private void handleScore() {
         System.out.println("Bug-search.");
         // System.out.println(pushRocks.toGameToSaveFormat());
         this.pushRocks.gravityStep(false);
         // this.pushRocks.movePlayer(1, "right");
     }
     @FXML
-    void handleMenu() {
+    private void handleMenu() {
         System.out.println("Open menu.");
         mapPage.setVisible(false);
         gravityManualIncrementButton.setVisible(false);
@@ -570,7 +570,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 
     //MENU PAGE
     @FXML
-    void handleContinue() {
+    private void handleContinue() {
         System.out.println("Continue!");
         menuPage.setVisible(false);
         mapPage.setVisible(true);
@@ -602,17 +602,17 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         }
     }
     @FXML
-    void handleLevelButton() {
+    private void handleLevelButton() {
         System.out.println("Level button");
         
     }
     @FXML
-    void handleLoadButton() {
+    private void handleLoadButton() {
         System.out.println("Load button");
         System.out.println(saveHandler.toGameToSaveFormat(this.pushRocks));
     }   
     @FXML
-    void handleSaveButton() {
+    private void handleSaveButton() {
         System.out.println("Save button");
         FileChooser fileChooser = new FileChooser();
         final Window window = menuLoadFileLocationField.getScene().getWindow();
@@ -644,7 +644,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     }
 
     @FXML 
-    void handleLoadBrowse() {
+    private void handleLoadBrowse() {
         System.out.println("Load browse");
         Path loadPath = getFilePathBrowse(false);
         if (loadPath != null) {
@@ -652,7 +652,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         }
     }
     @FXML 
-    void handleSaveBrowse() {
+    private void handleSaveBrowse() {
         System.out.println("Save browse");
         Path savePath = getFilePathBrowse(true);
         if (savePath != null) {
@@ -662,27 +662,27 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     }
 
     @FXML
-    void handleGravityChoiceManual() {
+    private void handleGravityChoiceManual() {
         System.out.println("Gravity application: manual");
         menuGravityChoice(1);
     }
     @FXML
-    void handleGravityChoiceMoveInput() {
+    private void handleGravityChoiceMoveInput() {
         System.out.println("Gravity application: move input");
         menuGravityChoice(0);
     }
     @FXML
-    void handleGravityChoiceInterval() {
+    private void handleGravityChoiceInterval() {
         System.out.println("Gravity application: interval");
         menuGravityChoice(-1);
     }
 
     @FXML
-    void handleApplyChanges() {
+    private void handleApplyChanges() {
         System.out.println("Apply changes");
     }
     @FXML
-    void handleRevertChanges() {
+    private void handleRevertChanges() {
         System.out.println("Revert changes");
     }
 

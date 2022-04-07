@@ -3,7 +3,7 @@ package exampleproject;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
-public class CalculatorTest {
+public class PushRocksTest {
     @Test
     public void testConstructor() {
         Calculator calculator;
