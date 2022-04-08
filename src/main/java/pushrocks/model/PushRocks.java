@@ -1042,7 +1042,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             return false;
         }
         MoveableBlock player = this.getPlayer(playerNumber);
-        String directionOld = player.getDirection();
+        // String directionOld = player.getDirection();
 
         player.setDirection(direction);
         boolean wasMoved = false;
