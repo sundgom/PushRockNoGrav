@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -116,14 +117,9 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     @FXML
     private Button statusMenuButton;
 
-
-
-
     //Controller attributes
     private int gravityChoice;
     
-    
-
     @FXML
     public void initialize() {
 
@@ -234,7 +230,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
             W- ------W-T------W@
             W--------W---R--P-W@
             WWWWWWWWWWWWWUWWWWW@""";
-        String directionLayout1 = "rrrrrrru";
+        String directionLayout1 = "rrrrrrruG";
         menuPage.setVisible(true);
         mapPage.setVisible(false);
 
@@ -622,6 +618,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         if (pushRocks.isGameOver()) {
             handleResetLevel();
         }
+        updateGravityButton();
         this.unpause();
         
 
@@ -674,17 +671,34 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     @FXML
     private void handleLoadButton() {
         System.out.println("Load button");
-        System.out.println(saveHandler.gameToSaveFormat(this.pushRocks));
+        Path filePath = Paths.get(menuLoadFileLocationField.getText());
+        System.out.println("Load path:" + filePath);
+        try {
+            this.pushRocks = this.saveHandler.loadGame(filePath);
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        pushRocks.addObserver(this);
+        pushRocks.pause(true);
+        createMap();
+		drawMap();
+        this.incrementGravityOnInterval = true;
+        this.updateLevelText();
     }   
     @FXML
     private void handleSaveButton() {
         System.out.println("Save button");
-        FileChooser fileChooser = new FileChooser();
-        final Window window = menuLoadFileLocationField.getScene().getWindow();
-        File file = null;
-        file = fileChooser.showSaveDialog(window);
-        if (file != null) {
-            System.out.println(file.getAbsolutePath());
+        Path savePath = Paths.get(menuSaveFileLocationField.getText());
+        System.out.println("Save path:" + savePath);
+        try {
+            this.saveHandler.saveGame(this.pushRocks, savePath);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
         menuLoadFileLocationField.setText(null);
     }

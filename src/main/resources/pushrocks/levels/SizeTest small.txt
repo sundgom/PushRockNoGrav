@@ -1,0 +1,21 @@
+#File type:
+Level
+
+#Level name:
+SizeTest small
+
+#Level map layout:
+wwwwwwwwww@
+w  wp    w@
+w  w r   w@
+w  wwww ww@
+w   r    w@
+w      d w@
+w        w@
+w t  d d w@
+w        w@
+wwwwwwwwww@
+
+
+#Level direction layout:
+rrrg

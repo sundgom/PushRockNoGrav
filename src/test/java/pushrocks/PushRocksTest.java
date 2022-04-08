@@ -1,12 +1,14 @@
-package exampleproject;
+package pushrocks;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
+import pushrocks.model.PushRocks;
+
 public class PushRocksTest {
     @Test
     public void testConstructor() {
-        Calculator calculator;
+        PushRocks pushRocks;
 
         for (String operator : new String[] { "+", "-", "*", "/" }) {
             calculator = new Calculator(operator);

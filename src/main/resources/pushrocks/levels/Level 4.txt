@@ -1,4 +1,10 @@
-#Map layout:
+#File type:
+Level
+
+#Level name:
+Level 4
+
+#Level map layout:
 wwwwwwwwwwwwwwwwwww@
 w  wp    w        w@
 w  w r   w  r     w@
@@ -19,5 +25,5 @@ w t      w t      w@
 w        w        w@
 wwwwwwwwwwwwwwwwwww@
 
-#Direction layout:
-rrrrrr
+#Level direction layout:
+rrrrrrg

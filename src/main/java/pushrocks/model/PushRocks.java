@@ -10,8 +10,8 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     private int width;
     private int height;
     private String levelName;
-    private String levelLayout;
-    private String directionLayout; //Contains 
+    private String levelMapLayout;
+    private String levelDirectionLayout; //Contains 
     private int activePressurePlatesCount;
     private int moveCount;
     private boolean isGravityInverted;
@@ -42,6 +42,12 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     }
     public String getLevelName() {
         return this.levelName;
+    }
+    public String getLevelMapLayout() {
+        return this.levelMapLayout;
+    }
+    public String getLevelDirectionLayout() {
+        return this.levelDirectionLayout;
     }
 
     public boolean isGravityInverted() {
@@ -1264,8 +1270,8 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
     public String toGameToSaveFormat() {
         System.out.println("Save format start.");
-        String levelLayoutSave = "";
-        String directionLayoutSave = ">";
+        String levelMapLayoutSave = "";
+        String levelDirectionLayoutSave = ">";
 
         for (int y = 0; y > height*(-1); y--) {
             for (int x = 0; x < width; x++) {
@@ -1277,7 +1283,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                     typeSave = this.getDirectedBlock(x, y).getType();
                     //If the directed block is a player, rock or portal, then it must have a specified direction. 
                     if (typeSave == 'p' || typeSave == 'r' || typeSave == 'v' || typeSave == 'u') {
-                        directionLayoutSave += this.getDirectedBlock(x, y).getDirection().charAt(0);
+                        levelDirectionLayoutSave += this.getDirectedBlock(x, y).getDirection().charAt(0);
                     }
                 }
                 //Exactly one traversable block will occupy every coordinate in the level, thus when there are no directed blocks
@@ -1298,20 +1304,20 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                 if(typeSave == '?') {
                     throw new IllegalArgumentException("There must be at least one block occupying the (" + x + ", " + y + ") coordinates, and they must have a type in order to be saved.");
                 }
-                levelLayoutSave += typeSave;
+                levelMapLayoutSave += typeSave;
             }
-            levelLayoutSave += "\n";
+            levelMapLayoutSave += "\n";
         } 
         //At the very end of the direction layout string the letter 'g' should be added, lower case indicates that gravity was not inverted when the game was saved, wheras
         // uppercase indicates that it was inverted.
         if (!this.isGravityInverted) {
-            directionLayoutSave += 'g';
+            levelDirectionLayoutSave += 'g';
         }
         else {
-            directionLayoutSave += 'G';
+            levelDirectionLayoutSave += 'G';
         }
         System.out.println("Save format end");
-        return levelLayoutSave + directionLayoutSave;
+        return levelMapLayoutSave + levelDirectionLayoutSave;
     }
 
     public String toString() {
@@ -1362,82 +1368,187 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
 
     //Constructor3 with ONLY terrain input
-    public PushRocks(String levelLayout, String directionLayout) {
-        System.out.println("Constructor 3 was used to create this PushRocks instance.");
-        this.levelLayout = levelLayout;
-        this.directionLayout = directionLayout;
-        this.buildWorld();
+    public PushRocks(String levelMapLayout, String levelDirectionLayout) {
+        System.out.println("Constructor: default");
+        this.levelName = "Custom level";
+        this.levelMapLayout = levelMapLayout;
+        this.levelDirectionLayout = levelDirectionLayout;
+        this.buildWorld(this.levelMapLayout, this.levelDirectionLayout);
         
         this.setGravityApplicationInterval();
-        this.levelName = "Level X";
     }
 
-    // public void buildWorld(String levelName, String mapLayout, String directionLayout, int moveCount, boolean isGravityInverted, int gravityApplicationChoice, boolean isSave) {
-    //     this.levelName = levelName;
-    //     if (!isSave) {
-    //         this.levelLayout = mapLayout;
-            
-    //     }
-    //     else {
-    //         this.getLevelLayout(levelName);
-    //         this.moveCount = moveCount;
-    //     }
-    //     this.directionLayout = directionLayout;
-    // }
+    public PushRocks(String levelName, String levelMapLayout, String levelDirectionLayout) {
+        System.out.println("Constructor: build from level information");
+        this.levelName = levelName;
+        this.levelMapLayout = levelMapLayout;
+        this.levelDirectionLayout = levelDirectionLayout;
+        this.buildWorld(this.levelMapLayout, this.levelDirectionLayout);
+        
+        this.setGravityApplicationInterval();
+    }
+    public PushRocks(String levelName, String levelMapLayout, String levelDirectionLayout, String saveMapLayout, String saveDirectionLayout, int saveMoveCount) {
+        System.out.println("Constructor: build from save information");
+        this.levelName = levelName;
 
-    public void buildWorld() {
+        this.levelMapLayout = levelMapLayout;
+        this.levelDirectionLayout = levelDirectionLayout;
+        this.buildWorld(this.levelMapLayout, this.levelDirectionLayout);
+        this.buildWorld(saveMapLayout, saveDirectionLayout);
+        this.moveCount = saveMoveCount;
+        
+        this.setGravityApplicationInterval();
+    }
+
+    private String checkLayoutCompabillityWithLevel(String mapLayout, String directionLayout) {
+        //If the input map and direction layouts are equal to the level map and direction layouts, then they are the same, as they must be compatible with themselves.
+        if (mapLayout == this.levelMapLayout && directionLayout.length() == this.levelDirectionLayout.length()) {
+            return null;
+        }
+        //The map layouts must be of equal length
+        if (mapLayout.length() != this.levelMapLayout.length()) {
+            return "Map layout and level layout must be of equal length to be compatible. Map layout length was: " + mapLayout.length() + " and level layout length was: " + this.levelMapLayout.length();
+        }
+        //The direction layouts must also be of equal length
+        if (directionLayout.length() != this.levelDirectionLayout.length()) {
+            return "Map layout and level layout must be of equal length to be compatible. Map layout length was: " + mapLayout.length() + " and level layout length was: " + this.levelMapLayout.length();
+        }
+        //The map layouts must be of equal width
+        if (mapLayout.indexOf("@") != levelMapLayout.indexOf("@")) {
+            return "Map layout and level layout must be of equal width to be compatible. Map layout width was: " + mapLayout.indexOf("@") + " and level layout width was: " + this.levelMapLayout.indexOf("@");
+        }
+        //The layouts must have matching counts of players and rocks, thus we keep track of how many of each the layouts have.
+        int inputPlayerCount = 0;
+        int inputRockCount = 0;
+        int levelPlayerCount = 0;
+        int levelRockCount = 0;
+
+        //For each index, there is a character representing a block's attributes in terms of type and bird-view-state.
+        //The compatibillity between the two map layouts will depend on these attributes and how they compare between the two.
+        for (int i = 0; i < mapLayout.length(); i++) {
+            //Obtain the character represeting the block's type at index i in each map-layout.
+            char inputTypeChar = mapLayout.charAt(i);
+            char levelTypeChar = mapLayout.charAt(i);
+            //Upper case characters and "-" indicates that bird view should be enabled, wheras lower case characters and " " indicates that it is disabled.
+            //Bird-view can not be changed, and thus for any one coordinate's bird-view state in one layout, the other layout must have a matching bird-view state for their coordinate.
+            if ( ((Character.isUpperCase(inputTypeChar) || inputTypeChar == '-') & !(Character.isUpperCase(levelTypeChar) || levelTypeChar == '-')) 
+              || ((Character.isLowerCase(inputTypeChar) || inputTypeChar == ' ') & !(Character.isLowerCase(levelTypeChar) || levelTypeChar == ' '))) {
+                return "Map layouts must have matching bird-view values for every coordinate to be compatible. Characters at index " + i + " did not match. Input type of input was: " + inputTypeChar + " and level was: " + levelTypeChar;
+            }
+            //Once bird-view has been assured to match, upper-case will no longer matter
+            String inputType = Character.toString(Character.toLowerCase(inputTypeChar));
+            String levelType = Character.toString(Character.toLowerCase(levelTypeChar));
+
+            //If one map layout has a coordinate with a wall or portal, then the other one must also have a wall or portal at that coordinate.
+            if ("wvu".contains(inputType) != "wvu".contains(levelType)) {
+                return "Map layouts must have matching walls. Input type was: " + inputTypeChar + " and level type was: " + levelTypeChar;
+            }
+            //If one map layout has a coordinate with a teleporter, then the other one must also have a teleporter at that coordinate.
+            if ("t".contains(inputType) != "t".contains(levelType)) {
+                return "Map layouts must have matching teleporters. Input type was: " + inputTypeChar + " and level type was: " + levelTypeChar;
+            }
+            //If one map layout has a coordinate with a pressure plate, then the other one must also have a pressure plate at that coordinate.
+            if ("d".contains(inputType) != "d".contains(levelType)) {
+                return "Map layouts must have matching pressure plate. Input type was: " + inputTypeChar + " and level type was: " + levelTypeChar;
+            }
+            //Increment player/rock counts if needed
+            if ("p".contains(inputType)) {
+                inputPlayerCount++;
+            }
+            if ("p".contains(levelType)) {
+                levelPlayerCount++;
+            }
+            if ("r".contains(inputType)) {
+                inputRockCount++;
+            }
+            if ("r".contains(levelType)) {
+                levelRockCount++;
+            }
+        }
+        //The layouts must have matching counts of players.
+        if (inputPlayerCount != levelPlayerCount) {
+            return "Map layouts must have matching counts of players. Count for input was: " + inputPlayerCount + " count for level was: " + levelPlayerCount;
+        }
+        //The layouts must have matching counts of rocks.
+        if (inputRockCount != levelRockCount) {
+            return "Map layouts must have matching counts of players. Count for input was: " + inputRockCount + " count for level was: " + levelRockCount;
+        }
+        //Otherwise the map-layouts must be compatible, in which case no exception message is returned.
+        return null;
+    }
+
+    private void buildWorld(String mapLayout, String directionLayout) {
+        //If the world is being built from a layout other than that of the level, then it must be checked that this
+        //new layout is compatible with the level. 
+        String exceptionMessage = this.checkLayoutCompabillityWithLevel(mapLayout, directionLayout);
+        if (exceptionMessage != null) {
+            throw new IllegalArgumentException(exceptionMessage);
+        }
+
         this.moveableBlocks.clear();
         this.teleporters.clear();
         this.portals.clear();
         this.isGravityInverted = false;
         this.isGameOver = false;
 
-        // String layoutSingleLine = this.levelLayout.replace("\n", "");
-        String layoutSingleLine = this.levelLayout.replaceAll("\\n", "");
-        layoutSingleLine =  layoutSingleLine
+        // String typeSequence = this.mapLayout.replace("\n", "");
+        String typeSequence =  mapLayout
             .replaceAll("\\n", "")
             .replaceAll("\\r", "")
             .replaceAll("@", "");
-        this.width = levelLayout.indexOf("@");
-        this.height = layoutSingleLine.length() / this.width;
+        this.width = mapLayout.indexOf("@");
+        this.height = typeSequence.length() / this.width;
 
-        String[] directions = new String[this.directionLayout.length()];
+        String[] blockDirections = new String[this.levelDirectionLayout.length()-1];
+        char gravityDirection = this.levelDirectionLayout.charAt(levelDirectionLayout.length()-1);
+        if (Character.toLowerCase(gravityDirection) != 'g') {
+            throw new IllegalArgumentException("The direction layout must end with the character 'g', which will determine gravity direction depending on being upper or lower case. Character was: " + gravityDirection);
+        }
+        else {
+            //Lower-case 'g' indicates that gravity is not inverted.
+            if (Character.isLowerCase(gravityDirection)) {
+                this.isGravityInverted = false;
+            }
+            //Upper-case 'g' indicates that gravity is inverted.
+            else {
+                this.isGravityInverted = true;
+            }
+        }
         
-        for (int i = 0; i < directionLayout.length(); i++) {
-            String direction = directionLayout.substring(i, i+1);
-            if (!"udlr".contains(direction)) {
+        for (int i = 0; i < levelDirectionLayout.length()-1; i++) {
+            String blockDirection = levelDirectionLayout.substring(i, i+1);
+            if (!"udlr".contains(blockDirection)) {
                 throw new IllegalArgumentException("Direction layout only supports a character representation of the following directions: up 'u', down 'd', left 'l', right 'r'.");
             }
-            switch (direction) {
+            switch (blockDirection) {
                 case "u":
-                    direction = "up";
+                    blockDirection = "up";
                     break;
                 case "d":
-                    direction = "down";
+                    blockDirection = "down";
                     break;
                 case "l":
-                    direction = "left";
+                    blockDirection = "left";
                     break;
                 case "r":
-                    direction = "right";
+                    blockDirection = "right";
                     break;
             }
-            directions[i] = direction;
+            blockDirections[i] = blockDirection;
             
         }
-        int directionsRemaining = directions.length;
+        int directionsRemaining = blockDirections.length;
 
         this.obstacleBlocks = new ObstacleBlock[height][width];
         this.traversableBlocks = new TraversableBlock[height][width];
 
+        int playerCount = 0;
+        int portalOneCount = 0;
+        int portalTwoCount = 0;
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                char tangibleType = layoutSingleLine.charAt(y*width + x);
-                boolean birdView = true; //NEED TO BE ADDED IN THE LEVELLAYOUT/SAVE/LOADFILES
-                int playerCount = 0;
-                int portalOneCount = 0;
-                int portalTwoCount = 0;
-
+                char tangibleType = typeSequence.charAt(y*width + x);
+                boolean birdView = true; 
                 //An upper-case character or the symbol '-' indicates that bird's eye view should not be active
                 //for the blocks at this coordinate
                 if (Character.isUpperCase(tangibleType) || tangibleType == '-') {
@@ -1478,17 +1589,17 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                 }
                 this.traversableBlocks[y][x] = traversableBlock;
 
-                String direction = null;
+                String blockDirection = null;
                 if ("pruv".contains(tangibleType+"")) {
                     if (directionsRemaining <= 0) {
-                        throw new IllegalArgumentException("The direction layout can not contain less directions than the combined amount of players, rocks and portals.");
+                        throw new IllegalArgumentException("The direction layout can not contain less directions than the sum of players, rocks, portals and gravity. Direction count was: " + blockDirections.length);
                     }
-                    direction = directions[directions.length - directionsRemaining];
+                    blockDirection = blockDirections[blockDirections.length - directionsRemaining];
                     directionsRemaining--;
                 }
 
                 if ("pr".contains(tangibleType+"")) {
-                    MoveableBlock moveableBlock = new MoveableBlock(x, -y, tangibleType, direction);
+                    MoveableBlock moveableBlock = new MoveableBlock(x, -y, tangibleType, blockDirection);
                     System.out.println("x=" + x + "y=" + -y);
                     addMoveableBlock(moveableBlock);
                 }
@@ -1502,13 +1613,13 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                     if (tangibleType == 'u') {
                         connection = this.getPortal(true);
                     }
-                    ObstacleBlock obstacleBlock = new ObstacleBlock(x, -y, tangibleType, direction, connection);
+                    ObstacleBlock obstacleBlock = new ObstacleBlock(x, -y, tangibleType, blockDirection, connection);
                     addObstacleBlock(obstacleBlock);
                 }
             }
         }
         if (directionsRemaining > 0) {
-            throw new IllegalArgumentException("The direction layout can not contain more directions than combined amount of players, rocks and portals.");
+            throw new IllegalArgumentException("The direction layout can not contain more directions than the sum of players, rocks, portals and gravity. Direction count was: " + blockDirections.length + " and remaining directions count was: " + directionsRemaining);
         }
         this.notifyObservers();
     }
@@ -1564,7 +1675,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
     public void resetLevel() {
         this.pause(false);
-        this.buildWorld();
+        this.buildWorld(this.levelMapLayout, this.levelDirectionLayout);
     }
 
 
@@ -1756,7 +1867,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         // System.out.println(game0.getPlayer(1).getX());
         // System.out.println(game0.getPlayer(1).getY());
 
-        String levelLayout1 = """
+        String levelMapLayout1 = """
             wwwwwwwwwwwwwwwwwww
             w  w     w        w
             w  w r   w  r     w
@@ -1776,9 +1887,9 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             W- ------W-T-R--R-W
             W--------W---R--R-W
             WWWWWWWWWWWWWVWWUWW""";
-        String directionLayout1 = "rrrrrrrrrrruu";
+        String levelDirectionLayout1 = "rrrrrrrrrrruu";
 
-        PushRocks game0 = new PushRocks(levelLayout1, directionLayout1);
+        PushRocks game0 = new PushRocks(levelMapLayout1, levelDirectionLayout1);
         
         game0.gravityInverter();
 

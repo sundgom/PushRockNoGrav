@@ -1,0 +1,50 @@
+#File type:
+Level
+
+#Level name:
+Small level 1
+
+#Level map layout:
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww@
+w  w     w        ww  w     w        w@
+w  w r   w  r     ww  w r   w  r     w@
+w  wwww ww        ww  wwww ww        w@
+w   r    w        ww   r    w        w@
+w p    d w        ww      d w        w@
+w        w        ww        w        w@
+w t  d d w  t     ww t  d d w  t     w@
+w        w        ww        w        w@
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww@
+w        w        ww        w        w@
+w        w   r  d ww        w   r  d w@
+w        www    wwww        www    www@
+w        w   r  d ww        w   r  d w@
+w        w        ww        w        w@
+w        w ww     ww        w ww     w@
+w t      w t      ww t      w t      w@
+w        w        ww        w        w@
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww@
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww@
+w  w     w        ww  w     w        w@
+w  w r   w  r     ww  w r   w  r     w@
+w  wwww ww        ww  wwww ww        w@
+w   r    w        ww   r    w        w@
+w      d w        ww      d w        w@
+w        w        ww        w        w@
+w t  d d w  t     ww t  d d w  t     w@
+w        w        ww        w        w@
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww@
+w        w        ww        w        w@
+w        w   r  d ww        w   r  d w@
+w        www    wwww        www    www@
+w        w   r  d ww        w   r  d w@
+w        w        ww        w        w@
+w        w ww     ww        w ww     w@
+w t      w t      ww t      w t      w@
+w        w        ww        w        w@
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww@
+
+
+
+#Level direction layout:
+rrrrrrrrrrrrrrrrrrrrrg
