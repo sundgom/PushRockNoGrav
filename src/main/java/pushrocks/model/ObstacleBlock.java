@@ -85,24 +85,6 @@ public class ObstacleBlock extends DirectedBlock {
         this.setDirection(direction);
     }
     
-    // public void setType(char type, String direction) {
-    //     super.setType(type);
-    //     switch (type) {
-    //         case 'w':
-    //             this.setWall();
-    //             break;
-    //         case 't':
-    //             this.setTeleporter();
-    //             break;
-    //         case 'u':
-    //             this.setPortal(true, direction, null);
-    //             break;
-    //         case 'v':
-    //             this.setPortal(false, direction, null);
-    //             break;
-    //     }
-    // }
-
 
     //Method made public as to allow Obstacle blocks to change their type dynamically.
     @Override
@@ -315,11 +297,6 @@ public class ObstacleBlock extends DirectedBlock {
 
     public boolean isTransporter() {
         return (this.isTeleporter() || this.isPortal());
-    }
-
-    @Override
-    public String getCollisionTypes() {
-        return super.getCollisionTypes() + "wtuv"; //can potentially replace "wt" with getValidTypes() if portals can have collision
     }
     
     //Constructor with specified direction and connection

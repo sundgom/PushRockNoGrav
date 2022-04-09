@@ -61,4 +61,11 @@ public class TraversableBlock extends BlockAbstract {
         }
         
     }
+
+    //Traversable blocks do not have collision in the sense that they can share coordinates with 
+    //other blocks, not hindering movement/placement of others.
+    @Override
+    public boolean hasCollision() {
+        return false;
+    }
 }

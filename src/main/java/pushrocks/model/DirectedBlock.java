@@ -70,4 +70,9 @@ public abstract class DirectedBlock  extends BlockAbstract {
         super(x, y, type);
         this.setDirection(direction); 
     }
+
+    @Override
+    public boolean hasCollision() {
+        return true;
+    }
 }

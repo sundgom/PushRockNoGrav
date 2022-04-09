@@ -120,12 +120,6 @@ public class MoveableBlock extends DirectedBlock {
         super(x, y, type, direction);
     }
 
-    //All moveable blocks will also have collision, thus expand the pool of collision types given by the super class accordingly.
-    @Override
-    public String getCollisionTypes() {
-        return super.getCollisionTypes() + getValidTypes();
-    }
-
     public boolean isMoveable() { //THIS SHOULD BE CHANGED, ITS A BANDAID
         return true;
     }
