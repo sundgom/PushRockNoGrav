@@ -4,15 +4,14 @@ public class TeleporterBlock extends ObstacleBlock {
 
     public TeleporterBlock(int x, int y, char type, String direction, ObstacleBlock connection) {
         super(x, y, type, direction, connection);
-        //TODO Auto-generated constructor stub
     }
 
-    //Valid obstacle types include: wall 'w', teleporter 't', portal one 'u', and portal two 'v'.
+    //Valid types include: teleporter 't'.
     @Override
     protected String getValidTypes() {
         return "t";
     }
-    public void setTeleporter() {
+    private void setTeleporter() {
         this.setTypeCharacter('t');
         this.setState(false);
         this.setConnection(null);
@@ -21,36 +20,29 @@ public class TeleporterBlock extends ObstacleBlock {
     public boolean isTeleporter() {
         return this.getType() == 't';
     }
-
     @Override
     protected void setType(char type) {
         switch (type) {
-            case 'w':
-                setWall();
-                break;
             case 't':
                 setTeleporter();
-                break;
-            //portals must always have a specified direction, "right" will be given as a default value
-            case 'v':
-                setPortal(true, "right", null); 
-                break;
-            case 'u':
-                setPortal(false, "right", null);
                 break;
             default:
                 checkForTypeException(type);
         }
     }
+    @Override
+    public boolean isTransporter() {
+        return true;
+    }
 
-    //Returns the entry point of the given portal if it exists
-    public int[][] getTeleporterEntryPointsXY() {
-        // Only portals and teleporters can have an exit point
-        if ( !this.isTeleporter()) {
-            System.out.println("getTeleporterEntryPoint is only valid for portals and teleporters.");
+    //Returns the entry points of this teleporter if they exist
+    @Override
+    public int[][] getEntryPointsXY() {
+        // Only transporters can have an exit point
+        if ( !this.isTransporter()) {
             return null;
         }
-        // A portal that is not connected will have no entry point
+        // A transporter that is not connected will have no entry point
         if ( this.getConnection() == null) {
             return null;
         }
@@ -70,9 +62,10 @@ public class TeleporterBlock extends ObstacleBlock {
 
         return entryPoints;
     }
-
-    //The exit point of a given teleporter/portal will be equal to the connected portal's entry point
-    public int[] getTeleporterExitPointXY(BlockAbstract entryBlock) {
+    //The exit point of a given transporter will be equal to the connected portal's entry point,
+    //but only if the given entryBlock matches the coordinates for the portal's entry point
+    @Override
+    public int[] getExitPointXY(BlockAbstract entryBlock) {
         if (this.getConnection() == null) {
             return null;
         }
@@ -81,39 +74,18 @@ public class TeleporterBlock extends ObstacleBlock {
         }
         int entryBlockX = entryBlock.getX();
         int entryBlockY = entryBlock.getY();
-        int[][] entryPoints = this.getTeleporterEntryPointsXY();
+        int[][] entryPoints = this.getEntryPointsXY();
         for (int x = 0; x < 4; x++) {
+        //If the given entry block is not standing at one of the teleporter's four entry points, then
+        //return null as to indicate that the block would not be able to enter the portal from its current position
             if ((entryPoints[x][0] == entryBlockX) && (entryPoints[x][1] == entryBlockY)) {
                 int[] exitPoint = new int[2];
-                exitPoint[0] = this.getConnection().getTeleporterEntryPointsXY()[3-x][0];
-                exitPoint[1] = this.getConnection().getTeleporterEntryPointsXY()[3-x][1];
+                exitPoint[0] = ((TeleporterBlock) this.getConnection()).getEntryPointsXY()[3-x][0];
+                exitPoint[1] = ((TeleporterBlock)this.getConnection()).getEntryPointsXY()[3-x][1];
                 return exitPoint;
             }
         }
         return null;
-    }
-
-    //Checks if this obstacle block can be entered by the given block
-    public boolean canBlockEnter(BlockAbstract entryBlock) {
-        //Obstacle blocks can not be entered unless they are transporters
-        if (!this.isTransporter()) {
-            return false;
-        }  
-        //Further a transporter can only be entered if it is active
-        if (this.getState()) {
-            //And at last the entring block is only allowed to enter if it is standing
-            //at one of the transporter's entry points
-            int[] blockPoint = new int[]{entryBlock.getX(), entryBlock.getY()};
-
-            //A teleporter will have four entry points
-            int[][] entryPoints = this.getTeleporterEntryPointsXY();
-            for (int i = 0; i < 4; i++) {
-                if (blockPoint[0] == entryPoints[i][0] && blockPoint[1] == entryPoints[i][1]) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     @Override

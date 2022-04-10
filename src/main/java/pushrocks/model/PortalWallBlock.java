@@ -8,8 +8,12 @@ public class PortalWallBlock extends ObstacleBlock {
             this.setPortal(this.isPortalOne(), direction, connection);
         }
     }
-    
-    public void setWall() {
+    //Valid types include: wall 'w', portal one 'u', and portal two 'v'.
+    @Override
+    protected String getValidTypes() {
+        return "wuv";
+    }
+    private void setWall() {
         this.setTypeCharacter('w');
         this.setState(false);
         this.setConnection(null);
@@ -38,15 +42,16 @@ public class PortalWallBlock extends ObstacleBlock {
     public boolean isPortalTwo() { 
         return (this.getType() == 'u');
     }
-    //Removes the connection this block 
+    
+    //The portal wall has its portal cleared if it inhabits one, and then turning it into its wall form.
     public void clearPortal() {
-        if (! this.isPortal()) {
-            throw new IllegalArgumentException("Block must be of type 'portal' to be able to clear portal");
+        if (!this.isPortal()) {
+            //If the block is already not a portal, then there is no need for any change.
+            return;
         }
         this.removeConnection();
         this.setWall(); 
     }
-
     @Override
     protected void setType(char type) {
         switch (type) {
@@ -64,17 +69,17 @@ public class PortalWallBlock extends ObstacleBlock {
                 checkForTypeException(type);
         }
     }
+    @Override
+    public boolean isTransporter() {
+        return this.isPortal();
+    }
 
-    public int[] getPortalEntryPointXY() {
-        // Only portals and teleporters can have an exit point
-        if ( !(this.isPortal() || this.isTeleporter())) {
-            System.out.println("getPortalExitPointXY is only valid for portals and teleporters.");
+    private int[] getPortalEntryPointXY() {
+        // Only transporters can have an exit point
+        if (!this.isTransporter()) {
             return null;
         }
-        if ( this.isTeleporter()) {
-            return null; //maybe I shouldnt let teleporters use this method..
-        }
-        // A portal that is not connected will have no exit point
+        // A transporter that is not connected will have no exit point
         if ( this.getConnection() == null) {
             return null;
         }
@@ -105,16 +110,20 @@ public class PortalWallBlock extends ObstacleBlock {
         return entryPoint;
     }
 
-    //The exit point of a given teleporter/portal will be equal to the connected portal's entry point
-    public int[] getPortalExitPointXY() {
-        if (this.getConnection() == null) {
-            return null;
-        }
-        return this.getConnection().getPortalEntryPointXY();
+    public int[][] getEntryPointsXY() {
+        int[][] entryPoints = new int[1][2];
+        int[] entryPoint = this.getPortalEntryPointXY();
+        entryPoints[0][0] = entryPoint[0];
+        entryPoints[0][1] = entryPoint[1];
+        return entryPoints;
     }
+
     //The exit point of a given teleporter/portal will be equal to the connected portal's entry point,
     //but only if the given entryBlock matches the coordinates for the portal's entry point
-    public int[] getPortalExitPointXY(BlockAbstract entryBlock) {
+    public int[] getExitPointXY(BlockAbstract entryBlock) {
+        if (!this.isTransporter()) {
+            return null;
+        }
         if (this.getConnection() == null) {
             return null;
         }
@@ -124,60 +133,7 @@ public class PortalWallBlock extends ObstacleBlock {
         if ( !(entryBlockCoordinates[0] == this.getPortalEntryPointXY()[0] && entryBlockCoordinates[1] == this.getPortalEntryPointXY()[1]) ) {
             return null;
         }
-        return this.getConnection().getPortalEntryPointXY();
-    }
-
-    //The exit point of a given teleporter/portal will be equal to the connected portal's entry point
-    public int[] getExitPointXY(BlockAbstract entryBlock) {
-        if (this.isPortal()) {
-            return this.getPortalExitPointXY(entryBlock);
-        }
-        else if (this.isTeleporter()) {
-            return this.getTeleporterExitPointXY(entryBlock);
-        }
-        else {
-            return null;
-        }
-    }
-    public int[] getExitDirectionXY(BlockAbstract entryBlock) {
-        int[] exitPorterXY = this.getCoordinatesXY();
-        int[] exitPointXY = this.getExitPointXY(entryBlock);
-        return new int[] {exitPointXY[0] - exitPorterXY[0], exitPointXY[1] - exitPorterXY[1]};
-    }
-
-    //Checks if this obstacle block can be entered by the given block
-    public boolean canBlockEnter(BlockAbstract entryBlock) {
-        //Obstacle blocks can not be entered unless they are transporters
-        if (!this.isTransporter()) {
-            return false;
-        }  
-        //Further a transporter can only be entered if it is active
-        if (this.getState()) {
-            //And at last the entring block is only allowed to enter if it is standing
-            //at one of the transporter's entry points
-            int[] blockPoint = new int[]{entryBlock.getX(), entryBlock.getY()};
-            if (this.isPortal()) {
-                //A portal will only have a single entry point
-                System.out.println("WHATINTHEWORLD");
-                System.out.println(blockPoint);
-                System.out.println(this.getPortalEntryPointXY());
-                System.out.println(blockPoint == this.getPortalEntryPointXY());
-                System.out.println("Port x" + this.getPortalEntryPointXY()[0] + "y" + this.getPortalEntryPointXY()[1]);
-                System.out.println("Bloc x" + blockPoint[0] + "y" + blockPoint[1]);
-                System.out.println(blockPoint[0] == this.getPortalEntryPointXY()[0] && blockPoint[1] == this.getPortalEntryPointXY()[1]);
-                return blockPoint[0] == this.getPortalEntryPointXY()[0] && blockPoint[1] == this.getPortalEntryPointXY()[1];
-            }
-            else {
-                //A teleporter will have four entry points
-                int[][] entryPoints = this.getTeleporterEntryPointsXY();
-                for (int i = 0; i < 4; i++) {
-                    if (blockPoint[0] == entryPoints[i][0] && blockPoint[1] == entryPoints[i][1]) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+        return ((PortalWallBlock) this.getConnection()).getPortalEntryPointXY();
     }
 
     @Override
@@ -185,13 +141,6 @@ public class PortalWallBlock extends ObstacleBlock {
         switch (this.getType()) {
             case 'w':
                 return "#";
-            case 't':
-                if (this.getState()) {
-                    return "+";
-                }
-                else {
-                    return "-";
-                }
             case 'v':
                 if (this.getState()) {
                     return "v";

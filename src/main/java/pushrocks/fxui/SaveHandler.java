@@ -37,9 +37,6 @@ public class SaveHandler implements ISaveHandler {
         return Path.of(System.getProperty("user.dir"), "src", "main", "resources", "pushrocks", folderName);
     }
 
-    // public Path getFilePath(String fileName) {
-        
-    // }
 
     @Override
     public void loadGameLevel(String filename, PushRocks pushrocks) throws FileNotFoundException {
@@ -64,11 +61,6 @@ public class SaveHandler implements ISaveHandler {
         
     }
 
-
-    // public PushRocks(String levelName, String levelMapLayout, String levelDirectionLayout) 
-    // public PushRocks(String levelName, String levelMapLayout, String levelDirectionLayout, String saveMapLayout, String saveDirectionLayout, int saveMoveCount) 
-
-
     public PushRocks loadGame(InputStream inputStream) {
         PushRocks pushRocks = null;
         try (var scanner = new Scanner(inputStream)) {
@@ -91,7 +83,6 @@ public class SaveHandler implements ISaveHandler {
                 String fieldData = nextScan.substring(fieldName.length()+3).stripTrailing(); //Each fieldName is followed by a colon and a line shift (":\n"), the remainder will then be the data
                 System.out.println("fieldName:" + fieldName);
                 System.out.println("fieldData:" + fieldData);
-
                 
                 if (fieldName.equals("File type")) {
                     fileType = fieldData.stripTrailing();

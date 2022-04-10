@@ -50,7 +50,7 @@ w                 w@
 wwwwwwwwwwwwwwwwwww@
 
 #Save direction layout:
-rrurrg
+rrrrrg
 
 #Save move count:
 4
