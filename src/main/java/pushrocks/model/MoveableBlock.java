@@ -2,16 +2,13 @@ package pushrocks.model;
 
 public class MoveableBlock extends DirectedBlock {
 
-    
-    //This line of code could be used as a replacement for the "isMoveable()" check method
-    //https://stackoverflow.com/questions/541749/how-to-determine-an-objects-class
+    //Constructor with specified direction
+    public MoveableBlock(int x, int y, char type, String direction) {
+        super(x, y, type, direction);
+    }
 
-    // if (obj instanceof C) {
-    //     //your code
-    //     }
-
-    //setters for coordinates are have their visibillity increased to public for moveable blocks to enable
-    //them to be moved freely after construction.
+    //setters for coordinates have their visibillity increased to public for moveable blocks as they
+    //are allowed to change coordinates after construction.
 
     //should potentially be set to protected, as to deny complete outsiders from changing it however they wish
     @Override
@@ -22,39 +19,36 @@ public class MoveableBlock extends DirectedBlock {
     public void setY(int y) {
         super.setY(y);
     }
-
-    public void teleport(int x, int y) {
-        this.setX(x);
-        this.setY(y);
+    //Moveable blocks must have a non-neutral direction.
+    @Override
+    protected String[] getValidDirections() {
+        return new String[] {"up", "down", "left", "right"};
     }
 
     //Moves this block one step in the given direction
-    private boolean up() {
+    public boolean up() {
         this.setY(this.getY()+1);
         this.setDirection("up");
         return true;
     }
-    private boolean down() {
+    public boolean down() {
         this.setY(this.getY()-1);
         this.setDirection("down");
         return true;
     }
-    private boolean left() {
+    public boolean left() {
         this.setX(this.getX()-1);
         this.setDirection("left");
         return true;
     }
-    private boolean right() {
+    public boolean right() {
         this.setX(this.getX()+1);
         this.setDirection("right");
         return true;
     }
-
-    //Move this block in the given direction, return true if the block was moved successfully.
+    //Move this block in the given direction, return true if the block was moved successfully, false if not.
     public boolean moveInDirection(String direction) {
-        
-        this.setDirection(direction); //Contains a validation check for direction
-
+        this.setDirection(direction);
         switch (this.getDirection()) {
             case "up":
                 this.up();
@@ -72,55 +66,45 @@ public class MoveableBlock extends DirectedBlock {
         return false;
     }
 
-
+    //Valid types for this class are player 'p' and rock 'r'.
+    @Override
+    protected String getValidTypes() {
+        return "pr"; 
+    }
     //Players can move around in the world independently and push other moveable objects
-    public void setPlayer() {
-        this.setType('p');
+    private void setPlayer() {
+        this.setTypeCharacter('p');
         this.setState(false);
         this.setDirection("right"); //chosen default value;
     }
-
     //Rocks can move around in the world, but only if they have been pushed by another object
-    public void setRock() {
-        this.setType('r');
+    private void setRock() {
+        this.setTypeCharacter('r');
         this.setState(false);
-        this.setDirection("down");
+        this.setDirection("right"); //chosen default value;
     }
-
-    //Valid types for this class are player 'p' and rock 'r', expand the pool of valid types 
-    //established by the BlockAbstract superclass accordingly.
     @Override
-    protected String getValidTypes() {
-        return super.getValidTypes() + "pr"; //!!! instead of expanding the pool, restrict it to these values
-    }
-
-    @Override
-    public void setDirection(String direction) {
-        if (direction == null) {
-            throw new IllegalArgumentException("Moveable blocks must have a non-neutral direction. Valid directions: up, down, left, right. Given input was: " + direction + ".");
+    protected void setType(char type) {
+        switch (type) {
+            case 'p':
+                setPlayer();
+                break;
+            case 'r':
+                setRock();
+                break;
+            default:
+                checkForTypeException(type);
+                break;
         }
-        super.setDirection(direction);
     }
-
 
     public boolean isPlayer() {
         return this.getType() == 'p';
     }
-
     public boolean isRock() {
         return this.getType() == 'r';
     }
-
-    // //Constructor without specified direction
-    // public MoveableBlock(int x, int y, char type) {
-    //     super(x, y, type);
-    // }
-    //Constructor with specified direction
-    public MoveableBlock(int x, int y, char type, String direction) {
-        super(x, y, type, direction);
-    }
-
-    public boolean isMoveable() { //THIS SHOULD BE CHANGED, ITS A BANDAID
+    public boolean isMoveable() { 
         return true;
     }
 

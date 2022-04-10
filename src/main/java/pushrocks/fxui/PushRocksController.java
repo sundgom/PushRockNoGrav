@@ -124,144 +124,59 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     public void initialize() {
 
         // String levelLayout1 = """
-        //     wwwwwwwwwwwwwwwwwww
-        //     w  w     w        w
-        //     w  w r   w  r     w
-        //     w  wwww ww        w
-        //     w   r    w        w
-        //     w      d www      w
-        //     w        w        w
-        //     w t  d d w  t     w
-        //     w        w        w
-        //     wwwwwwwwwwwwwwwwwww
-        //     W--------W--P-----W
-        //     W--------W---R--D-W
-        //     W--------WWW----WWW
-        //     W--------W---R--D-W
-        //     W--------W--------W
-        //     W--------W-WW-----W
-        //     W-T------W-T------W
-        //     W--------W--------W
-        //     WWWWWWWWWWWWWWWWWWW""";
-        // String directionLayout1 = "rrrrrr";
+        //     wwwwwwwwwwwwwwwwwww@
+        //     w  w     w        w@
+        //     w  w r   w  r     w@
+        //     w  wwww ww        w@
+        //     w   r    w        w@
+        //     w        www      w@
+        //     w        w        w@
+        //     w        w        w@
+        //     w        w        w@
+        //     wwwwwwwwwwwwwwwwwww@
+        //     W--------W---T----W@
+        //     W--------W------ -W@
+        //     W--------WWW----WWW@
+        //     W--------W-   --D-W@
+        //     W--------W--------W@
+        //     W--------W-WVR----W@
+        //     W- ------W-T------W@
+        //     W--------W---R--P-W@
+        //     WWWWWWWWWWWWWUWWWWW@""";
+        // String directionLayout1 = "rrrrrrruG";
 
-        // // String levelLayout1 = """
-        // //     wwwwwwwwwwwwwwwwwww
-        // //     w  w     w        w
-        // //     w  w r   w  r     w
-        // //     w  wwww ww        w
-        // //     w   r    w        w
-        // //     w      d www      w
-        // //     w        w        w
-        // //     w    d d w        w
-        // //     w        w        w
-        // //     wwwwwwwwwwwwwwwwwww
-        // //     W--------W--PT----W
-        // //     W--------W---R--D-W
-        // //     W--------WWW----WWW
-        // //     W--------W---R--D-W
-        // //     W--------W--------W
-        // //     W--------W-WW-----W
-        // //     W- ------W-T------W
-        // //     W--------W--------W
-        // //     WWWWWWWWWWWWWWWWWWW""";
-        // // String directionLayout1 = "rrrrrr";
-        // String levelLayout1 = """
-        //     wwwwwwwwwwwwwwwwwww
-        //     w  w     w        w
-        //     w  w r   w  r     w
-        //     w  wwww ww        w
-        //     w   r    w        w
-        //     w      d www      w
-        //     w        w        w
-        //     w    d d w        w
-        //     w        w        w
-        //     wwwwwwwwwwwwwwwwwww
-        //     W--------W--PT----W
-        //     W--------W------D-W
-        //     W--------WWW----WWW
-        //     W--------W------D-W
-        //     W--------W---R----W
-        //     W--------W--WR--R-W
-        //     W- ------W-T-R--R-W
-        //     W--------W---R--R-W
-        //     WWWWWWWWWWWWWVWWUWW""";
-        // String directionLayout1 = "rrrrrrrrrrruu";
-
-        // //GravityTest
-        // String levelLayout1 = """
-        //     wwwwwwwwwwwwwwwwwww
-        //     w  w     w        w
-        //     w  w r   w  r     w
-        //     w  wwww ww        w
-        //     w   r    w        w
-        //     w      d www      w
-        //     w        w        w
-        //     w    d d w        w
-        //     w        w        w
-        //     wwwwwwwwwwwwwwwwwww
-        //     W--------W---T----W
-        //     W--------W------D-W
-        //     W--------WWW----WWW
-        //     W--------W------D-W
-        //     W--------W--------W
-        //     W--------W-WWP----W
-        //     W- ------W-T-R----W
-        //     W--------W---R----W
-        //     WWWWWWWWWWWWWWWWWWW""";
-        // String directionLayout1 = "rrrrrr";
         String levelLayout1 = """
-            wwwwwwwwwwwwwwwwwww@
-            w  w     w        w@
-            w  w r   w  r     w@
-            w  wwww ww        w@
-            w   r    w        w@
-            w        www      w@
-            w        w        w@
-            w        w        w@
-            w        w        w@
-            wwwwwwwwwwwwwwwwwww@
-            W--------W---T----W@
-            W--------W------ -W@
-            W--------WWW----WWW@
-            W--------W-   --D-W@
-            W--------W--------W@
-            W--------W-WVR----W@
-            W- ------W-T------W@
-            W--------W---R--P-W@
-            WWWWWWWWWWWWWUWWWWW@""";
-        String directionLayout1 = "rrrrrrruG";
+            twwwwwwwwwwwwwwwwwd@
+                               @
+                               @
+            rrr  r  r  rrr r  r@
+            r  r r  r r    r  r@
+            rrr  r  r  rr  rrrr@
+            r    r  r    r r  r@
+            r    rrrr rrr  r  r@
+                p              @
+            wwwwwwwwwwwwwwwuwww@
+            -------------------@
+            RRR--RRRR--RRR-R--R@
+            R--R-R--R-R----R-R-@
+            RRR--R--R-R----RR--@
+            R-R--R--R-R----R-R-@
+            R--R-RRRR--RRR-R--R@
+            -------------------@
+            -------------------@
+            DWWWWWWWWWWWWWWVWWT@""";
+        String directionLayout1 = "ddddddddddddddddddddddddddddddddddddddddddddddddddduuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuug";
+                                  
         menuPage.setVisible(true);
         mapPage.setVisible(false);
 
-                // creates a file object
-        // File file = new File("C:\\Users\\Guest User\\Desktop\\Java File\\List Method");
-        // System.out.println("FilePath:" + PushRocksController.class.getResource("levels/").getFile() + "Level001" + ".txt");
-        // return SaveHandler.class.getResource("saves/").getFile() + fileName + ".txt";
-        // File file = new File("C:\\Users\\magnu\\Documents\\LocalUNI\\2022V\\GIT\\TDT4100_prosjekt_magnsu\\src\\main\\resources\\pushrocks\\saves\\level001.txt");
-        // String[] fileList = file.list();
-        // System.out.println(fileList);
-        // System.out.println();
-        // for(String str : fileList) {
-        //     System.out.println(str);
-        // }
-        // // returns an array of all files
-        // String[] fileList = file.list();
         this.saveHandler = new SaveHandler();
         menuLevelChoiceBox.setValue("Select a level");
-        // ObservableList<String> levelList = FXCollections.observableArrayList("Level 1", "Level 2", "Level 3", "Level 4", "Level 5");
         ObservableList<String> levelList = FXCollections.observableArrayList();
         levelList.addAll(this.saveHandler.getLevelNames());
         menuLevelChoiceBox.setItems(levelList);
         handleGravityChoiceManual(); //Gravity application is set to manual until other is chosen.
         
-
-
-        
-        
-        
-
-
 		pushRocks = new PushRocks(levelLayout1, directionLayout1);
         pushRocks.addObserver(this);
         pushRocks.pause(true);
@@ -503,19 +418,19 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 
 	@FXML
     private void handleUp() {
-        pushRocks.movePlayer(1, "up");
+        pushRocks.movePlayer("up");
     }
     @FXML
     private void handleDown() {
-        pushRocks.movePlayer(1, "down"); 
+        pushRocks.movePlayer("down"); 
     }
     @FXML
     private void handleLeft() {
-        pushRocks.movePlayer(1, "left");
+        pushRocks.movePlayer("left");
     }
     @FXML
     private void handleRight() {
-        pushRocks.movePlayer(1, "right");
+        pushRocks.movePlayer("right");
     }
 
     @FXML
@@ -544,7 +459,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     }
     @FXML 
     private void handleManualGravityIncrement() {
-        pushRocks.gravityStep(false);
+        pushRocks.gravityStep();
     }
     @FXML
     private void handleResetLevel() {
@@ -665,9 +580,15 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 		drawMap();
         this.incrementGravityOnInterval = true;
         this.updateLevelText();
-        
-        
+        updateLevelList();
     }
+
+    private void updateLevelList() {
+        ObservableList<String> levelList = FXCollections.observableArrayList();
+        levelList.addAll(this.saveHandler.getLevelNames());
+        menuLevelChoiceBox.setItems(levelList);
+    }
+
     @FXML
     private void handleLoadButton() {
         System.out.println("Load button");
@@ -815,7 +736,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 
     @Override
     public void update(IObservableIntervalNotifier observable) {
-        this.pushRocks.gravityStep(false);
+        this.pushRocks.gravityStep();
         
     }
 

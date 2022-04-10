@@ -11,21 +11,20 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     private int height;
     private String levelName;
     private String levelMapLayout;
-    private String levelDirectionLayout; //Contains 
+    private String levelDirectionLayout;
+
     private int activePressurePlatesCount;
     private int moveCount;
     private boolean isGravityInverted;
 
     private TraversableBlock[][] traversableBlocks;                                         //Blocks that make out the surface on which other blocks can move through/be placed ontop of
     private ObstacleBlock[][] obstacleBlocks;                                               //Blocks that are placed ontop of the traversable plane, which can hinder or redirect movement of moveable blocks
-    private ArrayList<MoveableBlock> moveableBlocks = new ArrayList<MoveableBlock>();       //Blocks that are free to move around on the traversable plane, but are restricted by placements of directed blocks, which
+    private List<MoveableBlock> moveableBlocks = new ArrayList<MoveableBlock>();       //Blocks that are free to move around on the traversable plane, but are restricted by placements of directed blocks, which
                                                                                             // includes both obstacle and other moveable blocks.
+    private List<ObstacleBlock> teleporters = new ArrayList<ObstacleBlock>();
+    private List<ObstacleBlock> portals = new ArrayList<ObstacleBlock>();
 
-    private ArrayList<ObstacleBlock> teleporters = new ArrayList<ObstacleBlock>();
-    private ArrayList<ObstacleBlock> portals = new ArrayList<ObstacleBlock>();
-
-
-    private ArrayList<IObserverPushRocks> observers = new ArrayList<>();
+    private List<IObserverPushRocks> observers = new ArrayList<>();
     private IntervalNotifier intervalNotifier;
 
 
@@ -34,11 +33,11 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     private int gravityApplicationChoice;
     private boolean isGameOver;
 
-    public int getHeight() {
-        return this.height;
-    }
     public int getWidth() {
         return this.width;
+    }
+    public int getHeight() {
+        return this.height;
     }
     public String getLevelName() {
         return this.levelName;
@@ -53,42 +52,47 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     public boolean isGravityInverted() {
         return false;
     }
-    public boolean isGravityApplicationManual() {
-        return gravityApplicationChoice > 0;
-    }
-    public boolean isGravityApplicationMoveInput() {
-        return gravityApplicationChoice == 0;
-    }
-    public boolean isGravityApplicationInterval() {
-        return gravityApplicationChoice < 0;
-    }
 
     public void setGravityApplicationManual() {
         this.gravityApplicationChoice = 1;
     }
+    public boolean isGravityApplicationManual() {
+        return gravityApplicationChoice > 0;
+    }
+
+    public boolean isGravityApplicationMoveInput() {
+        return gravityApplicationChoice == 0;
+    }
     public void setGravityApplicationMoveInput() {
         this.gravityApplicationChoice = 0;
     }
-    public void setGravityApplicationInterval() {
+
+    //The below is an experimental feature. I do not have a good understanding of how threads work, but I enjoyed
+    //the behaviour it enabled, so I have a hard time cutting it out of the code even though it is most definitely flawed.
+    //It is entirely optional, and does not serve the code in any other way than to call the gravityStep() method once each interval.
+    public void setGravityApplicationInterval() { 
         this.gravityApplicationChoice = -1;
-        if (this.intervalNotifierThread == null) { //Should include something about this in the build/hasWon/pause/menu interactions
-            IntervalNotifier intervalNotifier = new IntervalNotifier(this, 1000, true);
+        int interval = 1000; //this could have been used as a parameter instead.
+        if (this.intervalNotifierThread == null) { 
+            IntervalNotifier intervalNotifier = new IntervalNotifier(this, interval, true);
             Thread intervalNotifierThread = new Thread(intervalNotifier);
-            //The thread is set to Daemon as to make sure to close the thread 
+            //The thread is set to Daemon as to make sure to close the thread once the application window is closed.
             intervalNotifierThread.setDaemon(true);
             this.intervalNotifierThread = intervalNotifierThread;
             intervalNotifierThread.start();
         }
         this.ignoreNotifier = false;
     }
+    public boolean isGravityApplicationInterval() {
+        return gravityApplicationChoice < 0;
+    }
+
     public void setGravityApplicationChoice(int n) {
         //manual: n > 0, moveInput: n == 0, interval: n < 0
         if (n < 0) {
             setGravityApplicationInterval();
         }
-        
         this.gravityApplicationChoice = n;
-
     }
 
     private String getGravityDirection() {
@@ -122,7 +126,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         int plateCount = 0;
         for (int y = 0; y > -this.height; y--) {
             for (int x = 0; x < this.width; x++) {
-                if (traversableBlocks[-y][x].isPlate()) {
+                if (traversableBlocks[-y][x].isPressurePlate()) {
                     plateCount++;
                 }
             }
@@ -132,16 +136,10 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
 
     //Returns the given player block if it exists
-    private MoveableBlock getPlayer(int number) {
-        int playerNumber = 1;
+    private MoveableBlock getPlayer() {
         for (MoveableBlock block : this.moveableBlocks) {
             if (block.isPlayer()) {
-                if (playerNumber == number) {
-                    return block;
-                }
-                else {
-                    playerNumber++;
-                }
+                return block;
             }
         }
         return null;
@@ -228,7 +226,6 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     public int getActivePressurePlatesCount() {
         return this.activePressurePlatesCount;
     }
-
     public int getMoveCount() {
         return this.moveCount;
     }
@@ -241,11 +238,9 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             this.endGame();
         }
     }
-
     public boolean isGameOver() {
         return this.isGameOver;
     }
-
     private void endGame() {
         this.isGameOver = true;
         if (this.isGravityInverted) {
@@ -259,7 +254,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     
     //Updates the activePressurePlatesCount according to the current state of the game. The activePressurePlatesCount increments by one for each movable block that is placed ontop
     //of a pressure plate.
-    public void updateActivePressurePlatesCount() {
+    private void updateActivePressurePlatesCount() {
         int activePressurePlatesCountOld = this.activePressurePlatesCount;
         int activePressurePlatesCountNew = 0;
         for (MoveableBlock block : moveableBlocks) {
@@ -280,7 +275,6 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             System.out.println("There are not enough teleporters, thus there is nothing to update."); //COULD THROW EXCEPTION MAYBE? !!!!!!!!!!!
             return;
         }
-        System.out.println("Updating Teleporters. Score:" + this.activePressurePlatesCount);
         //Connects two teleporters together based on the game's current activePressurePlatesCount. A previous connection is removed once a new one is made.
         //Where there are n teleporters, and s is the activePressurePlatesCount, the two teleporters that will connect are:
         //Teleporter one: index = s / n
@@ -297,7 +291,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         if (isGameOver) {
             return false;
         }
-        MoveableBlock player = this.getPlayer(1);
+        MoveableBlock player = this.getPlayer();
         if (!player.isPlayer()) {
             return false; //only a player can place a portal
         }
@@ -328,7 +322,8 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         if (wall != null) {
             //Walls that serve as teleporters are not suitable for portal-placement
             if (wall.isTeleporter()) {
-                return false;
+                throw new IllegalStateException("Portals can not be placed on teleporters.");
+                // return false;
             }
             //if the found wall already holds a portal, and that portal is the same portal as the one to be placed,
             //and it faces the same direction as the new one would, then everything is already as it should, no portals need to 
@@ -675,7 +670,6 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                         completeChain.addAll(exitChain);
                         fallOrderComplete.add(completeChain);
                     }
-                    
                 }
                 //Otherwise the exit direction must be the same as the gravity direction, thus the chain at the entry portal are at the top of the chain,
                 //and the ones at the exit are at the bottom
@@ -705,7 +699,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         return fallOrderComplete;
     }
 
-    public void gravityStep(boolean hasPlayerMoved) {
+    public void gravityStep() {
         //Grvity should not be applied when the game is over
         if (this.isGameOver == true) {
             return; 
@@ -981,21 +975,8 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         }
     }
 
-    // 3 - 4 = -1  index 0 y-value lower than index 9 
-    // 4 - 3 = 1   index 9 y-value lower than index 0
-
-    //Gravity normal:
-    // (+1)*-1 > 0 -> false  index 0 y-value lower than 9 && gravity -1 -> no reverse
-    // (-1)*-1 > 0 -> true   index 9 y-value lower than 0 && gravity -1 -> yes reverse
-    //Gravity reversed:
-    // (+1)*+1 > 0 -> false  index 0 y-value lower than 9 && gravity +1 -> yes reverse
-    // (-1)*+1 > 0 -> true   index 9 y-value lower than 0 && gravity +1 -> no reverse
-
     //Takes in a block chain that is ordered in the given direction, and returns the weight of that chain 
     private int getBlockChainWeight(List<BlockAbstract> blockChain, int directionX, int directionY) {
-        // int stackDirectionY = blockStack.get(0).getY() - blockStack.get(blockStack.size()-1).getY();
-        // int stackDirectionX = blockStack.get(0).getX() - blockStack.get(blockStack.size()-1).getX();
-
         //If the direction the chain is ordered in is opposite to gravity, then this block chain needs to be reversed,
         //as the weight of the chain should the evaluated from the highest and working itself downwards to the lowest
         if (directionY * this.getGravityDirectionY() > 0) {
@@ -1036,12 +1017,12 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     //Issues to move the given player block and return boolean reflecting wether or not the player was moved. Every time 
     //the player tries to move gravity will move all blocks one step in its direction if possible.
     //Gravity should not take effect on the player if they were moved successfully by the method call, as to give the illusion of momentum
-    public boolean movePlayer(int playerNumber, String direction) {
+    public boolean movePlayer(String direction) {
         //Can no longer move once the game is over.
         if (this.isGameOver) {
             return false;
         }
-        MoveableBlock player = this.getPlayer(playerNumber);
+        MoveableBlock player = this.getPlayer();
         // String directionOld = player.getDirection();
 
         player.setDirection(direction);
@@ -1062,7 +1043,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         //the player block was issued to move
         System.out.println("Gravity is move input?" + this.isGravityApplicationMoveInput());
         if (this.isGravityApplicationMoveInput()) {
-            this.gravityStep(wasMoved);
+            this.gravityStep();
         }
         if (wasMoved == true) {
             this.incrementMoveCount();
@@ -1177,7 +1158,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                 block.setDirection(blockNew.getDirection());
             }
             //Update the state to of the moveable block to reflect wether or not it is placed ontop of a pressure plate
-            block.setState(getTraversableBlock(block.getX(), block.getY()).isPlate());
+            block.setState(getTraversableBlock(block.getX(), block.getY()).isPressurePlate());
             
             //When a block has successfully entered a portal, they are relocated in a flash, thus the baggage loses its carrier, meaning they are left to fall      !!!!!!!!!!!!!!!IS THIS EVEN NEEDED ANYMORE?
             if (!hasTakenPortal) {
@@ -1211,7 +1192,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
                 //Then
 
-                block.setState(getTraversableBlock(block.getX(), block.getY()).isPlate());
+                block.setState(getTraversableBlock(block.getX(), block.getY()).isPressurePlate());
                 moveBaggage(blockOld, directionOriginal);
                 System.out.println(this.prettyString());
                 return true;
@@ -1267,58 +1248,6 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         }
     }
 
-
-    public String toGameToSaveFormat() {
-        System.out.println("Save format start.");
-        String levelMapLayoutSave = "";
-        String levelDirectionLayoutSave = ">";
-
-        for (int y = 0; y > height*(-1); y--) {
-            for (int x = 0; x < width; x++) {
-                char typeSave = '?';
-
-                //At most one directed block can occupy a given coordinate in the level, and this block must have a type, 
-                // thus let this block's type represent this coordinate in the level layout string.
-                if (getDirectedBlock(x, y) != null) {
-                    typeSave = this.getDirectedBlock(x, y).getType();
-                    //If the directed block is a player, rock or portal, then it must have a specified direction. 
-                    if (typeSave == 'p' || typeSave == 'r' || typeSave == 'v' || typeSave == 'u') {
-                        levelDirectionLayoutSave += this.getDirectedBlock(x, y).getDirection().charAt(0);
-                    }
-                }
-                //Exactly one traversable block will occupy every coordinate in the level, thus when there are no directed blocks
-                // placed ontop of it, the traversable block must itself represent the given coordinate in the level layout string.
-                else {
-                    typeSave = this.getTraversableBlock(x, y).getType();
-                }
-                //At coordinates where the underlying traversable block has bird view enabled, the type representation to be
-                // saved should be set to upper case.
-                if (this.getTraversableBlock(x, y).isBirdView()) {
-                    typeSave = Character.toUpperCase(typeSave);
-                    //Since the type representation for traversable blocks is ' ', which can't be cahnged to uppercase, then 
-                    // change it to '-' instead.
-                    if (typeSave == ' ') {
-                        typeSave = '-';
-                    }
-                }
-                if(typeSave == '?') {
-                    throw new IllegalArgumentException("There must be at least one block occupying the (" + x + ", " + y + ") coordinates, and they must have a type in order to be saved.");
-                }
-                levelMapLayoutSave += typeSave;
-            }
-            levelMapLayoutSave += "\n";
-        } 
-        //At the very end of the direction layout string the letter 'g' should be added, lower case indicates that gravity was not inverted when the game was saved, wheras
-        // uppercase indicates that it was inverted.
-        if (!this.isGravityInverted) {
-            levelDirectionLayoutSave += 'g';
-        }
-        else {
-            levelDirectionLayoutSave += 'G';
-        }
-        System.out.println("Save format end");
-        return levelMapLayoutSave + levelDirectionLayoutSave;
-    }
 
     public String toString() {
         System.out.println("MAP TO STRING START");
@@ -1643,13 +1572,13 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         this.observers.forEach(observer -> observer.update(this));
     } 
     
+    //Experimental! The IntervalNotifier class runs on its own thread, 
     @Override
     public void update(IObservableIntervalNotifier observable) {
-        if (!ignoreNotifier) {
-            this.gravityStep(false);
+        if (!ignoreNotifier) { //this is more so a band-aid as to not interrupt the thread. 
+            this.gravityStep();
         }
     }
-
     public void pause(boolean pauseGame) {
         if (pauseGame) {
             if (this.isGravityApplicationInterval()) {

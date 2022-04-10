@@ -4,28 +4,31 @@ public abstract class DirectedBlock  extends BlockAbstract {
 
     private String direction;
 
-    public String getDirection() {
-        return this.direction;
+    //Constructor with specified direction
+    public DirectedBlock(int x, int y, char type, String direction) {
+        super(x, y, type);
+        this.setDirection(direction); 
     }
-    public int[] getDirectionXY() {
-        switch (this.direction) {
-            case "up":
-                return new int[]{0,1};
-            case "down":
-                return new int[]{0,-1};   
-            case "right":
-                return new int[]{1,0};
-            case "left":
-                return new int[]{-1,0};
+    
+    //Returns a string list of valid directions for this block.
+    protected String[] getValidDirections() {
+        return new String[] {"up", "down", "left", "right", null};
+    }
+    //Validation check for direction input.
+    private boolean isValidDirection(String direction) {
+        String[] validDirections = this.getValidDirections();
+        for (String validDirection : validDirections) {
+            if (direction == validDirection) {
+                return true;
+            }
         }
-        return new int[]{0,0};
+        return false;
     }
-
     //Sets the direction to the input, a direction set to null indicates that the block is not directed 
     //in a specific direction.
-    public void setDirection(String direction) {
+    protected void setDirection(String direction) {
         if (! isValidDirection(direction)) {
-            throw new IllegalArgumentException("Invalid input for direction. Direction must be: " + this.getValidDirections() + ", but was: " + direction + ".");
+            throw new IllegalArgumentException("Input direction is in valid for the " + this.getClass().getSimpleName() + ". Direction must be: " + getValidDirections() + ", but was: " + direction + ".");
         }
         if (direction != null) {
             switch (direction) {
@@ -47,28 +50,21 @@ public abstract class DirectedBlock  extends BlockAbstract {
             this.direction = null;
         }
     }
-
-    //Validation check for direction input.
-    protected boolean isValidDirection(String direction) {
-        String[] validDirections = this.getValidDirections();
-        for (String validDirection : validDirections) {
-            if (direction == validDirection) {
-                return true;
-            }
+    public String getDirection() {
+        return this.direction;
+    }
+    public int[] getDirectionXY() {
+        switch (this.direction) {
+            case "up":
+                return new int[]{0,1};
+            case "down":
+                return new int[]{0,-1};   
+            case "right":
+                return new int[]{1,0};
+            case "left":
+                return new int[]{-1,0};
         }
-        return false;
-    }
-
-    //Returns a string list of valid directions for this block.
-    protected String[] getValidDirections() {
-        String[] validDirections = {"up", "down", "left", "right", null};
-        return validDirections;
-    }
-
-    //Constructor with specified direction
-    public DirectedBlock(int x, int y, char type, String direction) {
-        super(x, y, type);
-        this.setDirection(direction); 
+        return new int[]{0,0};
     }
 
     @Override

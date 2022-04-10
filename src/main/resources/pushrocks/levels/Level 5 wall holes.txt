@@ -1,0 +1,29 @@
+#File type:
+Level
+
+#Level name:
+Level 5
+
+#Level map layout:
+WWWWW    WWWWWWWWWW@
+W-D--------------TW@
+W-----------------W@
+WWWW-----------D--W@
+W-------------WWWWW@
+W-r---------------W@
+W-------------r---W@
+W-----------------W@
+W------           w@
+W-----            w@
+W----             w@
+w        w   r  d w@
+      p  www    www@
+      wwww   r  d w@
+w        w        w@
+w        w ww     w@
+w t      w t      w@
+w                 w@
+wwww    wwwwwwwwwww@
+
+#Level direction layout:
+rrrrrg

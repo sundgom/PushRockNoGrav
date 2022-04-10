@@ -1,42 +1,55 @@
 package pushrocks.model;
 
 public class TraversableBlock extends BlockAbstract {
+    
     private boolean birdView;
 
-    public void setAir() {
-        this.setType(' ');
-        this.setState(false);
-    }
-
-    public void setPlate() {
-        this.setType('d');
-        this.setState(false);
-    }
-
-    public boolean isBirdView() {
-        return this.birdView;
-    }
-
-    private void setBirdView(boolean birdView) {
-        this.birdView = birdView;
-    }
-
+    //Constructor
     public TraversableBlock(int x, int y, char type, boolean birdView) {
         super(x, y, type);
-        this.setBirdView(birdView);
-    }
-
-    public boolean isFloor() {
-        return this.getType() == ' ';
-    }
-
-    public boolean isPlate() {
-        return this.getType() == 'd';
+        this.birdView = birdView;
     }
 
     @Override
     protected String getValidTypes() {
         return " d";
+    }
+    private void setAir() {
+        this.setTypeCharacter(' ');
+        this.setState(false);
+    }
+    public boolean isAir() {
+        return this.getType() == ' ';
+    }
+    private void setPressurePlate() {
+        this.setTypeCharacter('d');
+        this.setState(false);
+    }
+    public boolean isPressurePlate() {
+        return this.getType() == 'd';
+    }
+    @Override
+    protected void setType(char type) {
+        switch (type) {
+            case ' ':
+                this.setAir();
+                break;
+            case 'd':
+                this.setPressurePlate();
+                break;
+            default:
+                checkForTypeException(type);
+                break;
+        }
+    }
+    public boolean isBirdView() {
+        return this.birdView;
+    }
+    //Traversable blocks do not have collision in the sense that they can share coordinates with 
+    //other blocks, not hindering movement/placement of others.
+    @Override
+    public boolean hasCollision() {
+        return false;
     }
 
     @Override
@@ -49,23 +62,5 @@ public class TraversableBlock extends BlockAbstract {
             default:
                 return "";
         }
-    }
-    public static void main(String[] args) {
-        System.out.println(Character.isUpperCase('.'));
-
-        String directionLayout = "Hello There";
-        
-        for (int i = 0; i < directionLayout.length(); i++) {
-            String direction = directionLayout.substring(i, i+1);
-            System.out.println(direction);
-        }
-        
-    }
-
-    //Traversable blocks do not have collision in the sense that they can share coordinates with 
-    //other blocks, not hindering movement/placement of others.
-    @Override
-    public boolean hasCollision() {
-        return false;
     }
 }

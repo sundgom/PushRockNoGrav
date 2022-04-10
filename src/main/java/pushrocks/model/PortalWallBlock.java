@@ -1,75 +1,14 @@
 package pushrocks.model;
 
-public class ObstacleBlock extends DirectedBlock {
+public class PortalWallBlock extends ObstacleBlock {
 
-    private ObstacleBlock connection; //used by portals and teleporters
-
-    //Constructor with specified direction and connection
-    public ObstacleBlock(int x, int y, char type, String direction, ObstacleBlock connection) {
-        super(x, y, type, direction);
-        this.setConnection(null);
+    public PortalWallBlock(int x, int y, char type, String direction, ObstacleBlock connection) {
+        super(x, y, type, direction, connection);
         if (this.isPortal()) {
             this.setPortal(this.isPortalOne(), direction, connection);
         }
     }
-
-    //setConnection() is based on code I made for the Partner-exercise:
-    //Connects this block to another block, and makes sure that the other block is in turn connected to this block.
-    //Any previous connections either of these blocks had before will be removed, this way a block can only be connected to one
-    //other block at a time.
-    //If the input is null, then both blocks will instead be disconnected from eachother.
-    public void setConnection(ObstacleBlock connection) {
-        //A block can not be connected to itself, given such input set the block's connection to null.
-        if (connection == this) {
-            this.setConnection(null);
-            return;
-        }
-        // Do nothing if connection of this block is already set to the connection-input
-        if (this.connection == connection) {
-            //Connected blocks should have their state set to true, and false otherwise
-            this.setState(connection != null);
-            return;
-        }
-        //Saves previous connection of the block, and sets the connection of block to the new connection input
-        ObstacleBlock connectionOld = this.connection;
-        this.connection = connection;
-
-        //check if the old connection had a previous connection and if this previous connection was this block, remove association if true
-        if ( (connectionOld != null) && (connectionOld.getConnection() == this) ) {
-            connectionOld.setConnection(null);
-        }
-        //If the new connection of this block is not null, then the connection of this block should have their connection set to this block.
-        if (this.connection != null) {
-            this.connection.setConnection(this);
-        }
-        //Connected blocks should have their state set to true, and false otherwise
-        this.setState(connection != null);
-    }
-    //Removes the connection this transport block has if it exists.
-    public void removeConnection() {
-        this.setConnection(null);
-    }
-    //Returns the block-block this block has a connection with if it exists. Used to keep track of which 
-    //portals/teleporters are connected to eachother.
-    public ObstacleBlock getConnection() {
-        return this.connection;
-    }
-
-    //Valid obstacle types include: wall 'w', teleporter 't', portal one 'u', and portal two 'v'.
-    @Override
-    protected String getValidTypes() {
-        return "wtuv";
-    }
-
-    public void setTeleporter() {
-        this.setTypeCharacter('t');
-        this.setState(false);
-        this.setConnection(null);
-        this.setDirection(null);
-    }
-    public boolean isTeleporter() {
-        return this.getType() == 't';
-    }
+    
     public void setWall() {
         this.setTypeCharacter('w');
         this.setState(false);
@@ -108,18 +47,11 @@ public class ObstacleBlock extends DirectedBlock {
         this.setWall(); 
     }
 
-    public boolean isTransporter() {
-        return (this.isTeleporter() || this.isPortal());
-    }
-
     @Override
     protected void setType(char type) {
         switch (type) {
             case 'w':
                 setWall();
-                break;
-            case 't':
-                setTeleporter();
                 break;
             //portals must always have a specified direction, "right" will be given as a default value
             case 'v':
@@ -132,67 +64,6 @@ public class ObstacleBlock extends DirectedBlock {
                 checkForTypeException(type);
         }
     }
-    //Method made public as to allow Obstacle blocks to change their direction dynamically.
-    @Override
-    public void setDirection(String direction) {
-        if (!this.isPortal() && direction != null) {
-            throw new IllegalArgumentException("Obstacles can have a non-neutral direction, but only when they have been turned into a portal. Input was: " + direction);
-        }
-        if (this.isPortal() && direction == null) {
-            throw new IllegalArgumentException("Portals must have a non-neutral direction. Input was: " + direction);
-        }
-        super.setDirection(direction);
-    }
-
-    //Returns the entry point of the given portal if it exists
-    public int[][] getTeleporterEntryPointsXY() {
-        // Only portals and teleporters can have an exit point
-        if ( !this.isTeleporter()) {
-            System.out.println("getTeleporterEntryPoint is only valid for portals and teleporters.");
-            return null;
-        }
-        // A portal that is not connected will have no entry point
-        if ( this.connection == null) {
-            return null;
-        }
-        int[][] entryPoints = new int[4][2];
-        //Entry from above
-        entryPoints[0][0] = this.getX();
-        entryPoints[0][1] = this.getY() + 1;
-        //Entry from below
-        entryPoints[3][0] = this.getX();
-        entryPoints[3][1] = this.getY() - 1;
-        //Entry from right
-        entryPoints[1][0] = this.getX() + 1;
-        entryPoints[1][1] = this.getY();
-        //Entry from left
-        entryPoints[2][0] = this.getX() - 1;
-        entryPoints[2][1] = this.getY();
-
-        return entryPoints;
-    }
-
-    //The exit point of a given teleporter/portal will be equal to the connected portal's entry point
-    public int[] getTeleporterExitPointXY(BlockAbstract entryBlock) {
-        if (this.connection == null) {
-            return null;
-        }
-        if (!this.isTeleporter()) {
-            return null;
-        }
-        int entryBlockX = entryBlock.getX();
-        int entryBlockY = entryBlock.getY();
-        int[][] entryPoints = this.getTeleporterEntryPointsXY();
-        for (int x = 0; x < 4; x++) {
-            if ((entryPoints[x][0] == entryBlockX) && (entryPoints[x][1] == entryBlockY)) {
-                int[] exitPoint = new int[2];
-                exitPoint[0] = this.getConnection().getTeleporterEntryPointsXY()[3-x][0];
-                exitPoint[1] = this.getConnection().getTeleporterEntryPointsXY()[3-x][1];
-                return exitPoint;
-            }
-        }
-        return null;
-    }
 
     public int[] getPortalEntryPointXY() {
         // Only portals and teleporters can have an exit point
@@ -204,7 +75,7 @@ public class ObstacleBlock extends DirectedBlock {
             return null; //maybe I shouldnt let teleporters use this method..
         }
         // A portal that is not connected will have no exit point
-        if ( this.connection == null) {
+        if ( this.getConnection() == null) {
             return null;
         }
         int[] entryPoint = new int[2];
@@ -234,19 +105,17 @@ public class ObstacleBlock extends DirectedBlock {
         return entryPoint;
     }
 
-
-
     //The exit point of a given teleporter/portal will be equal to the connected portal's entry point
     public int[] getPortalExitPointXY() {
-        if (this.connection == null) {
+        if (this.getConnection() == null) {
             return null;
         }
-        return this.connection.getPortalEntryPointXY();
+        return this.getConnection().getPortalEntryPointXY();
     }
     //The exit point of a given teleporter/portal will be equal to the connected portal's entry point,
     //but only if the given entryBlock matches the coordinates for the portal's entry point
     public int[] getPortalExitPointXY(BlockAbstract entryBlock) {
-        if (this.connection == null) {
+        if (this.getConnection() == null) {
             return null;
         }
         //If the given entry block is not standing at the portal's entry point, then
@@ -255,7 +124,7 @@ public class ObstacleBlock extends DirectedBlock {
         if ( !(entryBlockCoordinates[0] == this.getPortalEntryPointXY()[0] && entryBlockCoordinates[1] == this.getPortalEntryPointXY()[1]) ) {
             return null;
         }
-        return this.connection.getPortalEntryPointXY();
+        return this.getConnection().getPortalEntryPointXY();
     }
 
     //The exit point of a given teleporter/portal will be equal to the connected portal's entry point
@@ -342,7 +211,4 @@ public class ObstacleBlock extends DirectedBlock {
                 return "";
         }
     }
-
-
-    
 }

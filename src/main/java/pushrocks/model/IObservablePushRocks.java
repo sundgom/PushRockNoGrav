@@ -6,8 +6,8 @@ public interface IObservablePushRocks {
     public void notifyObservers();
     
     // public BlockAbstract getTopBlock(int x, int y);
-    public int getHeight();
     public int getWidth();
+    public int getHeight();
     public int getMoveCount();
 
     public char getTopBlockType(int x, int y);
