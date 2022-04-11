@@ -53,9 +53,8 @@ public abstract class ObstacleBlock extends DirectedBlock {
     }
 
     abstract public boolean isTransporter();
-    abstract public int[] getExitPointXY(BlockAbstract entryBlock); 
     abstract public int[][] getEntryPointsXY(); 
-  
+    abstract public int[] getExitPointXY(BlockAbstract entryBlock); 
     public int[] getExitDirectionXY(BlockAbstract entryBlock) {
         int[] exitPorterXY = this.getCoordinatesXY();
         int[] exitPointXY = this.getExitPointXY(entryBlock);

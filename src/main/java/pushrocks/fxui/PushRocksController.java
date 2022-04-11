@@ -35,8 +35,10 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 
     private PushRocks pushRocks;
     private int blockSize;
-    private boolean incrementGravityOnInterval;
+    // private boolean incrementGravityOnInterval;
     private SaveHandler saveHandler = new SaveHandler();
+    //Controller attributes
+    private int gravityChoice;
 
     @FXML 
     private AnchorPane anchorPane;
@@ -114,9 +116,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     @FXML
     private Button statusMenuButton;
 
-    //Controller attributes
-    private int gravityChoice;
-    
+
     @FXML
     public void initialize() {
 
@@ -179,7 +179,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         pushRocks.pause(true);
 		createMap();
 		drawMap();
-        this.incrementGravityOnInterval = true;
+        // this.incrementGravityOnInterval = true;
         updateLevelText();
 	}
 
@@ -464,7 +464,8 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         menuPage.setVisible(false);
         statusPage.setVisible(false);
         gravityManualIncrementButton.setVisible(false);
-        if (this.incrementGravityOnInterval) {
+        // if (this.incrementGravityOnInterval) {
+        if (this.pushRocks.isGravityApplicationInterval()) {
             this.pushRocks.pause(true);
         }
     }
@@ -474,7 +475,8 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         menuPage.setVisible(false);
         statusPage.setVisible(false);
         gravityManualIncrementButton.setVisible(false); 
-        if (this.incrementGravityOnInterval) {
+        // if (this.incrementGravityOnInterval) {
+        if (this.pushRocks.isGravityApplicationInterval()) {
             this.pushRocks.pause(true);
         }
     }
@@ -543,7 +545,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         pushRocks.pause(true);
         createMap();
 		drawMap();
-        this.incrementGravityOnInterval = true;
+        // this.incrementGravityOnInterval = true;
         updateLevelText();
         updateLevelList();
     }
@@ -573,7 +575,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         pushRocks.pause(true);
         createMap();
 		drawMap();
-        this.incrementGravityOnInterval = true;
+        // this.incrementGravityOnInterval = true;
         updateLevelText();
     }   
     @FXML

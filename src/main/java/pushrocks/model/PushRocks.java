@@ -212,29 +212,6 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         return new TraversableBlock(x, y, block.getType(), block.isBirdView());
     }
 
-
-    // public char getTopBlockType(int x, int y) {
-    //     return this.getTopBlock(x, y).getType();
-    // }
-    // public String getTopBlockDirection(int x, int y) {
-    //     BlockAbstract block = this.getTopBlock(x, y);
-    //     if (!(block instanceof DirectedBlock)) {
-    //         return null;
-    //     }
-    //     else {
-    //         return ((DirectedBlock) block).getDirection();
-    //     }
-    // }
-    // public boolean getTopBlockState(int x, int y) {
-    //     return this.getTopBlock(x, y).getState();
-    // }
-    // public boolean getTopBlockBirdView(int x, int y) {
-    //     return this.getTraversableBlock(x, y).isBirdView();
-    // }
-    // public String getTopBlockClass(int x, int y) {
-    //     return this.getTopBlock(x, y).getClass().getSimpleName();
-    // }
-
     //Returns the current amount of activated pressure plates
     public int getActivePressurePlatesCount() {
         return this.activePressurePlatesCount;
@@ -431,8 +408,6 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         }
     }
 
-
-
     private DirectedBlock getDirectedBlock(int x, int y) {
         if (this.getMoveableBlock(x, y) != null) {
             return getMoveableBlock(x, y);
@@ -460,7 +435,6 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         }
         return true;
     }
-
     private ObstacleBlock getObstacleBlock(int x, int y) {
         if (!isCoordinatesWithinBounds(x, y)) {
             return null;
@@ -650,7 +624,6 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                         // completeChain.addAll(exitChain);
                         continue;
                     }
-
                 }
                 //If the exit direction is non-vertical, then the blocks on that side will not move into or out of the portal, but since they
                 //are equal to or outnumber the other side they will hinder the movement of that other side, wheras the heavier side remain 
@@ -779,7 +752,6 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                     else {
                         porterDirection = "left";
                     }
-                    
                 }
                 //There will also be one more transporter in the list, the exit transporter, and it can appear at any non-zero index;
                 else if (block instanceof ObstacleBlock) { //&& i < blockChain.size()-1 was included in the if check, but I suspect that it is redundant
@@ -864,7 +836,6 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         //The footing block will at last be returned, even if it is null, which would indicate that the moveable block
         //is standing at the bounds of the map and thus will use those borders as footing instead, even though they aren't actual blocks.
         return footingBlock;
-        
     }
 
     //Checks if the given block is placed at a corrdinate where bird-view is enabled
@@ -968,7 +939,6 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                         }
                     }
                 }
-
                 return isBlockAirborne((MoveableBlock) footingBlock);
             }
             //Otherwise the footing block must have collision and be able to serve as footing, thus the block must not be airborne.
@@ -1297,17 +1267,16 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     
 
 
-    //Constructor3 with ONLY terrain input
+    //Constructors
     public PushRocks(String levelMapLayout, String levelDirectionLayout) {
-        System.out.println("Constructor: default");
+        System.out.println("Constructor: minimal");
         this.levelName = "Custom level";
         this.levelMapLayout = levelMapLayout;
         this.levelDirectionLayout = levelDirectionLayout;
         this.buildWorld(this.levelMapLayout, this.levelDirectionLayout);
         
-        this.setGravityApplicationInterval();
+        // this.setGravityApplicationInterval();
     }
-
     public PushRocks(String levelName, String levelMapLayout, String levelDirectionLayout) {
         System.out.println("Constructor: build from level information");
         this.levelName = levelName;
@@ -1315,19 +1284,18 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         this.levelDirectionLayout = levelDirectionLayout;
         this.buildWorld(this.levelMapLayout, this.levelDirectionLayout);
         
-        this.setGravityApplicationInterval();
+        // this.setGravityApplicationInterval();
     }
     public PushRocks(String levelName, String levelMapLayout, String levelDirectionLayout, String saveMapLayout, String saveDirectionLayout, int saveMoveCount) {
         System.out.println("Constructor: build from save information");
         this.levelName = levelName;
-
         this.levelMapLayout = levelMapLayout;
         this.levelDirectionLayout = levelDirectionLayout;
         this.buildWorld(this.levelMapLayout, this.levelDirectionLayout);
         this.buildWorld(saveMapLayout, saveDirectionLayout);
         this.moveCount = saveMoveCount;
         
-        this.setGravityApplicationInterval();
+        // this.setGravityApplicationInterval();
     }
 
     private String checkLayoutCompabillityWithLevel(String mapLayout, String directionLayout) {
