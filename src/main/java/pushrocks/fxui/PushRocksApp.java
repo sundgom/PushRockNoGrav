@@ -13,7 +13,7 @@ public class PushRocksApp extends Application {
         stage.setTitle("PushRocks");
         Parent parent = FXMLLoader.load(getClass().getResource("PushRocks.fxml"));
         stage.setScene(new Scene(parent));
-        stage.show(); //Git laptop test
+        stage.show();
     }
 
     public static void main(String[] args) {
