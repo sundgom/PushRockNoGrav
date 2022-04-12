@@ -1,5 +1,8 @@
 package pushrocks.model;
 
+import java.nio.channels.IllegalSelectorException;
+import java.text.Normalizer;
+import java.text.Normalizer.Form;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -276,14 +279,14 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     //We assume that the player is able to aim the portal through other moveable blocks such as rocks. 
     //They can however aim at or past a teleporter. Aiming through other active teleporters and portals is also 
     //not supported.
-    public boolean placePortal(boolean inputIsPortalOne) {
+    public void placePortal(boolean inputIsPortalOne) {
         //Can not place portals when the game is over.
         if (isGameOver) {
-            return false;
+            throw new IllegalStateException("Portals can not be placed when the game is over.");
         }
         MoveableBlock player = this.getPlayer();
-        if (!player.isPlayer()) {
-            return false; //only a player can place a portal
+        if (player == null) {
+            throw new IllegalStateException("Portals can not be placed when no player exists to place them."); 
         }
         int x = player.getX();
         int y = player.getY();
@@ -307,20 +310,21 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         }
         //We now search for a suitable wall to place the portal on, searching in the direction the player was looking
         ObstacleBlock wall = this.findObstacle(direction, x, y);
-
+        if (wall == null) {
+            throw new IllegalStateException("Portals can not be placed out of bounds. Try aiming it at a wall instead.");
+        }
         //If such a wall was found, then a portal could potentially be placed there.
         if (wall != null) {
-            //Walls that serve as teleporters are not suitable for portal-placement
-            // if (wall.isTeleporter()) { !!!!!!!!
+            //Teleporters are not suitable for portal-placement
             if (wall instanceof TeleporterBlock) { 
-                throw new IllegalStateException("Portals can not be placed on teleporters.");
-                // return false;
+                throw new IllegalStateException("Portals can not be placed at teleporters. Try aiming it at a wall instead.");
             }
             //if the found wall already holds a portal, and that portal is the same portal as the one to be placed,
             //and it faces the same direction as the new one would, then everything is already as it should, no portals need to 
             //be changed
             if (((PortalWallBlock) wall).isPortal() && ((PortalWallBlock) wall).isPortalOne() == inputIsPortalOne && wall.getDirection() == portalDirection) {
-                return true; //The portal is placed correctly
+                System.out.println(this.prettyString());
+                return; //The portal was placed correctly
             }
             //If the wall is still a portal, then it could be the portal other than the one being created, and should in that case be overwritten
             if (((PortalWallBlock) wall).isPortal() && ((PortalWallBlock) wall).isPortalOne() != inputIsPortalOne) {
@@ -334,10 +338,8 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             
             System.out.println(this.prettyString());
             this.notifyObservers(); //Successfull portal placement
-            return true; //Returns true as to indicate that the placement was successful to the caller.
+            return; //Placement complete.
         }
-        System.out.println(this.prettyString());
-        return false;
     }
 
     private boolean addPortal(PortalWallBlock portal) {
@@ -1299,12 +1301,19 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     }
 
     private String checkLayoutCompabillityWithLevel(String mapLayout, String directionLayout) {
+        mapLayout = mapLayout            
+            .replaceAll("\\n", "")
+            .replaceAll("\\r", "");
+        String levelMapLayout = this.levelMapLayout
+            .replaceAll("\\n", "")
+            .replaceAll("\\r", "");
+
         //If the input map and direction layouts are equal to the level map and direction layouts, then they are the same, as they must be compatible with themselves.
         if (mapLayout == this.levelMapLayout && directionLayout.length() == this.levelDirectionLayout.length()) {
             return null;
         }
         //The map layouts must be of equal length
-        if (mapLayout.length() != this.levelMapLayout.length()) {
+        if (mapLayout.length() != levelMapLayout.length()) {
             return "Map layout and level layout must be of equal length to be compatible. Map layout length was: " + mapLayout.length() + " and level layout length was: " + this.levelMapLayout.length();
         }
         //The direction layouts must also be of equal length
@@ -1456,8 +1465,21 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                 if(tangibleType == '-') {
                     tangibleType = ' ';
                 }
+                //In the case that type character is 'q' or 'o', then there must be a pressure plate placed
+                //underneath a player or rock respectively. The type is then changed accordingly, and the
+                //isPressurePlatePlacement is set to true as to indicate that there exists a pressure plate 
+                //at the same coordinate.
+                boolean isPressurePlatePlacement = false;
+                if (tangibleType == 'q') {
+                    tangibleType = 'p';
+                    isPressurePlatePlacement = true;
+                }
+                else if (tangibleType == 'o') {
+                    tangibleType = 'r';
+                    isPressurePlatePlacement = true;
+                }
                 if (!"prwtuvd ".contains(tangibleType+"")) {
-                    throw new IllegalArgumentException("PushRocks only allows for level layout formats containing the following set of characters: 'prwtuvd '. Character was: " + tangibleType + "which has the acii value:" + (int) tangibleType);
+                    throw new IllegalArgumentException("Can only construct blocks with the following letters: 'prwtuvd '. Character was: " + tangibleType + "which has the acii value:" + (int) tangibleType);
                 }
                 else if (tangibleType == 'p') {
                     playerCount++;
@@ -1479,8 +1501,8 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                 }
     
                 TraversableBlock traversableBlock = null;
-                if (tangibleType == 'd') { //d indicates that a pressure plate should be made
-                    traversableBlock = new TraversableBlock(x, -y, tangibleType, birdView);
+                if (tangibleType == 'd' || isPressurePlatePlacement) { //d or isPressurePlatePlacment set to true indicates that a pressure plate should be made
+                    traversableBlock = new TraversableBlock(x, -y, 'd', birdView);
                 }
                 else { 
                     traversableBlock = new TraversableBlock(x, -y, ' ', birdView);
@@ -1499,6 +1521,10 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                 if ("pr".contains(tangibleType+"")) {
                     MoveableBlock moveableBlock = new MoveableBlock(x, -y, tangibleType, blockDirection);
                     System.out.println("x=" + x + "y=" + -y);
+                    //Moveable blocks standing on pressure plates will have their state set to true.
+                    if (isPressurePlatePlacement) {
+                        moveableBlock.setState(true);
+                    }
                     addMoveableBlock(moveableBlock);
                 }
                 else if ("wtuv".contains(tangibleType+"")) {
@@ -1525,6 +1551,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         if (directionsRemaining > 0) {
             throw new IllegalArgumentException("The direction layout can not contain more directions than the sum of players, rocks, portals and gravity. Direction count was: " + blockDirections.length + " and remaining directions count was: " + directionsRemaining);
         }
+        // this.updateActivePressurePlatesCount();
         System.out.println(this.prettyString());
         this.notifyObservers();
     }
@@ -1772,31 +1799,31 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         // System.out.println(game0.getPlayer(1).getX());
         // System.out.println(game0.getPlayer(1).getY());
 
-        String levelMapLayout1 = """
-            wwwwwwwwwwwwwwwwwww
-            w  w     w        w
-            w  w r   w  r     w
-            w  wwww ww        w
-            w   r    w        w
-            w      d www      w
-            w        w        w
-            w    d d w        w
-            w        w        w
-            wwwwwwwwwwwwwwwwwww
-            W--------W--PT----W
-            W--------W------D-W
-            W--------WWW----WWW
-            W--------W------D-W
-            W--------W---R----W
-            W--------W--WR--R-W
-            W- ------W-T-R--R-W
-            W--------W---R--R-W
-            WWWWWWWWWWWWWVWWUWW""";
-        String levelDirectionLayout1 = "rrrrrrrrrrruu";
+        // String levelMapLayout1 = """
+        //     wwwwwwwwwwwwwwwwwww
+        //     w  w     w        w
+        //     w  w r   w  r     w
+        //     w  wwww ww        w
+        //     w   r    w        w
+        //     w      d www      w
+        //     w        w        w
+        //     w    d d w        w
+        //     w        w        w
+        //     wwwwwwwwwwwwwwwwwww
+        //     W--------W--PT----W
+        //     W--------W------D-W
+        //     W--------WWW----WWW
+        //     W--------W------D-W
+        //     W--------W---R----W
+        //     W--------W--WR--R-W
+        //     W- ------W-T-R--R-W
+        //     W--------W---R--R-W
+        //     WWWWWWWWWWWWWVWWUWW""";
+        // String levelDirectionLayout1 = "rrrrrrrrrrruu";
 
-        PushRocks game0 = new PushRocks(levelMapLayout1, levelDirectionLayout1);
+        // PushRocks game0 = new PushRocks(levelMapLayout1, levelDirectionLayout1);
         
-        game0.gravityInverter();
+        // game0.gravityInverter();
 
         // BlockAbstract block1 = new ObstacleBlock(0, 0, 'w', null, null);
         // ObstacleBlock block2 = new ObstacleBlock(0, 0, 'w', null, null);
@@ -1805,6 +1832,9 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         // BlockAbstract mBlock = new MoveableBlock(0, 0, 'p', "right");
         // ((ObstacleBlock) block2).clearPortal();
 
-
+        String news = "strìng";  
+        CharSequence newnews = "a,b";
+        String hest = Normalizer.normalize(news, Form.NFC);
+        System.out.println(news + hest);
     }
 }

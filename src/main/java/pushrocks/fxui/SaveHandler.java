@@ -15,7 +15,9 @@ import java.util.Scanner;
 
 import pushrocks.model.BlockAbstract;
 import pushrocks.model.DirectedBlock;
+import pushrocks.model.MoveableBlock;
 import pushrocks.model.PushRocks;
+import pushrocks.model.TraversableBlock;
 
 public class SaveHandler implements ISaveHandler {
 
@@ -37,31 +39,7 @@ public class SaveHandler implements ISaveHandler {
         return Path.of(System.getProperty("user.dir"), "src", "main", "resources", "pushrocks", folderName);
     }
 
-
-    @Override
-    public void loadGameLevel(String filename, PushRocks pushrocks) throws FileNotFoundException {
-        
-    }
-
-    @Override
-    public void saveGame(Path filePath, PushRocks pushrocks) throws FileNotFoundException {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void loadGame(Path filePath, PushRocks pushrocks) throws FileNotFoundException {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void loadGameSave(Path filePath, PushRocks pushrocks) throws FileNotFoundException {
-        // TODO Auto-generated method stub
-        
-    }
-
-    public PushRocks loadGame(InputStream inputStream) {
+    public PushRocks loadGame(InputStream inputStream) throws IllegalArgumentException, NumberFormatException {
         PushRocks pushRocks = null;
         try (var scanner = new Scanner(inputStream)) {
             scanner.useDelimiter("#");
@@ -104,11 +82,7 @@ public class SaveHandler implements ISaveHandler {
                 }
                 else if (fieldName.equals("Save move count")) {
                     String saveMoveCountString = fieldData.stripTrailing();
-                    try {
-                        saveMoveCount = Integer.parseInt(saveMoveCountString);
-                    } catch (NumberFormatException e) {
-                        //TODO: handle exception
-                    }
+                    saveMoveCount = Integer.parseInt(saveMoveCountString);
                 }
             }
             System.out.println("fileType:" + fileType + ", levelName:" + levelName);
@@ -116,16 +90,16 @@ public class SaveHandler implements ISaveHandler {
             System.out.println("saveMapLayout:" + saveMapLayout + ", saveDirectionLayout:" + saveDirectionLayout + ", saveMoveCount:" + saveMoveCount);
             
             if (fileType == null) {
-                throw new IllegalArgumentException("Could not find file type");
+                throw new IllegalArgumentException("File is not formated correctly: could not find file type");
             }
             if (levelName == null) {
-                throw new IllegalArgumentException("Could not find level name");
+                throw new IllegalArgumentException("File is not formated correctly: could not find level name");
             }
             if (levelMapLayout == null) {
-                throw new IllegalArgumentException("Could not find level map layout");
+                throw new IllegalArgumentException("File is not formated correctly: could not find level map layout");
             }
             if (levelDirectionLayout == null) {
-                throw new IllegalArgumentException("Could not find level direction layout");
+                throw new IllegalArgumentException("File is not formated correctly: could not find level direction layout");
             }
 
             if (fileType.equals("Level")) {
@@ -133,13 +107,13 @@ public class SaveHandler implements ISaveHandler {
             }
             else if (fileType.equals("Save")) {
                 if (saveMapLayout == null) {
-                    throw new IllegalArgumentException("Could not find save direction layout");
+                    throw new IllegalArgumentException("File is not formated correctly: could not find save direction layout");
                 }
                 if (saveDirectionLayout == null) {
-                    throw new IllegalArgumentException("Could not find save direction layout");
+                    throw new IllegalArgumentException("File is not formated correctly: could not find save direction layout");
                 }
                 if (saveMoveCount == -1) {
-                    throw new IllegalArgumentException("Could not find save move count");
+                    throw new IllegalArgumentException("File is not formated correctly: could not find save move count");
                 }
                 pushRocks = new PushRocks(levelName, levelMapLayout, levelDirectionLayout, saveMapLayout, saveDirectionLayout, saveMoveCount);
             }
@@ -161,6 +135,9 @@ public class SaveHandler implements ISaveHandler {
 
     public PushRocks loadGame(String fileName, boolean isSave) throws FileNotFoundException, IOException {
         Path folderPath = null;
+        // if (fileName == null) {
+        //     throw new IllegalArgumentException("Can not load file if no file name is provided.");
+        // }
         if (isSave) {
             folderPath = this.getResourceFoldersPath("saves");
         }
@@ -172,21 +149,15 @@ public class SaveHandler implements ISaveHandler {
             return loadGame(inputStream);
         }
     }
-    public PushRocks loadGame(Path filePath) throws FileNotFoundException, IOException {
+    public PushRocks loadGame(Path filePath) throws FileNotFoundException, IOException, NumberFormatException, IllegalArgumentException, NullPointerException {
+        // System.out.println(filePath.toString().length());
+        // System.out.println(filePath == null);
+        // if (filePath.toString().length() == 0) {
+        //     throw new IllegalArgumentException("Can not load file if no file path is provided.");
+        // }
         try (var inputStream = new FileInputStream(filePath.toFile())) {
             return loadGame(inputStream);
         }
-    }
-
-    public PushRocks loadGame(String filePath) {
-        // System.out.println(filePath);
-        // Path path = Paths.get(filePath);
-
-        // try (var input = new FileInputStream(path.toFile())) {
-        //     // return readGameFile();
-        //     return null;
-        // }
-        return null;
     }
 
     public void saveGame(PushRocks pushRocks, OutputStream outputStream) {
@@ -218,14 +189,20 @@ public class SaveHandler implements ISaveHandler {
     }
 
     public void saveGame(PushRocks pushRocks, Path savePath) throws IOException {
-        // Path savePath = Paths.get(savePathString);
+        if (savePath.toString().length() < 1) {
+            throw new IllegalArgumentException("A file path or a file name of at least one character is needed to save.");
+        }
+        if (!savePath.toString().contains("\\")) {
+            Path savePathOld = savePath;
+            savePath = this.getResourceFoldersPath("saves").resolve(savePathOld + ".txt");
+        }
         try (var outputStream = new FileOutputStream(savePath.toFile())) {
             saveGame(pushRocks, outputStream);
         }
     }
 
 
-    public List<String> gameLayoutToSaveFormat(PushRocks pushRocks) {
+    private List<String> gameLayoutToSaveFormat(PushRocks pushRocks) {
         if (pushRocks.isGameOver()) {
             throw new IllegalArgumentException("Can not save a completed game.");
         }
@@ -239,14 +216,10 @@ public class SaveHandler implements ISaveHandler {
         for (int y = 0; y > height*(-1); y--) {
             for (int x = 0; x < width; x++) {
                 char blockCopyType = '?';
-                // char blockType = pushRocks.getTopBlockType(x, y);
-                // String blockClass = pushRocks.getTopBlockClass(x, y);
-                // boolean blockIsBirdView = pushRocks.getTopBlockBirdView(x, y);
-                // pushRocks.getTopBlockDirection(x, y);
-                // pushRocks.getTopBlockState(x, y);
                 
                 BlockAbstract blockCopy = pushRocks.getTopBlockCopy(x, y);
                 blockCopyType = blockCopy.getType();
+                TraversableBlock traversableBlockCopy = pushRocks.getTraversableBlockCopy(x, y);
 
                 //At most one directed block can occupy a given coordinate in the level, and this block must have a type, 
                 // thus let this block's type represent this coordinate in the level layout string.
@@ -256,6 +229,18 @@ public class SaveHandler implements ISaveHandler {
                     if (direction != null) {
                         directionLayoutSave += direction.charAt(0);
                     }
+                    //If the directed block is a moveable block and that block shares a coordinate with a traversable block
+                    //that is a pressure plate, then the type-character should be altered as to indicate that
+                    //the given coordinate holds both of these. Players and rocks placed ontop pressure plates will be
+                    // represented by 'q' and 'o' respectively.
+                    if (blockCopy instanceof MoveableBlock && traversableBlockCopy.isPressurePlate()) {
+                        if (((MoveableBlock) blockCopy).isPlayer()) {
+                            blockCopyType = 'q';
+                        }
+                        else {
+                            blockCopyType = 'o';
+                        }
+                    }
                 }
                 //Exactly one traversable block will occupy every coordinate in the level, thus when there are no directed blocks
                 // placed ontop of it, the traversable block must itself represent the given coordinate in the level layout string.
@@ -263,7 +248,7 @@ public class SaveHandler implements ISaveHandler {
                 //At coordinates where the underlying traversable block has bird view disabled, the type representation to be
                 // saved should be set to upper case.
 
-                if (!pushRocks.getTraversableBlockCopy(x, y).isBirdView()) {
+                if (!traversableBlockCopy.isBirdView()) {
                     blockCopyType = Character.toUpperCase(blockCopyType);
                     //Since the type representation for traversable blocks is ' ', which can't be changed to uppercase, then 
                     // change it to '-' instead.

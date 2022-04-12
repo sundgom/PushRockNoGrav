@@ -49,9 +49,11 @@ public abstract class BlockAbstract {
         checkForTypeException(type);
         this.type = type;
     }
-    //Setting a block's type will entail more than just setting its character representation, what exactly needs to be 
-    //set for each type will be highly individual, thus it is left to the sub-classes to determine the requirements
-    //for each type beyond just their character-representation.
+    /*
+     *Setting a block's type will entail more than just setting its character representation, what exactly needs to be 
+     *set for each type will be highly individual, thus it is left to the sub-classes to determine the requirements
+     *for each type beyond just their character-representation.
+     */
     abstract protected void setType(char type);
     public char getType() {
         return this.type;

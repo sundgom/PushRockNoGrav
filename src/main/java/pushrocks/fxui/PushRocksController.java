@@ -40,8 +40,12 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     //Controller attributes
     private int gravityChoice;
 
+    //APP
     @FXML 
     private AnchorPane anchorPane;
+    @FXML
+    private Text appInformationText;
+    private Text appInformationIcon;
 
     //GAME PAGE
     @FXML
@@ -328,7 +332,6 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         }
     }
 
-
     private String getBlockStyle(int x, int y) {
         BlockAbstract blockCopy = pushRocks.getTopBlockCopy(x, y);
         char type = blockCopy.getType();
@@ -360,6 +363,14 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         }
         return style;
     }
+
+    //APP
+    @FXML
+    private void handleInformationClick() {
+        this.appInformationText.setVisible(!this.appInformationText.isVisible());
+    }
+
+    //GAME
 
     @FXML
     private void handlePlayerInput(KeyEvent keyEvent) {
@@ -427,11 +438,20 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 
     @FXML
     private void handlePortalOne() {
-        pushRocks.placePortal(true);
+        placePortal(true);
     }
     @FXML
     private void handlePortalTwo() {
-        pushRocks.placePortal(false);
+        placePortal(false);
+    }
+
+    @FXML private void placePortal(boolean isPortalOne) {
+        try {
+            pushRocks.placePortal(isPortalOne);
+        } catch (IllegalStateException e) {
+            this.appInformationText.setVisible(true);
+            this.appInformationText.setText(e.getMessage());
+        }
     }
 
     @FXML
@@ -507,7 +527,6 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         }
         updateGravityButton();
         this.unpause();
-        
 
         if (menuGravityMoveInputButton.isSelected()) {
             System.out.println("Gravity: moveInput");
@@ -535,10 +554,12 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         try {
             this.pushRocks = this.saveHandler.loadGame(menuLevelChoiceBox.getValue(), false);
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
+            this.appInformationText.setVisible(true);
+            this.appInformationText.setText("The file: " + menuLevelChoiceBox.getValue() + " could not be found. Please try another file.");
             e.printStackTrace();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
+            this.appInformationText.setVisible(true);
+            this.appInformationText.setText(e.getMessage());
             e.printStackTrace();
         }
         pushRocks.addObserver(this);
@@ -562,21 +583,31 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         System.out.println("Load button");
         Path filePath = Paths.get(menuLoadFileLocationField.getText());
         System.out.println("Load path:" + filePath);
+        boolean loadSuccessful = false;
         try {
             this.pushRocks = this.saveHandler.loadGame(filePath);
+            this.appInformationText.setText("Level-load successful.");
+            loadSuccessful = true;
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            this.appInformationText.setVisible(true);
+            this.appInformationText.setText("Could not find the file from the provided path.");
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            this.appInformationText.setVisible(true);
+            this.appInformationText.setText(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            this.appInformationText.setVisible(true);
+            this.appInformationText.setText(e.getMessage());
+        } catch (NullPointerException e) {
+            this.appInformationText.setVisible(true);
+            this.appInformationText.setText(e.getMessage());
         }
-        pushRocks.addObserver(this);
-        pushRocks.pause(true);
-        createMap();
-		drawMap();
-        // this.incrementGravityOnInterval = true;
-        updateLevelText();
+        if (loadSuccessful) {
+            pushRocks.addObserver(this);
+            pushRocks.pause(true);
+            createMap();
+            drawMap();
+            updateLevelText();
+        }
     }   
     @FXML
     private void handleSaveButton() {
@@ -585,11 +616,14 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         System.out.println("Save path:" + savePath);
         try {
             this.saveHandler.saveGame(this.pushRocks, savePath);
+            this.appInformationText.setText("Game-save successful.");
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            this.appInformationText.setVisible(true);
+            this.appInformationText.setText("Could not save at the given file path.");
+        } catch (IllegalArgumentException e) {
+            this.appInformationText.setVisible(true);
+            this.appInformationText.setText(e.getMessage());
         }
-        menuLoadFileLocationField.setText(null);
     }
 
     private Path getFilePathBrowse(boolean isSave) {
