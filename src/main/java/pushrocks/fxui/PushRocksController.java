@@ -418,22 +418,31 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
             }
         }
     }
+    private void movePlayer(String direction) {
+        try {
+            pushRocks.movePlayer(direction);
+        } catch (Exception e) {
+            this.appInformationText.setText(e.getMessage());
+            this.appInformationText.setVisible(true);
+        }
+    }
 
 	@FXML
     private void handleUp() {
-        pushRocks.movePlayer("up");
+        this.movePlayer("up");
+        
     }
     @FXML
     private void handleDown() {
-        pushRocks.movePlayer("down"); 
+        this.movePlayer("down"); 
     }
     @FXML
     private void handleLeft() {
-        pushRocks.movePlayer("left");
+        this.movePlayer("left");
     }
     @FXML
     private void handleRight() {
-        pushRocks.movePlayer("right");
+        this.movePlayer("right");
     }
 
     @FXML

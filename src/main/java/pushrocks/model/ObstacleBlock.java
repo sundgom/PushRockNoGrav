@@ -56,7 +56,7 @@ public abstract class ObstacleBlock extends DirectedBlock {
     abstract public int[][] getEntryPointsXY(); 
     abstract public int[] getExitPointXY(BlockAbstract entryBlock); 
     public int[] getExitDirectionXY(BlockAbstract entryBlock) {
-        int[] exitPorterXY = this.getCoordinatesXY();
+        int[] exitPorterXY = this.getConnection().getCoordinatesXY();
         int[] exitPointXY = this.getExitPointXY(entryBlock);
         return new int[] {exitPointXY[0] - exitPorterXY[0], exitPointXY[1] - exitPorterXY[1]};
     }
