@@ -22,6 +22,16 @@ public class PortalWallBlock extends ObstacleBlock {
             return new String[]{"up", "down", "right", "left"};
         }
     }
+    //setConnection is kept protected, as portal-wall blocks should only have a connection once its made into a portal.
+    protected void setConnection(ObstacleBlock connection) {
+        if (connection != null) {
+            if (!(connection instanceof PortalWallBlock && ((PortalWallBlock) connection).isPortal())) {
+                throw new IllegalArgumentException("A portal can only be connected to another portal.");
+            }
+        }
+        super.setConnection(connection);
+    }
+
     private void setWall() {
         this.setTypeCharacter('w');
         this.setState(false);
@@ -58,7 +68,7 @@ public class PortalWallBlock extends ObstacleBlock {
             //If the block is already not a portal, then there is no need for any change.
             return;
         }
-        this.removeConnection();
+        super.removeConnection();
         this.setWall(); 
     }
     @Override

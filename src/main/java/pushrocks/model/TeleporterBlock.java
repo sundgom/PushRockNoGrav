@@ -15,6 +15,16 @@ public class TeleporterBlock extends ObstacleBlock {
     protected String[] getValidDirections() {
         return new String[]{null};
     }
+    
+    //Made public as to allow teleporters to be freely connect to a single other teleporter at a time.
+    @Override
+    public void setConnection(ObstacleBlock connection) {
+        if (!(connection instanceof TeleporterBlock || connection == null)) {
+            throw new IllegalArgumentException("A teleporter can only be connected to other teleporter blocks.");
+        }
+        super.setConnection(connection);
+    }
+
     private void setTeleporter() {
         this.setTypeCharacter('t');
         this.setState(false);

@@ -18,7 +18,7 @@ public class MoveableBlockTest {
     private String[] validDirections = new String[] {"up", "down", "left", "right"};
     private Map<String, int[]> directionToXYChange = Map.of("up", new int[]{0,1}, "down", new int[]{0,-1}, "right", new int[]{1,0}, "left", new int[]{-1,0});
 
-    //Tests of constructor and methods inherited by BlockAbstract
+    //Tests for constructor and methods inherited by BlockAbstract
     @Test
     @DisplayName("Test positive, zero, and positive integers for constructor coordinates.")
     public void testConstructorCoordinates() {
@@ -102,7 +102,7 @@ public class MoveableBlockTest {
     }
     
 
-    //Tests of constructor and methods inherited by DirectedBlock
+    //Tests for constructor and methods inherited by DirectedBlock
     @Test
     public void testConstructorValidDirections() {
         for (String direction : validDirections) {
@@ -129,7 +129,7 @@ public class MoveableBlockTest {
             "IllegalArgument should be thrown if the constuctor is provided with an invalid direction.");
     }
     @Test
-    @DisplayName("Ensure that the setType() method properly sets the correct direction when provided with a valid direction.")
+    @DisplayName("Ensure that the setDirection() method inherited from DirectedBlock, which is made public for this class, properly sets the correct direction when provided with a valid direction.")
     public void testSetValidDirection() {
         MoveableBlock constructedValidDirection = new MoveableBlock(0, 0, validTypes[1], validDirections[1]);
         for (String direction : validDirections) {
@@ -157,7 +157,7 @@ public class MoveableBlockTest {
             "IllegalArgument should be thrown if the constuctor is provided with an invalid direction.");
     }
 
-    //Tests of constructor-parameters and class methods specific to MoveableBlock
+    //Tests for constructor and methods specific to MoveableBlock
     @Test
     @DisplayName("Test that type checks specific to this class returns the correct truth value according to their current type.")
     public void testTypeChecks() {

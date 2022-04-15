@@ -15,7 +15,7 @@ public abstract class ObstacleBlock extends DirectedBlock {
     //Any previous connections either of these blocks had before will be removed, this way a block can only be connected to one
     //other block at a time.
     //If the input is null, then both blocks will instead be disconnected from eachother.
-    public void setConnection(ObstacleBlock connection) {
+    protected void setConnection(ObstacleBlock connection) {
         //A block can not be connected to itself, given such input set the block's connection to null.
         if (connection == this) {
             this.setConnection(null);
@@ -43,7 +43,7 @@ public abstract class ObstacleBlock extends DirectedBlock {
         this.setState(connection != null);
     }
     //Removes the connection this transport block has if it exists.
-    public void removeConnection() {
+    protected void removeConnection() {
         this.setConnection(null);
     }
     //Returns the block-block this block has a connection with if it exists. Used to keep track of which 

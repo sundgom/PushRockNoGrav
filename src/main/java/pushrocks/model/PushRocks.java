@@ -177,24 +177,21 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             blockCopy.setState(block.getState());
         }
         else if (block instanceof ObstacleBlock) {
-            if (block instanceof TeleporterBlock) {
-                blockCopy = new TeleporterBlock(x, y, block.getType(), ((ObstacleBlock) block).getDirection(), null);
-            }
-            else {
-                blockCopy = new PortalWallBlock(x, y, block.getType(), ((ObstacleBlock) block).getDirection(), null);
-            }
-            // blockCopy = new ObstacleBlock(x, y, block.getType(), ((ObstacleBlock) block).getDirection(), null);
-            ObstacleBlock blockConnection = ((ObstacleBlock) block).getConnection();
-            if (blockConnection != null) {
-                ObstacleBlock blockCopyConnection;
+            ObstacleBlock blockConnectionCopy = null; 
+            if (((ObstacleBlock) block).isTransporter() && block.getState()) {
+                ObstacleBlock blockConnection = ((ObstacleBlock) block).getConnection();
                 if (blockConnection instanceof TeleporterBlock) {
-                    blockCopyConnection = new TeleporterBlock(blockConnection.getX(), blockConnection.getY(), blockConnection.getType(), ((ObstacleBlock) blockConnection).getDirection(), ((ObstacleBlock) blockCopy));
+                    blockConnectionCopy = new TeleporterBlock(blockConnection.getX(), blockConnection.getY(), blockConnection.getType(), ((ObstacleBlock) blockConnection).getDirection(), null);
                 }
                 else {
-                    blockCopyConnection = new PortalWallBlock(blockConnection.getX(), blockConnection.getY(), blockConnection.getType(), ((ObstacleBlock) blockConnection).getDirection(), ((ObstacleBlock) blockCopy));
+                    blockConnectionCopy = new PortalWallBlock(blockConnection.getX(), blockConnection.getY(), blockConnection.getType(), ((ObstacleBlock) blockConnection).getDirection(), null);
                 }
-               
-                ((ObstacleBlock) blockCopy).setConnection(blockCopyConnection);
+            }
+            if (block instanceof TeleporterBlock) {
+                blockCopy = new TeleporterBlock(x, y, block.getType(), ((ObstacleBlock) block).getDirection(), blockConnectionCopy);
+            }
+            else {
+                blockCopy = new PortalWallBlock(x, y, block.getType(), ((ObstacleBlock) block).getDirection(), blockConnectionCopy);
             }
         }
         //Otherwise it must be a traversable block.
@@ -319,7 +316,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             //be changed
             if (((PortalWallBlock) wall).isPortal() && ((PortalWallBlock) wall).isPortalOne() == inputIsPortalOne && wall.getDirection() == portalDirection) {
                 System.out.println(this.prettyString());
-                return; //The portal was placed correctly
+                return; //The portal is placed correctly
             }
             //If the wall is still a portal, then it could be the portal other than the one being created, and should in that case be overwritten
             if (((PortalWallBlock) wall).isPortal() && ((PortalWallBlock) wall).isPortalOne() != inputIsPortalOne) {
@@ -342,12 +339,6 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             return false;
         }
         this.portals.add(portal);
-        if (portals.size() > 1) {
-            this.portals.get(0).setConnection(this.portals.get(1));
-        }
-        else {
-            this.portals.get(0).setConnection(null);
-        }
         return true;
     }
 
@@ -1133,7 +1124,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         }
         //If the push is made by a player, then the strength of the pushing motion increases
         if (block.isPlayer() || (movementSource.equals("gravity") && isBlockAirborne(block))) {
-            strength++;
+            // strength++;
         }
         //Otherwise it must have been made by a rock, which itself will cost strength to push forward, thus the strength of the pushing motion decreases
         else { 
@@ -1818,8 +1809,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
         // System.out.println(game0.getObstacleBlock(2, -7).getState());
         // System.out.println(game0.getObstacleBlock(2, -16).getState());
-        
-        // game0.getObstacleBlock(2, -7).setConnection(game0.getObstacleBlock(2, -16));
+    
 
         // System.out.println(game0.getObstacleBlock(2, -7).getState());
         // System.out.println(game0.getObstacleBlock(2, -16).getState());
