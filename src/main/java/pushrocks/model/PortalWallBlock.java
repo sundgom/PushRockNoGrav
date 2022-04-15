@@ -13,6 +13,15 @@ public class PortalWallBlock extends ObstacleBlock {
     protected String getValidTypes() {
         return "wuv";
     }
+    @Override
+    protected String[] getValidDirections() {
+        if (this.isWall()) {
+            return new String[]{null};
+        }
+        else {
+            return new String[]{"up", "down", "right", "left"};
+        }
+    }
     private void setWall() {
         this.setTypeCharacter('w');
         this.setState(false);

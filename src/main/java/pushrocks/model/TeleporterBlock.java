@@ -11,6 +11,10 @@ public class TeleporterBlock extends ObstacleBlock {
     protected String getValidTypes() {
         return "t";
     }
+    @Override
+    protected String[] getValidDirections() {
+        return new String[]{null};
+    }
     private void setTeleporter() {
         this.setTypeCharacter('t');
         this.setState(false);

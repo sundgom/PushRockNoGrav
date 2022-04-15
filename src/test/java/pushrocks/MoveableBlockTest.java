@@ -14,37 +14,54 @@ import pushrocks.model.DirectedBlock;
 import pushrocks.model.MoveableBlock;
 
 public class MoveableBlockTest {
-    // private MoveableBlock constructedPlayer;
-    // private MoveableBlock constructedRock;
     private char[] validTypes = new char[] {'p', 'r'};
     private String[] validDirections = new String[] {"up", "down", "left", "right"};
-    Map<String, int[]> directionToXYChange = Map.of("up", new int[]{0,1}, "down", new int[]{0,-1}, "right", new int[]{1,0}, "left", new int[]{-1,0});
+    private Map<String, int[]> directionToXYChange = Map.of("up", new int[]{0,1}, "down", new int[]{0,-1}, "right", new int[]{1,0}, "left", new int[]{-1,0});
 
     //Tests of constructor and methods inherited by BlockAbstract
     @Test
     @DisplayName("Test positive, zero, and positive integers for constructor coordinates.")
     public void testConstructorCoordinates() {
-        int[] coordinateValues = new int[]{11, 0, -12};
-        for (int coordinateValue : coordinateValues) {
-            BlockAbstract neutralValueCoordinates = new MoveableBlock(coordinateValue, coordinateValue, validTypes[0], validDirections[0]);
-            assertEquals(coordinateValue, neutralValueCoordinates.getX());
-            assertEquals(coordinateValue, neutralValueCoordinates.getY());
-            assertEquals(new int[]{coordinateValue,0}[0], neutralValueCoordinates.getCoordinatesXY()[0]);
-            assertEquals(new int[]{0,coordinateValue}[1], neutralValueCoordinates.getCoordinatesXY()[1]);
-        }        
+        int[] coordinateValues = new int[]{2, 0, -3};
+        for (int value: coordinateValues) {
+            testConstructorCoordinates(value, value);
+            testConstructorCoordinates(0, value);
+            testConstructorCoordinates(value, 0);
+        }
+    }
+    public void testConstructorCoordinates(int x, int y) {
+        BlockAbstract neutralValueCoordinates = new MoveableBlock(x, y, validTypes[0], validDirections[0]);
+        assertEquals(x, neutralValueCoordinates.getX());
+        assertEquals(x, neutralValueCoordinates.getCoordinatesXY()[0]);
+        assertEquals(y, neutralValueCoordinates.getY());
+        assertEquals(y, neutralValueCoordinates.getCoordinatesXY()[1]);
     }
     @Test
     @DisplayName("Test positive, zero, and negative integers for setting coordinates through the setX() and setY() coordinates inherited from BlockAbstract, that are made public for this class.") 
     public void testSetCoordinates() {
-        MoveableBlock neutralValueCoordinates = new MoveableBlock(0, 0, validTypes[0], validDirections[0]);
         int[] coordinateValues = new int[]{11, 0, -12};
-        for (int coordinateValue : coordinateValues) {
-            neutralValueCoordinates.setX(coordinateValue);
-            assertEquals(coordinateValue, neutralValueCoordinates.getX());
-            neutralValueCoordinates.setY(coordinateValue);
-            assertEquals(coordinateValue, neutralValueCoordinates.getY());
-        }        
+        for (int i : coordinateValues) {
+            testSetX(i);
+            testSetY(i);
+        }
     }
+    private void testSetX(int x) {
+        MoveableBlock moveable = new MoveableBlock(0, 0, validTypes[0], validDirections[0]);
+        moveable.setX(x);
+        assertEquals(x, moveable.getX());
+        assertEquals(x, moveable.getCoordinatesXY()[0]);
+        assertEquals(0, moveable.getY());
+        assertEquals(0, moveable.getCoordinatesXY()[1]);
+    }
+    private void testSetY(int y) {
+        MoveableBlock moveable = new MoveableBlock(0, 0, validTypes[0], validDirections[0]);
+        moveable.setY(y);
+        assertEquals(0, moveable.getX());
+        assertEquals(y, moveable.getY());
+        assertEquals(0, moveable.getCoordinatesXY()[0]);
+        assertEquals(y, moveable.getCoordinatesXY()[1]);
+    }
+
     @Test
     public void testConstructorValidTypes() {
         for (char validType : this.validTypes) {

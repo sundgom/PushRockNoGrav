@@ -1,6 +1,4 @@
 package pushrocks.model;
-import java.text.Normalizer;
-import java.text.Normalizer.Form;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -1936,9 +1934,9 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         // BlockAbstract mBlock = new MoveableBlock(0, 0, 'p', "right");
         // ((ObstacleBlock) block2).clearPortal();
 
-        String news = "strìng";  
-        CharSequence newnews = "a,b";
-        String hest = Normalizer.normalize(news, Form.NFC);
-        System.out.println(news + hest);
+        // String news = "strìng";  
+        // CharSequence newnews = "a,b";
+        // String hest = Normalizer.normalize(news, Form.NFC);
+        // System.out.println(news + hest);
     }
 }

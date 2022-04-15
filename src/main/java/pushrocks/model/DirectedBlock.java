@@ -11,9 +11,8 @@ public abstract class DirectedBlock  extends BlockAbstract {
     }
     
     //Returns a string list of valid directions for this block.
-    protected String[] getValidDirections() {
-        return new String[] {"up", "down", "left", "right", null};
-    }
+    abstract protected String[] getValidDirections();
+    
     //Validation check for direction input.
     private boolean isValidDirection(String direction) {
         String[] validDirections = this.getValidDirections();
@@ -49,6 +48,9 @@ public abstract class DirectedBlock  extends BlockAbstract {
         return this.direction;
     }
     public int[] getDirectionXY() {
+        if (this.direction == null) {
+            return new int[]{0,0};
+        }
         switch (this.direction) {
             case "up":
                 return new int[]{0,1};
@@ -59,7 +61,7 @@ public abstract class DirectedBlock  extends BlockAbstract {
             case "left":
                 return new int[]{-1,0};
         }
-        return new int[]{0,0};
+        return null;
     }
 
     @Override
