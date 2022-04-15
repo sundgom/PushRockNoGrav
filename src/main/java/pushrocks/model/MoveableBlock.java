@@ -24,6 +24,11 @@ public class MoveableBlock extends DirectedBlock {
     protected String[] getValidDirections() {
         return new String[] {"up", "down", "left", "right"};
     }
+    //setType() is a method a protected method inherited by DirectedBlock, which has it's visibillity increased to public as to allow moveable blocks to change their direction dynamically.
+    @Override
+    public void setDirection(String direction) {
+        super.setDirection(direction);
+    }
 
     //Moves this block one step in the given direction
     public boolean up() {

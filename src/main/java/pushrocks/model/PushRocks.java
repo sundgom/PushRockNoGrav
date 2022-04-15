@@ -620,7 +620,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                     //if the entry side is heavier than the exit side
                     int entryChainWeight = getBlockChainWeight(entryChain, 0, entryDirectionY);
                     int exitChainWeight = getBlockChainWeight(exitChain, 0, exitDirectionY);
-                    if (getBlockChainWeight(entryChain, 0, entryDirectionY) > getBlockChainWeight(exitChain, 0, exitDirectionY)) { 
+                    if (entryChainWeight > exitChainWeight) { 
                         completeChain.add(exitPorter);
                         Collections.reverse(exitChain);
                         completeChain.addAll(exitChain);
@@ -629,7 +629,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                         fallOrderComplete.add(completeChain);
                     }
                     //if the exit side is heavier than the entry side
-                    else if (getBlockChainWeight(entryChain, 0, entryDirectionY) < getBlockChainWeight(exitChain, 0, exitDirectionY)) { 
+                    else if (entryChainWeight < exitChainWeight) { 
                         completeChain.add(entryPorter);
                         //But first the entry chain list is reversed as to represent the order in which the blocks would fall into the entry transporter.
                         Collections.reverse(entryChain);
@@ -750,8 +750,10 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             }
             //A block chain should form an infinite falling loop in the case that a porter connects the end 
             //of an entry chain to the beginning of that same chain. In that case the first listed moveable block
-            //would be placed both at index 1 and at the index equal to one more than half its total size.
-            if (blockChain.get(1) == blockChain.get(blockChain.size()/2+1)) {
+            //would be placed both at index 1 and at the index equal to one more than half its total size. There needs to be 
+            //at one entry and exit porter, and then at least one block at the used entrance and exit, making out a minimum 
+            //chain size of 4.
+            if (blockChain.size() >= 4 && blockChain.get(1) == blockChain.get(blockChain.size()/2+1)) {
                 //We retrieve what could be the entry porter in which the block chain is falling into.
                 BlockAbstract entryPorterBlock = blockChain.get(blockChain.size()/2);
                 //if this entry porter block is an obstacle block then it must be a porter, otherwise it would
@@ -1098,7 +1100,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         int oldX = block.getX();
         int oldY = block.getY();
         int[] directionXY = directionStringToXY(direction);
-        List<BlockAbstract> blockChain = this.getBlockChain(block, directionXY[0], directionXY[1]);
+        List<BlockAbstract> blockChain = this.getBlockChain(pushingBlock, directionXY[0], directionXY[1]);
         if (blockChain.size() <= strength+1 && blockChain.size() >= 1) {
             BlockAbstract lastBlock = blockChain.get(blockChain.size()-1);
             BlockAbstract blockFollowingLastBlock = this.getTopBlock(lastBlock.getX() + directionXY[0], lastBlock.getY() + directionXY[1]);
@@ -1133,7 +1135,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         }
         //If the push is made by a player, then the strength of the pushing motion increases
         if (block.isPlayer() || (movementSource.equals("gravity") && isBlockAirborne(block))) {
-            // strength++;
+            strength++;
         }
         //Otherwise it must have been made by a rock, which itself will cost strength to push forward, thus the strength of the pushing motion decreases
         else { 
@@ -1308,16 +1310,11 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                 }
                 //Otherwise the baggage block must be a directed block
                 else {
+                    moveableBaggage.clear();
                     if (blockAtNewCoordinates instanceof ObstacleBlock) {
                         if ( ((ObstacleBlock) blockAtNewCoordinates).isTransporter() && ((ObstacleBlock) blockAtNewCoordinates).canBlockEnter(baggage) ) {
                             moveableBaggage.add(baggage);
                         }
-                        else {
-                            moveableBaggage.clear();
-                        }
-                    }
-                    else {
-                        moveableBaggage.clear();
                     }
                 }  
             }

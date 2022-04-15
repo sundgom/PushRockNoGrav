@@ -18,8 +18,15 @@ public abstract class DirectedBlock  extends BlockAbstract {
     private boolean isValidDirection(String direction) {
         String[] validDirections = this.getValidDirections();
         for (String validDirection : validDirections) {
-            if (direction == validDirection) {
-                return true;
+            if (validDirection == null) {
+                if (direction == validDirection) {
+                    return true;
+                }
+            }
+            else {
+                if (validDirection.equals(direction)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -27,28 +34,16 @@ public abstract class DirectedBlock  extends BlockAbstract {
     //Sets the direction to the input, a direction set to null indicates that the block is not directed 
     //in a specific direction.
     protected void setDirection(String direction) {
-        if (! isValidDirection(direction)) {
-            throw new IllegalArgumentException("Input direction is in valid for the " + this.getClass().getSimpleName() + ". Direction must be: " + getValidDirections() + ", but was: " + direction + ".");
+        if (direction != null && !direction.isBlank()) {
+            direction = direction.toLowerCase();
         }
-        if (direction != null) {
-            switch (direction) {
-                case "up":
-                    this.direction = direction;
-                    return;
-                case "down":
-                    this.direction = direction;
-                    return;
-                case "right":
-                    this.direction = direction;
-                    return;
-                case "left":
-                    this.direction = direction;
-                    return;
-            }
+        if (!isValidDirection(direction)) {
+            throw new IllegalArgumentException("Input direction is in valid for the " + this.getClass().getSimpleName() + ". Direction must be: " + getValidDirections().toString() + ", but was: " + direction + ".");
         }
         else {
-            this.direction = null;
+            this.direction = direction;
         }
+        
     }
     public String getDirection() {
         return this.direction;
