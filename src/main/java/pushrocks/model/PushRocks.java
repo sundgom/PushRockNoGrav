@@ -202,7 +202,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         //Otherwise it must be a traversable block.
         else {
             blockCopy = new TraversableBlock(x, y, block.getType(), ((TraversableBlock) block).isBirdView());
-            blockCopy.setState(block.getState());
+            // blockCopy.setState(block.getState());
         }
         return blockCopy;
     }

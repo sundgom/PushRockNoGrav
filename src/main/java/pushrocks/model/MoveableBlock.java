@@ -109,8 +109,12 @@ public class MoveableBlock extends DirectedBlock {
     public boolean isRock() {
         return this.getType() == 'r';
     }
-    public boolean isMoveable() { 
-        return true;
+
+    //The "setState()" inherited by BlockAbstract has its visibillity increased to public as to allow moveable blocks to change their
+    //state according to their current situation.
+    @Override
+    public void setState(boolean state) {
+        super.setState(state);
     }
 
     @Override

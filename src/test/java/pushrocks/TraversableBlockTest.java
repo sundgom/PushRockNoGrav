@@ -43,7 +43,7 @@ public class TraversableBlockTest {
     }
     @Test
     @DisplayName("Test that blocks are constructed with the correct state value according to their type.")
-    public void testConstructorStateStartValues() {
+    public void testConstructorState() {
         BlockAbstract contructedAir = new TraversableBlock(0, 0, ' ', true);
         assertFalse(contructedAir.getState(), "Air blocks should have their state set to false once constructed.");
         BlockAbstract constructedPressurePlate = new TraversableBlock(0, 0, 'd', true);

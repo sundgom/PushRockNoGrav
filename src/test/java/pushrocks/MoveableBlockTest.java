@@ -2,89 +2,85 @@ package pushrocks;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import pushrocks.model.BlockAbstract;
 import pushrocks.model.DirectedBlock;
 import pushrocks.model.MoveableBlock;
 
-
-
 public class MoveableBlockTest {
     // private MoveableBlock constructedPlayer;
     // private MoveableBlock constructedRock;
-    // private String[] validDirections = new String[] {"up", "down", "left", "right"};
+    private char[] validTypes = new char[] {'p', 'r'};
+    private String[] validDirections = new String[] {"up", "down", "left", "right"};
+    Map<String, int[]> directionToXYChange = Map.of("up", new int[]{0,1}, "down", new int[]{0,-1}, "right", new int[]{1,0}, "left", new int[]{-1,0});
 
     //Tests of constructor and methods inherited by BlockAbstract
     @Test
-    @DisplayName("Test ")
+    @DisplayName("Test positive, zero, and positive integers for constructor coordinates.")
     public void testConstructorCoordinates() {
-        BlockAbstract neutralValueCoordinates = new MoveableBlock(0, 0, 'p', "right");
-        assertEquals(0, neutralValueCoordinates.getX());
-        assertEquals(0, neutralValueCoordinates.getY());
-        assertEquals(new int[]{0,0}[0], neutralValueCoordinates.getCoordinatesXY()[0]);
-        assertEquals(new int[]{0,0}[1], neutralValueCoordinates.getCoordinatesXY()[1]);
-        BlockAbstract positiveValueCoordinates = new MoveableBlock(11, 12, 'p', "right");
-        assertEquals(11, positiveValueCoordinates.getX());
-        assertEquals(12, positiveValueCoordinates.getY());
-        assertEquals(new int[]{11,12}[0], positiveValueCoordinates.getCoordinatesXY()[0]);
-        assertEquals(new int[]{11,12}[1], positiveValueCoordinates.getCoordinatesXY()[1]);
-        BlockAbstract negativeValueCoordinates = new MoveableBlock(-11, -12, 'p', "right");
-        assertEquals(-11, negativeValueCoordinates.getX());
-        assertEquals(-12, negativeValueCoordinates.getY());
-        assertEquals(new int[]{-11,-12}[0], negativeValueCoordinates.getCoordinatesXY()[0]);
-        assertEquals(new int[]{-11,-12}[1], negativeValueCoordinates.getCoordinatesXY()[1]);
+        int[] coordinateValues = new int[]{11, 0, -12};
+        for (int coordinateValue : coordinateValues) {
+            BlockAbstract neutralValueCoordinates = new MoveableBlock(coordinateValue, coordinateValue, validTypes[0], validDirections[0]);
+            assertEquals(coordinateValue, neutralValueCoordinates.getX());
+            assertEquals(coordinateValue, neutralValueCoordinates.getY());
+            assertEquals(new int[]{coordinateValue,0}[0], neutralValueCoordinates.getCoordinatesXY()[0]);
+            assertEquals(new int[]{0,coordinateValue}[1], neutralValueCoordinates.getCoordinatesXY()[1]);
+        }        
     }
-
     @Test
-    @DisplayName("Test setX()/setY() after construction (vis") 
+    @DisplayName("Test positive, zero, and negative integers for setting coordinates through the setX() and setY() coordinates inherited from BlockAbstract, that are made public for this class.") 
     public void testSetCoordinates() {
-        MoveableBlock neutralValueCoordinates = new MoveableBlock(0, 0, 'p', "right");
-        neutralValueCoordinates.setX(11);
-        assertEquals(11, neutralValueCoordinates.getX());
-        neutralValueCoordinates.setY(12);
-        assertEquals(12, neutralValueCoordinates.getY());
-        neutralValueCoordinates.setX(0);
-        assertEquals(0, neutralValueCoordinates.getX());
-        neutralValueCoordinates.setY(0);
-        assertEquals(0, neutralValueCoordinates.getY());
-        neutralValueCoordinates.setX(-11);
-        assertEquals(-11, neutralValueCoordinates.getX());
-        neutralValueCoordinates.setY(-12);
-        assertEquals(-12, neutralValueCoordinates.getY());
-
+        MoveableBlock neutralValueCoordinates = new MoveableBlock(0, 0, validTypes[0], validDirections[0]);
+        int[] coordinateValues = new int[]{11, 0, -12};
+        for (int coordinateValue : coordinateValues) {
+            neutralValueCoordinates.setX(coordinateValue);
+            assertEquals(coordinateValue, neutralValueCoordinates.getX());
+            neutralValueCoordinates.setY(coordinateValue);
+            assertEquals(coordinateValue, neutralValueCoordinates.getY());
+        }        
     }
-
     @Test
     public void testConstructorValidTypes() {
-        BlockAbstract constructedPlayer = new MoveableBlock(0, 0, 'p', "right");
-        assertEquals('p', constructedPlayer.getType());
-        BlockAbstract constructedRock = new MoveableBlock(0, 0, 'r', "right");
-        assertEquals('r', constructedRock.getType());
+        for (char validType : this.validTypes) {
+            BlockAbstract constructedValidType = new MoveableBlock(0, 0, validType, validDirections[0]);
+            assertEquals(validType, constructedValidType.getType());
+        }      
     }
     @Test
     public void testConstructorInvalidTypes() {
         assertThrows(
             IllegalArgumentException.class,
-            () -> new MoveableBlock(0, 0, ' ', "right"),
+            () -> new MoveableBlock(0, 0, ' ', validDirections[0]),
             "IllegalArgument should be thrown if the constuctor is provided with an invalid type.");
     }
     @Test
     @DisplayName("Test that blocks are constructed with the correct state value according to their type.")
-    public void testConstructorStateStartValues() {
-        BlockAbstract contructedPlayer = new MoveableBlock(0, 0, 'p', "right");
-        assertFalse(contructedPlayer.getState(), "Player blocks should have their state set to false once constructed.");
-        BlockAbstract constructedRock = new MoveableBlock(0, 0, 'r', "right");
-        assertFalse(constructedRock.getState(), "Rock blocks should have their state set to false once constructed.");
+    public void testConstructorState() {
+        for (char validType : this.validTypes) {
+            BlockAbstract contructedValidType = new MoveableBlock(0, 0, validType, validDirections[0]);
+            assertFalse(contructedValidType.getState(), "All moveable blocks should have their state set to false once constructed.");
+        }
+    }
+    @Test
+    @DisplayName("Test setting the state after construction through the setState() method inherited from BlockAbstract that is made public for this class.")
+    public void testSetState() {
+        MoveableBlock contructedValidType = new MoveableBlock(0, 0, validTypes[0], validDirections[0]);
+        contructedValidType.setState(true);
+        assertTrue(contructedValidType.getState(), "Moveable blocks should have their state set to true once setState(true) is called.");
+        contructedValidType.setState(false);
+        assertFalse(contructedValidType.getState(), "Moveable blocks should have their state set to false once setState(false) is called.");
+        
     }
     @Test
     @DisplayName("Test that hasCollision() returns the correct truth value for the blocks of this class.")
     public void testHasCollision() {
-        BlockAbstract MoveableBlock = new MoveableBlock(0, 0, 'p', "right");
+        BlockAbstract MoveableBlock = new MoveableBlock(0, 0, validTypes[0], validDirections[0]);
         assertTrue(MoveableBlock.hasCollision(), "Directed blocks, and thus by extension moveable blocks, do have collision, thus hasCollision() should always return true");
     }
     
@@ -92,29 +88,12 @@ public class MoveableBlockTest {
     //Tests of constructor and methods inherited by DirectedBlock
     @Test
     public void testConstructorValidDirections() {
-        DirectedBlock constructedUp = new MoveableBlock(0, 0, 'p', "up");
-        assertEquals("up", constructedUp.getDirection());
-        assertEquals(new int[]{0,1}[0], constructedUp.getDirectionXY()[0]);
-        assertEquals(new int[]{0,1}[1], constructedUp.getDirectionXY()[1]);
-        DirectedBlock constructedDown = new MoveableBlock(0, 0, 'p', "down");
-        assertEquals("down", constructedDown.getDirection());
-        assertEquals(new int[]{0,-1}[0], constructedDown.getDirectionXY()[0]);
-        assertEquals(new int[]{0,-1}[1], constructedDown.getDirectionXY()[1]);
-        DirectedBlock constructedRight = new MoveableBlock(0, 0, 'p', "right");
-        assertEquals("right", constructedRight.getDirection());
-        assertEquals(new int[]{1,0}[0], constructedRight.getDirectionXY()[0]);
-        assertEquals(new int[]{1,0}[1], constructedRight.getDirectionXY()[1]);
-        DirectedBlock constructedLeft = new MoveableBlock(0, 0, 'p', "left");
-        assertEquals("left", constructedLeft.getDirection());
-        assertEquals(new int[]{-1,0}[0], constructedLeft.getDirectionXY()[0]);
-        assertEquals(new int[]{-1,0}[1], constructedLeft.getDirectionXY()[1]);
-
-        // for (String direction : validDirections) {
-        //     DirectedBlock constructedValidDirection = new MoveableBlock(0, 0, 'p', direction);
-        //     assertEquals(direction, constructedValidDirection.getDirection());
-        //     // assertEquals(new int[]{1,0}[0], constructedRight.getDirectionXY()[0]);
-        //     // assertEquals(new int[]{1,0}[1], constructedRight.getDirectionXY()[1]);
-        // }
+        for (String direction : validDirections) {
+            DirectedBlock constructedValidDirection = new MoveableBlock(0, 0, validTypes[0], direction);
+            assertEquals(direction, constructedValidDirection.getDirection());
+            assertEquals(0 + directionToXYChange.get(direction)[0], constructedValidDirection .getDirectionXY()[0]);
+            assertEquals(0 + directionToXYChange.get(direction)[1], constructedValidDirection .getDirectionXY()[1]);
+        }
     }
     @Test
     public void testConstructorInvalidDirections() {
@@ -132,20 +111,15 @@ public class MoveableBlockTest {
             () -> new MoveableBlock(0, 0, 'p', ""),
             "IllegalArgument should be thrown if the constuctor is provided with an invalid direction.");
     }
-
     @Test
     @DisplayName("Ensure that the setType() method properly sets the correct direction when provided with a valid direction.")
     public void testSetValidDirection() {
-        MoveableBlock constructedValidDirection = new MoveableBlock(0, 0, 'p', "right");
-        constructedValidDirection.setDirection("up");
-        assertEquals("up", constructedValidDirection.getDirection());
-        constructedValidDirection.setDirection("down");
-        assertEquals("down", constructedValidDirection.getDirection());
-        constructedValidDirection.setDirection("right");
-        assertEquals("right", constructedValidDirection.getDirection());
-        constructedValidDirection.setDirection("left");
-        assertEquals("left", constructedValidDirection.getDirection());
-        constructedValidDirection.setDirection("DowN");
+        MoveableBlock constructedValidDirection = new MoveableBlock(0, 0, validTypes[1], validDirections[1]);
+        for (String direction : validDirections) {
+            constructedValidDirection.setDirection(direction);
+            assertEquals(direction, constructedValidDirection.getDirection());
+        }
+        constructedValidDirection.setDirection("dOWn");
         assertEquals("down", constructedValidDirection.getDirection());
     }
     @Test
@@ -170,14 +144,79 @@ public class MoveableBlockTest {
     @Test
     @DisplayName("Test that type checks specific to this class returns the correct truth value according to their current type.")
     public void testTypeChecks() {
-        MoveableBlock constructedPlayer = new MoveableBlock(0, 0, 'p', "right");
+        MoveableBlock constructedPlayer = new MoveableBlock(0, 0, 'p', validDirections[0]);
         assertTrue(constructedPlayer.isPlayer());
         assertFalse(constructedPlayer.isRock());
-        MoveableBlock constructedRock = new MoveableBlock(0, 0, 'r', "right");
+        MoveableBlock constructedRock = new MoveableBlock(0, 0, 'r', validDirections[0]);
         assertTrue(constructedRock.isRock());
         assertFalse(constructedRock.isPlayer());
     }
-
-
     
+    @Nested
+    class TestNestMovementMethods {
+        private MoveableBlock constructedValidType;
+        @BeforeEach
+        public void setup() {
+            constructedValidType = new MoveableBlock(0, 0, validTypes[0], validDirections[0]);
+        }
+        @Test
+        public void testUp() {
+            constructedValidType.up();
+            assertEquals(0, constructedValidType.getX());
+            assertEquals(1, constructedValidType.getY());
+            assertEquals("up", constructedValidType.getDirection());
+        }
+        @Test
+        public void testDown() {
+            constructedValidType.down();
+            assertEquals(0, constructedValidType.getX());
+            assertEquals(-1, constructedValidType.getY());
+            assertEquals("down", constructedValidType.getDirection());
+        }
+        @Test
+        public void testRight() {
+            constructedValidType.right();
+            assertEquals(1, constructedValidType.getX());
+            assertEquals(0, constructedValidType.getY());
+            assertEquals("right", constructedValidType.getDirection());
+        }
+        @Test
+        public void testLeft() {
+            constructedValidType.left();
+            assertEquals(-1, constructedValidType.getX());
+            assertEquals(0, constructedValidType.getY());
+            assertEquals("left", constructedValidType.getDirection());
+        }
+        @Test 
+        public void testMoveDirectionValidDirections() {
+            for (String direction : validDirections) {
+                this.constructedValidType = new MoveableBlock(0, 0, validTypes[0], direction);
+                constructedValidType.moveInDirection(direction);
+                assertEquals(direction, constructedValidType.getDirection());
+                assertEquals(0 + directionToXYChange.get(direction)[0], constructedValidType.getX());
+                assertEquals(0 + directionToXYChange.get(direction)[1], constructedValidType.getY());
+            }
+            this.constructedValidType = new MoveableBlock(0, 0, validTypes[0], "right");
+            constructedValidType.moveInDirection("DOwn");
+            assertEquals("down", constructedValidType.getDirection());
+            assertEquals(0 + directionToXYChange.get("down")[0], constructedValidType.getX());
+            assertEquals(0 + directionToXYChange.get("down")[1], constructedValidType.getY());
+        }
+        @Test 
+        public void testMoveDirectionInvalidDirections() {
+            MoveableBlock constructedValidType = new MoveableBlock(0, 0, validTypes[0], validDirections[0]);
+            assertThrows(
+                IllegalArgumentException.class,
+                () -> constructedValidType.moveInDirection("NorthToVabbi"),
+                "IllegalArgument should be thrown if the constuctor is provided with an invalid direction.");
+            assertThrows(
+                IllegalArgumentException.class,
+                () -> constructedValidType.moveInDirection(null),
+                "IllegalArgument should be thrown if the constuctor is provided with an invalid direction.");
+            assertThrows(
+                IllegalArgumentException.class,
+                () -> constructedValidType.moveInDirection(""),
+                "IllegalArgument should be thrown if the constuctor is provided with an invalid direction.");
+        }
+    }
 }
