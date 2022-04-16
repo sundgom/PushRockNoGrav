@@ -54,7 +54,7 @@ public class TeleporterBlockTest {
     @DisplayName("Test that hasCollision() returns the correct truth value for the blocks of this class.")
     public void testHasCollision() {
         BlockAbstract teleporterBlock = new TeleporterBlock(0, 0);
-        assertTrue(teleporterBlock.hasCollision(), "Directed blocks, and thus by extension teleporter blocks, do have collision, thus hasCollision() should always return true");
+        assertTrue(teleporterBlock.hasCollision(), "Directed blocks, and thus by extension teleporter blocks, have collision, thus hasCollision() should always return true");
     }
 
     @Nested
