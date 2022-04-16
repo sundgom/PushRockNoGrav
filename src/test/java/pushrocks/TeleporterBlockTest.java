@@ -14,10 +14,17 @@ import pushrocks.model.PortalWallBlock;
 import pushrocks.model.TeleporterBlock;
 
 public class TeleporterBlockTest {
-    private char[] validTypes = new char[] {'t'};
-    private String[] validDirections = new String[] {null};
+    private char validType = 't';
+    private String validDirection = null;
 
     //Tests for constructor and methods inherited from BlockAbstract
+    private void testConstructorCoordinates(int x, int y) {
+        BlockAbstract neutralValueCoordinates = new TeleporterBlock(x, y, null);
+        assertEquals(x, neutralValueCoordinates.getX());
+        assertEquals(x, neutralValueCoordinates.getCoordinatesXY()[0]);
+        assertEquals(y, neutralValueCoordinates.getY());
+        assertEquals(y, neutralValueCoordinates.getCoordinatesXY()[1]);
+    }
     @Test
     @DisplayName("Test positive, zero, and positive integers for constructor coordinates.")
     public void testConstructorCoordinates() {
@@ -28,39 +35,14 @@ public class TeleporterBlockTest {
             testConstructorCoordinates(value, 0);
         }
     }
-    public void testConstructorCoordinates(int x, int y) {
-        BlockAbstract neutralValueCoordinates = new TeleporterBlock(x, y, null);
-        assertEquals(x, neutralValueCoordinates.getX());
-        assertEquals(x, neutralValueCoordinates.getCoordinatesXY()[0]);
-        assertEquals(y, neutralValueCoordinates.getY());
-        assertEquals(y, neutralValueCoordinates.getCoordinatesXY()[1]);
-    }
-
-    //Type checks are redundant as teleporters only have a single type: 't', which is thus set by default
-    // @Test
-    // public void testConstructorValidTypes() {
-    //     for (char validType : this.validTypes) {
-    //         BlockAbstract constructedValidType = new TeleporterBlock(0, 0, null);
-    //         assertEquals(validType, constructedValidType.getType());
-    //     }      
-    // }
-    // @Test
-    // public void testConstructorInvalidTypes() {
-    //     assertThrows(
-    //         IllegalArgumentException.class,
-    //         () -> new TeleporterBlock(0, 0, 'p', null),
-    //         "IllegalArgument should be thrown if the constuctor is provided with an invalid type.");
-    // }
     @Test
     @DisplayName("Test that blocks are constructed with the correct state value according to their type.")
     public void testConstructorState() {
-        
         BlockAbstract contructedValidTypeWithoutConnection = new TeleporterBlock(0, 0, null);
         assertFalse(contructedValidTypeWithoutConnection.getState(), "All teleporter blocks should have their state set to false once constructed without a connection.");
         ObstacleBlock connection = new TeleporterBlock(0, 0, null);
         BlockAbstract contructedValidTypeWithConnection = new TeleporterBlock(0, 0, connection);
         assertTrue(contructedValidTypeWithConnection.getState(), "All teleporter blocks should have their state set to false once constructed without a connection.");
-    
     }
 
     @Test
@@ -69,46 +51,29 @@ public class TeleporterBlockTest {
         BlockAbstract teleporterBlock = new TeleporterBlock(0, 0, null);
         assertTrue(teleporterBlock.hasCollision(), "Directed blocks, and thus by extension moveable blocks, do have collision, thus hasCollision() should always return true");
     }
-    
 
     // //Tests for constructor and methods inherited from DirectedBlock
     // Teleporter blocks have only one valid direction (null), and thus rather than taking in a direction parameter,
-    // it instead fills in null in the DirectedBlock parameter by default, thus there are no tests to be made specific
-    // to the inherited DirectedBlock constructor aside from what gets tested in BlockAbstract section from which that class inherits.
-
-    // @Test
-    // public void testConstructorValidDirections() {
-    //     for (String direction : validDirections) {
-    //         DirectedBlock constructedValidDirection = new TeleporterBlock(0, 0, validTypes[0], null);
-    //         assertEquals(direction, constructedValidDirection.getDirection());
-    //         assertEquals(0, constructedValidDirection.getDirectionXY()[0]);
-    //         assertEquals(0, constructedValidDirection.getDirectionXY()[1]);
-    //     }
-    // }
-
-    // private void testConstructorInvalidDirections(String invalidDirection) {
-    //     assertThrows(
-    //         IllegalArgumentException.class,
-    //         () -> new TeleporterBlock(0, 0, 't', null),
-    //         "IllegalArgument should be thrown if the constuctor is provided with an invalid direction. Direction was: " + invalidDirection);
-    // }
-    // @Test
-    // public void testConstructorInvalidDirections() {
-    //     String[] invalidDirections = new String[]{"NorthToVabbi", "up", "down", "right", "left", ""};
-    //     for (String invalidDirection : invalidDirections) {
-    //         testConstructorInvalidDirections(invalidDirection);
-    //     }
-    // }
+    // it should instead fill set the DirectedBlock direction parameter to null by default
+    @Test
+    @DisplayName("Test that teleporters have direction set to null after being constructed.")
+    public void testConstructorCorrectInitialDirection() {
+        DirectedBlock teleporterBlock = new TeleporterBlock(0, 0, null);
+        assertEquals(null, teleporterBlock.getDirection());
+        assertEquals(0, teleporterBlock.getDirectionXY()[0]);
+        assertEquals(0, teleporterBlock.getDirectionXY()[1]);
+    }
 
     //Tests for constructor and methods inherited from ObstacleBlock
-
     @Test
+    @DisplayName("Teleporters constructed with the connection parameter set to null should not have a connection after construction.")
     public void testConstructorWithoutConnection() {
         TeleporterBlock tpWithoutConnection = new TeleporterBlock(0, 0, null);
         assertFalse(tpWithoutConnection.getState(), "All teleporter blocks should have their state set to false once constructed without a connection.");
         assertNull(tpWithoutConnection.getConnection(), "A teleporter constructed without a connection, should have their connection set to null.");
     }
     @Test
+    @DisplayName("Teleporters constructed with the connection parameter set to a valid connection should be connected to the obstacle block provided in the connection parameter.")
     public void testConstructorWithValidConnection() {
         ObstacleBlock connection = new TeleporterBlock(0, 0, null);
         BlockAbstract tpWithConnection = new TeleporterBlock(0, 0, connection);
@@ -116,9 +81,12 @@ public class TeleporterBlockTest {
         
     }
     @Test
+    @DisplayName("Check that attempting to connect a teleporter with a non-teleporter obstacle block throws an IllegalArgumentException.")
     public void testConstructorWithInvalidConnection() {
-        ObstacleBlock wall = new PortalWallBlock(0, 0, 'w', null, null);
-        PortalWallBlock portal = new PortalWallBlock(0, 0, 'u', "left", null);
+        //This test will rely on the PortalWallBlock working.
+        ObstacleBlock wall = new PortalWallBlock(0, 0);
+        PortalWallBlock portal = new PortalWallBlock(0, 0);
+        portal.setPortal(true, "right", null);
         assertThrows(IllegalArgumentException.class, 
         () -> new TeleporterBlock(0, 0, wall),
         "IllegalArgument should be thrown when attempting to construct a teleporter block with a non-teleporter connection.");
@@ -150,8 +118,9 @@ public class TeleporterBlockTest {
         @Test
         @DisplayName("Attempting to connect a teleporter to a non-teleporter object should throw IllegalArgumentException")
         public void testSetConnectionInvalidInput() {
-            ObstacleBlock wall = new PortalWallBlock(0, 0, 'w', null, null);
-            PortalWallBlock portal = new PortalWallBlock(0, 0, 'u', "left", null);
+            ObstacleBlock wall = new PortalWallBlock(0, 0);
+            PortalWallBlock portal = new PortalWallBlock(0, 0);
+            portal.setPortal(true, "right", null);
             assertThrows(IllegalArgumentException.class, 
             () -> teleporter1.setConnection(wall),
             "IllegalArgument should be thrown when attempting to connect a teleporter with a non-teleporter object");

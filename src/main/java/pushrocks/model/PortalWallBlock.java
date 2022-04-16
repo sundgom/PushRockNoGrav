@@ -2,11 +2,16 @@ package pushrocks.model;
 
 public class PortalWallBlock extends ObstacleBlock {
 
-    public PortalWallBlock(int x, int y, char type, String direction, ObstacleBlock connection) {
-        super(x, y, type, direction, connection);
-        if (this.isPortal()) {
-            this.setPortal(this.isPortalOne(), direction, connection);
-        }
+    // public PortalWallBlock(int x, int y, char type, String direction, ObstacleBlock connection) {
+    //     super(x, y, type, direction, connection);
+    //     if (this.isPortal()) {
+    //         this.setPortal(this.isPortalOne(), direction, connection);
+    //     }
+    // }
+    public PortalWallBlock(int x, int y) {
+        //All portal-walls are walls that can hold portals, but only when a wall has been set to hold a portal will it act as one.
+        //Thus portal-walls are constructed with their type set to 'w', direction set to null and connection set to null.
+        super(x, y, 'w', null, null);
     }
     //Valid types include: wall 'w', portal one 'u', and portal two 'v'.
     @Override
@@ -16,9 +21,11 @@ public class PortalWallBlock extends ObstacleBlock {
     @Override
     protected String[] getValidDirections() {
         if (this.isWall()) {
+            //walls can only have their direction set to null.
             return new String[]{null};
         }
         else {
+            //portals must have their direction set to up, down, right, or left.
             return new String[]{"up", "down", "right", "left"};
         }
     }

@@ -182,24 +182,26 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                 ObstacleBlock blockConnection = ((ObstacleBlock) block).getConnection();
                 if (blockConnection instanceof TeleporterBlock) {
                     blockConnectionCopy = new TeleporterBlock(blockConnection.getX(), blockConnection.getY(), null);
-                    // blockConnectionCopy = new TeleporterBlock(blockConnection.getX(), blockConnection.getY(), blockConnection.getType(), ((ObstacleBlock) blockConnection).getDirection(), null);
                 }
                 else {
-                    blockConnectionCopy = new PortalWallBlock(blockConnection.getX(), blockConnection.getY(), blockConnection.getType(), ((ObstacleBlock) blockConnection).getDirection(), null);
+                    blockConnectionCopy = new PortalWallBlock(blockConnection.getX(), blockConnection.getY());
+                    ((PortalWallBlock) blockConnectionCopy).setPortal(((PortalWallBlock) blockConnection).isPortalOne(), blockConnection.getDirection(), null);
                 }
             }
             if (block instanceof TeleporterBlock) {
                 blockCopy = new TeleporterBlock(x, y, blockConnectionCopy);
-                // blockCopy = new TeleporterBlock(x, y, block.getType(), ((ObstacleBlock) block).getDirection(), blockConnectionCopy);
             }
             else {
-                blockCopy = new PortalWallBlock(x, y, block.getType(), ((ObstacleBlock) block).getDirection(), blockConnectionCopy);
+                blockCopy = new PortalWallBlock(x, y);
+                if (((PortalWallBlock) block).isPortal()) {
+                    ((PortalWallBlock) blockCopy).setPortal(((PortalWallBlock) block).isPortalOne(), ((DirectedBlock) block).getDirection(), blockConnectionCopy);
+                }
+                
             }
         }
         //Otherwise it must be a traversable block.
         else {
             blockCopy = new TraversableBlock(x, y, block.getType(), ((TraversableBlock) block).isBirdView());
-            // blockCopy.setState(block.getState());
         }
         return blockCopy;
     }
@@ -1629,22 +1631,24 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                     addMoveableBlock(moveableBlock);
                 }
                 else if ("wtuv".contains(tangibleType+"")) {
-                    ObstacleBlock connection = null;
-                    //If the obstacle to be created is a portal, then this portal should have a connection to the portal 
-                    //opposite of itself if it exists.
-                    if (tangibleType == 'v') {
-                        connection = this.getPortal(false);
-                    }
-                    if (tangibleType == 'u') {
-                        connection = this.getPortal(true);
-                    }
                     ObstacleBlock obstacleBlock;
+                    ObstacleBlock connection = null;
+                    //If the type is 't' then the block to be created should be a teleporter
                     if (tangibleType == 't') {
                         obstacleBlock = new TeleporterBlock(x, -y, connection);
-                        // obstacleBlock = new TeleporterBlock(x, -y, tangibleType, blockDirection, connection);
                     }
+                    //Otherwise it must be a portal, thus this portal should have a connection to the portal 
+                    //opposite to itself if it exists.
                     else {
-                        obstacleBlock = new PortalWallBlock(x, -y, tangibleType, blockDirection, connection);
+                        obstacleBlock = new PortalWallBlock(x, -y);
+                        if (tangibleType == 'v') {
+                            connection = this.getPortal(false);
+                            ((PortalWallBlock) obstacleBlock).setPortal(true, blockDirection, connection);
+                        }
+                        else if (tangibleType == 'u') {
+                            connection = this.getPortal(true);
+                            ((PortalWallBlock) obstacleBlock).setPortal(false, blockDirection, connection);
+                        }
                     }
                     addObstacleBlock(obstacleBlock);
                 }
@@ -1937,5 +1941,31 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         // CharSequence newnews = "a,b";
         // String hest = Normalizer.normalize(news, Form.NFC);
         // System.out.println(news + hest);
+
+        String levelLayout1 = """
+            twwwwwwwwwwwwwwwwwd@
+                               @
+                               @
+            rrr  r  r  rrr r  r@
+            r  r r  r r    r  r@
+            rrr  r  r  rr  rrrr@
+            r    r  r    r r  r@
+            r    rrrr rrr  r  r@
+                p              @
+            wwwwwwwwwwwwwwwuwww@
+            -------------------@
+            RRR--RRRR--RRR-R--R@
+            R--R-R--R-R----R-R-@
+            RRR--R--R-R----RR--@
+            R-R--R--R-R----R-R-@
+            R--R-RRRR--RRR-R--R@
+            -------------------@
+            -------------------@
+            DWWWWWWWWWWWWWWVWWT@""";
+        String directionLayout1 = "ddddddddddddddddddddddddddddddddddddddddddddddddddduuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuug";
+
+        PushRocks push = new PushRocks(levelLayout1, directionLayout1);
+        System.out.println(push.prettyString());
+        
     }
 }
