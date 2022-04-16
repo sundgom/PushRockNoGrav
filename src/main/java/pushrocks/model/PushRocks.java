@@ -181,14 +181,16 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             if (((ObstacleBlock) block).isTransporter() && block.getState()) {
                 ObstacleBlock blockConnection = ((ObstacleBlock) block).getConnection();
                 if (blockConnection instanceof TeleporterBlock) {
-                    blockConnectionCopy = new TeleporterBlock(blockConnection.getX(), blockConnection.getY(), blockConnection.getType(), ((ObstacleBlock) blockConnection).getDirection(), null);
+                    blockConnectionCopy = new TeleporterBlock(blockConnection.getX(), blockConnection.getY(), null);
+                    // blockConnectionCopy = new TeleporterBlock(blockConnection.getX(), blockConnection.getY(), blockConnection.getType(), ((ObstacleBlock) blockConnection).getDirection(), null);
                 }
                 else {
                     blockConnectionCopy = new PortalWallBlock(blockConnection.getX(), blockConnection.getY(), blockConnection.getType(), ((ObstacleBlock) blockConnection).getDirection(), null);
                 }
             }
             if (block instanceof TeleporterBlock) {
-                blockCopy = new TeleporterBlock(x, y, block.getType(), ((ObstacleBlock) block).getDirection(), blockConnectionCopy);
+                blockCopy = new TeleporterBlock(x, y, blockConnectionCopy);
+                // blockCopy = new TeleporterBlock(x, y, block.getType(), ((ObstacleBlock) block).getDirection(), blockConnectionCopy);
             }
             else {
                 blockCopy = new PortalWallBlock(x, y, block.getType(), ((ObstacleBlock) block).getDirection(), blockConnectionCopy);
@@ -1109,8 +1111,15 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                     for (BlockAbstract chainedBlock : blockChainExit) {
                         if (chainedBlock != pushingBlock) {
                             int nextIndex = (blockChainExit.indexOf(chainedBlock) + 1) % blockChainExit.size();
-                            chainedBlock.setX(coordinatesX.get(nextIndex));
-                            chainedBlock.setY(coordinatesY.get(nextIndex));
+                            int x = coordinatesX.get(nextIndex);
+                            int y = coordinatesY.get(nextIndex);
+                            chainedBlock.setX(x);
+                            chainedBlock.setY(y);
+                            TraversableBlock traversableBlock = getTraversableBlock(x, y);
+                            if (chainedBlock instanceof MoveableBlock && traversableBlock.isPressurePlate()) {
+                                ((MoveableBlock) chainedBlock).setState(true);
+                                updateTeleporters();
+                            }
                         }
                     }
                     if (this.getTopBlock(oldX, oldY) instanceof TraversableBlock) {
@@ -1632,7 +1641,8 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                     }
                     ObstacleBlock obstacleBlock;
                     if (tangibleType == 't') {
-                        obstacleBlock = new TeleporterBlock(x, -y, tangibleType, blockDirection, connection);
+                        obstacleBlock = new TeleporterBlock(x, -y, connection);
+                        // obstacleBlock = new TeleporterBlock(x, -y, tangibleType, blockDirection, connection);
                     }
                     else {
                         obstacleBlock = new PortalWallBlock(x, -y, tangibleType, blockDirection, connection);

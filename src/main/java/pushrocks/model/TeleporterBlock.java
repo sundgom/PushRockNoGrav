@@ -2,8 +2,10 @@ package pushrocks.model;
 
 public class TeleporterBlock extends ObstacleBlock {
 
-    public TeleporterBlock(int x, int y, char type, String direction, ObstacleBlock connection) {
-        super(x, y, type, direction, connection);
+    //Teleporters only have one valid type ('t') and one valid direction (null), these are therefore set as parameters in
+    //the inherited constructor by default and are thus omitted as parameters for the TeleporterBlock constructor.
+    public TeleporterBlock(int x, int y, ObstacleBlock connection) {
+        super(x, y, 't', null, connection);
     }
 
     //Valid types include: teleporter 't'.
@@ -23,6 +25,10 @@ public class TeleporterBlock extends ObstacleBlock {
             throw new IllegalArgumentException("A teleporter can only be connected to other teleporter blocks.");
         }
         super.setConnection(connection);
+    }
+    @Override 
+    public void removeConnection() {
+        super.removeConnection();
     }
 
     private void setTeleporter() {
