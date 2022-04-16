@@ -104,28 +104,52 @@ public class PortalWallBlockTest {
             }
         }
 
-    //     @Test
-    //     @DisplayName("portalWall1 should be connected to portalWall2 and vice versa after a portalWall1.setConnection(portalWall2) method call, and their state should be set to true.")
-    //     public void testSetConnectionOtherportalWall() {
-    //         portalWall1.setConnection(portalWall2);
-    //         assertEquals(portalWall2, portalWall1.getConnection(), "portalWall1 should be connected to portalWall2");
-    //         assertEquals(portalWall1, portalWall2.getConnection(), "portalWall2 should be connected to portalWall1");
-    //         assertTrue(portalWall1.getState(), "portalWall1 should have it's state set to true once it is connected to another portalWall");
-    //         assertTrue(portalWall2.getState(), "portalWall2 should have it's state set to true once it is connected to another portalWall");
-    //     }
-    //     @Test
-    //     @DisplayName("Attempting to connect a portalWall to a non-portalWall object should throw IllegalArgumentException")
-    //     public void testSetConnectionNonportalWallObjects() {
-    //         ObstacleBlock wall = new PortalWallBlock(0, 0);
-    //         PortalWallBlock portal = new PortalWallBlock(0, 0);
-    //         portal.setPortal(true, "right", null);
-    //         assertThrows(IllegalArgumentException.class, 
-    //         () -> portalWall1.setConnection(wall),
-    //         "IllegalArgument should be thrown when attempting to connect a portalWall with a non-portalWall object, in this case a wall");
-    //         assertThrows(IllegalArgumentException.class, 
-    //         () -> portalWall2.setConnection(portal),
-    //         "IllegalArgument should be thrown when attempting to connect a portalWall with a non-portalWall object, in this case a portal");
-    //     }
+        @Test
+        @DisplayName("portalWall1 should be connected to portalWall2 and vice versa after a portalWall1 has been set to portal with portalWall2 as a connection when both are portals of opposing types.")
+        public void testSetPortalConnectionOpposingType() {
+            portalWall1.setPortal(true, "right", null);
+            portalWall2.setPortal(false, "right", portalWall1);
+            assertEquals(portalWall2, portalWall1.getConnection(), "portalWall1 should be connected to portalWall2");
+            assertEquals(portalWall1, portalWall2.getConnection(), "portalWall2 should be connected to portalWall1");
+            assertTrue(portalWall1.getState(), "portalWall1 should have its state set to true once it is connected to another portal");
+            assertTrue(portalWall2.getState(), "portalWall2 should have its state set to true once it is connected to another portal");
+        }
+        @Test
+        @DisplayName("Attempting to set a portal with a connection of identical portal-type to the portal should throw an IllegalArgumentException, and the portalWall objects should remain unchanged.")
+        public void testSetPortalConnectionIdenticalType() {
+            portalWall1.setPortal(true, "right", null);
+            assertThrows(IllegalArgumentException.class, 
+            () -> portalWall2.setPortal(true, "right", portalWall1),
+            "IllegalArgument should be thrown when setting a portal with an invalid direction. Direction was: ");
+            //The portal walls' connection should remain unchanged
+            assertNull(portalWall1.getConnection(), "portalWall1 should not be connected to portalWall2, after it failed to be set to a portal.");
+            assertNull(portalWall2.getConnection(), "portalWall2 should not have a connection after it failed to be set to a portal.");
+            //The portal walls' type should remain unchanged
+            assertEquals('w', portalWall2.getType(), "portalWall2' type should remain as a wall ('w') after failing to be set to a portal.");
+            assertEquals('v', portalWall1.getType(), "portalWall1' type should remain as portalOne ('v') after portalWall2 failed to be set to a portal.");
+            //The portal walls' direction should remain unchanged
+            assertNull(portalWall2.getDirection(), "portalWall2's direction should remain null after failing to be set to a portal.");
+            assertEquals("right", portalWall1.getDirection(), "portalWall2's direction should remain 'right' after portalWall2 failed to be set to a portal.");
+            //The portal walls' state should remain false
+            assertFalse(portalWall2.getState(), "portalWall2's state should remain false after failing to be set to a portal.");
+            assertFalse(portalWall1.getState(), "portalWall2's state should remain false after failing to be set to a portal.");
+        }
+        @Test
+        @DisplayName("Attempting to set a portal with itself as a connection should set the connection to null, but otherwise change properties accordingly")
+        public void testSetPortalConnectionToSelf() {
+            portalWall1.setPortal(true, "right", null);
+            assertNull(portalWall1.getConnection());
+            portalWall1.setPortal(false, "left", portalWall1);
+            //The portal's connection should remain null;
+            assertNull(portalWall1.getConnection(), "portalWall1's connection should remain null, as it can not have itself as a connection.");
+            //The portal's type should be changed to the opposing type, according to the input.
+            assertEquals('u', portalWall1.getType(), "portalWall1' should have been changed to 'u'.");
+            //The portal's direction should change to 'left', according to the input.
+            assertEquals("left", portalWall1.getDirection(), "portalWall2's direction should have been changed to 'left', as according to the input.");
+            //The portal's state should remain false
+            assertFalse(portalWall1.getState(), "portalWall1's state should remain false after connecting to itself, as it should not be connected to itself, and thus has null as connection.");
+        }
+
     //     @Test
     //     @DisplayName("Setting a connected portalWall's connection to null should remove the connection of both that portalWall and its connection, and their state should be set to false.")
     //     public void testSetConnectionNull() {

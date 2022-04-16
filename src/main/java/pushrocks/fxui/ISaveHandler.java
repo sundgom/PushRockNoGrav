@@ -20,9 +20,5 @@ public interface ISaveHandler {
     public void saveGame(PushRocks pushRocks, OutputStream outputStream);
     
     public void saveGame(PushRocks pushRocks, Path savePath) throws IOException;
-
-
-
-
-
+    
 }

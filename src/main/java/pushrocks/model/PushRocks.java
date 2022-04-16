@@ -195,7 +195,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             else {
                 blockCopy = new PortalWallBlock(x, y);
                 if (((PortalWallBlock) block).isPortal()) {
-                    ((PortalWallBlock) blockCopy).setPortal(((PortalWallBlock) block).isPortalOne(), ((DirectedBlock) block).getDirection(), blockConnectionCopy);
+                    ((PortalWallBlock) blockCopy).setPortal(((PortalWallBlock) block).isPortalOne(), ((DirectedBlock) block).getDirection(), (PortalWallBlock) blockConnectionCopy);
                 }
                 
             }
@@ -1645,11 +1645,11 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                         obstacleBlock = new PortalWallBlock(x, -y);
                         if (tangibleType == 'v') {
                             connection = this.getPortal(false);
-                            ((PortalWallBlock) obstacleBlock).setPortal(true, blockDirection, connection);
+                            ((PortalWallBlock) obstacleBlock).setPortal(true, blockDirection, (PortalWallBlock) connection);
                         }
                         else if (tangibleType == 'u') {
                             connection = this.getPortal(true);
-                            ((PortalWallBlock) obstacleBlock).setPortal(false, blockDirection, connection);
+                            ((PortalWallBlock) obstacleBlock).setPortal(false, blockDirection, (PortalWallBlock) connection);
                         }
                     }
                     addObstacleBlock(obstacleBlock);

@@ -2,12 +2,6 @@ package pushrocks.model;
 
 public class PortalWallBlock extends ObstacleBlock {
 
-    // public PortalWallBlock(int x, int y, char type, String direction, ObstacleBlock connection) {
-    //     super(x, y, type, direction, connection);
-    //     if (this.isPortal()) {
-    //         this.setPortal(this.isPortalOne(), direction, connection);
-    //     }
-    // }
     public PortalWallBlock(int x, int y) {
         //All portal-walls are walls that can hold portals, but only when a wall has been set to hold a portal will it act as one.
         //Thus portal-walls are constructed with their type set to 'w', direction set to null and connection set to null.
@@ -35,6 +29,11 @@ public class PortalWallBlock extends ObstacleBlock {
             if (!(connection instanceof PortalWallBlock && ((PortalWallBlock) connection).isPortal())) {
                 throw new IllegalArgumentException("A portal can only be connected to another portal.");
             }
+            // else {
+            //     if (this.isPortalOne() == ((PortalWallBlock) connection).isPortalOne()) {
+            //         throw new IllegalArgumentException("A portal can only be connected to another portal of an opposing type.");
+            //     }
+            // }
         }
         super.setConnection(connection);
     }
@@ -48,7 +47,10 @@ public class PortalWallBlock extends ObstacleBlock {
     public boolean isWall() {
         return this.getType() == 'w';
     }
-    public void setPortal(boolean isPortalOne, String direction, ObstacleBlock connection) {
+    public void setPortal(boolean isPortalOne, String direction, PortalWallBlock connection) {
+        if (connection != null && isPortalOne == ((PortalWallBlock) connection).isPortalOne()) {
+            throw new IllegalArgumentException("A portal can only connect to another portal of an opposing type.");
+        }
         if (isPortalOne) {
             this.setTypeCharacter('v');
         }
