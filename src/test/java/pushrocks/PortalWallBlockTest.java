@@ -8,13 +8,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 
 import pushrocks.model.BlockAbstract;
-import pushrocks.model.DirectedBlock;
-import pushrocks.model.ObstacleBlock;
 import pushrocks.model.PortalWallBlock;
 
 public class PortalWallBlockTest {
-    private char[] validTypes = new char[] {'w', 'v', 'u'};
-    private String[] validDirectionsWall = new String[] {null};
+    // private char[] validTypes = new char[] {'w', 'v', 'u'};
+    // private String[] validDirectionsWall = new String[] {null};
     private String[] validDirectionsPortal = new String[] {"up", "down", "right", "left"};
 
     //Tests for constructor and methods inherited from BlockAbstract

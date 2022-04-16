@@ -8,14 +8,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 
 import pushrocks.model.BlockAbstract;
-import pushrocks.model.DirectedBlock;
 import pushrocks.model.ObstacleBlock;
 import pushrocks.model.PortalWallBlock;
 import pushrocks.model.TeleporterBlock;
 
 public class TeleporterBlockTest {
-    private char validType = 't';
-    private String validDirection = null;
+    // private char validType = 't';
+    // private String validDirection = null;
 
     //Tests for constructor and methods inherited from BlockAbstract
     private void testConstructorCoordinates(int x, int y) {
