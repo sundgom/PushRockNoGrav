@@ -181,7 +181,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             if (((ObstacleBlock) block).isTransporter() && block.getState()) {
                 ObstacleBlock blockConnection = ((ObstacleBlock) block).getConnection();
                 if (blockConnection instanceof TeleporterBlock) {
-                    blockConnectionCopy = new TeleporterBlock(blockConnection.getX(), blockConnection.getY(), null);
+                    blockConnectionCopy = new TeleporterBlock(blockConnection.getX(), blockConnection.getY());
                 }
                 else {
                     blockConnectionCopy = new PortalWallBlock(blockConnection.getX(), blockConnection.getY());
@@ -189,7 +189,8 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                 }
             }
             if (block instanceof TeleporterBlock) {
-                blockCopy = new TeleporterBlock(x, y, blockConnectionCopy);
+                blockCopy = new TeleporterBlock(x, y);
+                ((TeleporterBlock) blockCopy).setConnection(blockConnectionCopy);
             }
             else {
                 blockCopy = new PortalWallBlock(x, y);
@@ -1635,7 +1636,8 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                     ObstacleBlock connection = null;
                     //If the type is 't' then the block to be created should be a teleporter
                     if (tangibleType == 't') {
-                        obstacleBlock = new TeleporterBlock(x, -y, connection);
+                        obstacleBlock = new TeleporterBlock(x, -y);
+                        ((TeleporterBlock) obstacleBlock).setConnection(connection);
                     }
                     //Otherwise it must be a portal, thus this portal should have a connection to the portal 
                     //opposite to itself if it exists.

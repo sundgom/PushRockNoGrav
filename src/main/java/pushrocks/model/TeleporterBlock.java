@@ -4,8 +4,9 @@ public class TeleporterBlock extends ObstacleBlock {
 
     //Teleporters only have one valid type ('t') and one valid direction (null), these are therefore set as parameters in
     //the inherited constructor by default and are thus omitted as parameters for the TeleporterBlock constructor.
-    public TeleporterBlock(int x, int y, ObstacleBlock connection) {
-        super(x, y, 't', null, connection);
+    //The connection parameter is also omitted for teleporters, as they should start out with no connection.
+    public TeleporterBlock(int x, int y) {
+        super(x, y, 't', null, null);
     }
 
     //Valid types include: teleporter 't'.

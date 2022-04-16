@@ -19,7 +19,7 @@ public class TeleporterBlockTest {
 
     //Tests for constructor and methods inherited from BlockAbstract
     private void testConstructorCoordinates(int x, int y) {
-        BlockAbstract neutralValueCoordinates = new TeleporterBlock(x, y, null);
+        BlockAbstract neutralValueCoordinates = new TeleporterBlock(x, y);
         assertEquals(x, neutralValueCoordinates.getX());
         assertEquals(x, neutralValueCoordinates.getCoordinatesXY()[0]);
         assertEquals(y, neutralValueCoordinates.getY());
@@ -35,80 +35,43 @@ public class TeleporterBlockTest {
             testConstructorCoordinates(value, 0);
         }
     }
+    //Tests of constructor and it's inherited properties from BlockAbstract, DirectedBlock, and ObstacleBlock
     @Test
-    @DisplayName("Test that blocks are constructed with the correct state value according to their type.")
-    public void testConstructorState() {
-        BlockAbstract contructedValidTypeWithoutConnection = new TeleporterBlock(0, 0, null);
-        assertFalse(contructedValidTypeWithoutConnection.getState(), "All teleporter blocks should have their state set to false once constructed without a connection.");
-        ObstacleBlock connection = new TeleporterBlock(0, 0, null);
-        BlockAbstract contructedValidTypeWithConnection = new TeleporterBlock(0, 0, connection);
-        assertTrue(contructedValidTypeWithConnection.getState(), "All teleporter blocks should have their state set to false once constructed without a connection.");
+    @DisplayName("Check that portal wall blocks have their type set to 'w' after being constructed.")
+    public void testConstructorCorrectStartValues() {
+        //Coordinate and type properties inherited by BlockAbstract.
+        TeleporterBlock teleporter = new TeleporterBlock(0, 0);
+        assertEquals('t', teleporter.getType(), "Teleporter block type should be 't' after construction.");
+        assertFalse(teleporter.getState(), "Teleporter block state should be false after construction.");
+        //Direction properties inherited by DirectedBlock.
+        assertNull(teleporter.getDirection(), "Teleporter block direction should be null after construction.");
+        assertEquals(0, teleporter.getDirectionXY()[0], "Teleporter block x-coordinate direction should be 0 after construction.");
+        assertEquals(0, teleporter.getDirectionXY()[1], "Teleporter block y-coordinate direction should be 0 after construction.");
+        //Connection properties inherited by ObstacleBlock.
+        assertNull(teleporter.getConnection(), "Teleporter block connection should be null after construction.");
     }
 
     @Test
     @DisplayName("Test that hasCollision() returns the correct truth value for the blocks of this class.")
     public void testHasCollision() {
-        BlockAbstract teleporterBlock = new TeleporterBlock(0, 0, null);
-        assertTrue(teleporterBlock.hasCollision(), "Directed blocks, and thus by extension moveable blocks, do have collision, thus hasCollision() should always return true");
-    }
-
-    // //Tests for constructor and methods inherited from DirectedBlock
-    // Teleporter blocks have only one valid direction (null), and thus rather than taking in a direction parameter,
-    // it should instead fill set the DirectedBlock direction parameter to null by default
-    @Test
-    @DisplayName("Test that teleporters have direction set to null after being constructed.")
-    public void testConstructorCorrectInitialDirection() {
-        DirectedBlock teleporterBlock = new TeleporterBlock(0, 0, null);
-        assertEquals(null, teleporterBlock.getDirection());
-        assertEquals(0, teleporterBlock.getDirectionXY()[0]);
-        assertEquals(0, teleporterBlock.getDirectionXY()[1]);
-    }
-
-    //Tests for constructor and methods inherited from ObstacleBlock
-    @Test
-    @DisplayName("Teleporters constructed with the connection parameter set to null should not have a connection after construction.")
-    public void testConstructorWithoutConnection() {
-        TeleporterBlock tpWithoutConnection = new TeleporterBlock(0, 0, null);
-        assertFalse(tpWithoutConnection.getState(), "All teleporter blocks should have their state set to false once constructed without a connection.");
-        assertNull(tpWithoutConnection.getConnection(), "A teleporter constructed without a connection, should have their connection set to null.");
-    }
-    @Test
-    @DisplayName("Teleporters constructed with the connection parameter set to a valid connection should be connected to the obstacle block provided in the connection parameter.")
-    public void testConstructorWithValidConnection() {
-        ObstacleBlock connection = new TeleporterBlock(0, 0, null);
-        BlockAbstract tpWithConnection = new TeleporterBlock(0, 0, connection);
-        assertTrue(tpWithConnection.getState(), "All teleporter blocks should have their state set to false once constructed without a connection.");
-        
-    }
-    @Test
-    @DisplayName("Check that attempting to connect a teleporter with a non-teleporter obstacle block throws an IllegalArgumentException.")
-    public void testConstructorWithInvalidConnection() {
-        //This test will rely on the PortalWallBlock working.
-        ObstacleBlock wall = new PortalWallBlock(0, 0);
-        PortalWallBlock portal = new PortalWallBlock(0, 0);
-        portal.setPortal(true, "right", null);
-        assertThrows(IllegalArgumentException.class, 
-        () -> new TeleporterBlock(0, 0, wall),
-        "IllegalArgument should be thrown when attempting to construct a teleporter block with a non-teleporter connection.");
-        assertThrows(IllegalArgumentException.class, 
-        () -> new TeleporterBlock(0, 0, portal),
-        "IllegalArgument should be thrown when attempting to construct a teleporter block with a non-teleporter connection.");
+        BlockAbstract teleporterBlock = new TeleporterBlock(0, 0);
+        assertTrue(teleporterBlock.hasCollision(), "Directed blocks, and thus by extension teleporter blocks, do have collision, thus hasCollision() should always return true");
     }
 
     @Nested
-    //The following connection tests are inspired by the partner excercise.
+    //The first few of the following connection tests are inspired by the partner excercise.
     class TestNestConnectionMethods {
         private TeleporterBlock teleporter1;
         private TeleporterBlock teleporter2;
 
         @BeforeEach
         private void setup() {
-            teleporter1 = new TeleporterBlock(0, 0, null);
-            teleporter2 = new TeleporterBlock(5, 5, null);
+            teleporter1 = new TeleporterBlock(0, 0);
+            teleporter2 = new TeleporterBlock(5, 5);
         }
         @Test
         @DisplayName("teleporter1 should be connected to teleporter2 and vice versa after a teleporter1.setConnection(teleporter2) method call, and their state should be set to true.")
-        public void testSetConnectionValidInput() {
+        public void testSetConnectionOtherTeleporter() {
             teleporter1.setConnection(teleporter2);
             assertEquals(teleporter2, teleporter1.getConnection(), "teleporter1 should be connected to teleporter2");
             assertEquals(teleporter1, teleporter2.getConnection(), "teleporter2 should be connected to teleporter1");
@@ -117,16 +80,16 @@ public class TeleporterBlockTest {
         }
         @Test
         @DisplayName("Attempting to connect a teleporter to a non-teleporter object should throw IllegalArgumentException")
-        public void testSetConnectionInvalidInput() {
+        public void testSetConnectionNonTeleporterObjects() {
             ObstacleBlock wall = new PortalWallBlock(0, 0);
             PortalWallBlock portal = new PortalWallBlock(0, 0);
             portal.setPortal(true, "right", null);
             assertThrows(IllegalArgumentException.class, 
             () -> teleporter1.setConnection(wall),
-            "IllegalArgument should be thrown when attempting to connect a teleporter with a non-teleporter object");
+            "IllegalArgument should be thrown when attempting to connect a teleporter with a non-teleporter object, in this case a wall");
             assertThrows(IllegalArgumentException.class, 
             () -> teleporter2.setConnection(portal),
-            "IllegalArgument should be thrown when attempting to connect a teleporter with a non-teleporter object");
+            "IllegalArgument should be thrown when attempting to connect a teleporter with a non-teleporter object, in this case a portal");
         }
         @Test
         @DisplayName("Setting a connected teleporter's connection to null should remove the connection of both that teleporter and its connection, and their state should be set to false.")
@@ -158,7 +121,7 @@ public class TeleporterBlockTest {
             teleporter1.setConnection(teleporter2);
             assertEquals(teleporter2, teleporter1.getConnection(), "teleporter1 should be connected to teleporter2");
             assertEquals(teleporter1, teleporter2.getConnection(), "teleporter2 should be connected to teleporter1");
-            TeleporterBlock teleporter3 = new TeleporterBlock(0, 0, null);
+            TeleporterBlock teleporter3 = new TeleporterBlock(0, 0);
             //teleporter3 replaces teleporter2 as teleporter1's connection
             teleporter1.setConnection(teleporter3);
             assertEquals(teleporter3, teleporter1.getConnection(), "teleporter1 should be connected to teleporter3");
@@ -167,6 +130,17 @@ public class TeleporterBlockTest {
             assertTrue(teleporter1.getState(), "teleporter1 should have its state set to false once its connection has been removed.");
             assertTrue(teleporter3.getState(), "teleporter2 should have its state set to false once its connection's connection has been removed.");
             assertFalse(teleporter2.getState(), "teleporter2 should have its state set to false once its connection's connection has been removed.");
+        }
+        @Test
+        @DisplayName("Attempting to connect a teleporter to itself should set the connection to null.")
+        public void testSetConnectionToSelf() {
+            teleporter1.setConnection(teleporter1);
+            assertNull(teleporter1.getConnection(), "teleporter connection should stay null after attempting to connect to itself.");
+            teleporter1.setConnection(teleporter2);
+            assertNotNull(teleporter1.getConnection(), "teleporter connection should no longer be null after connecting to another teleporter.");
+            teleporter1.setConnection(teleporter1);
+            assertNull(teleporter1.getConnection(), "teleporter connection should be back to null after attempting to connect to itself again.");
+            assertNull(teleporter2.getConnection(), "the previously connected teleporter should no longer be connected to the teleporter that attempted to connect to itself.");
         }
 
         @Test
@@ -205,47 +179,47 @@ public class TeleporterBlockTest {
             }
         }
         @Test
-        @DisplayName("Check that a disconnected does not return any entry point coordinates.")
-        public void testGetEntryPointsDisconnectedTeleporter() {
+        @DisplayName("Check that a disconnected teleporter does not return any entry point coordinates when getEntryPointsXY() is called.")
+        public void testGetEntryPointsXYDisconnectedTeleporter() {
             assertNull(teleporter1.getConnection());
             assertNull(teleporter1.getEntryPointsXY(), "a teleporter without a connection should not return an entry point.");
         }
         @Test
         @DisplayName("Check that a connected teleporter returns a correct exit point coordinate when it is connected and the entering block is standing at an entry point.")
-        public void testGetExitPointConnectedTeleporterWhileAtEntryPoint() {
+        public void testGetExitPointXYConnectedTeleporterWhileAtEntryPoint() {
             teleporter1.setConnection(teleporter2);
             int tp1X = teleporter1.getX();
             int tp1Y = teleporter1.getY();
-            BlockAbstract blockAtUpperEntry = new TeleporterBlock(tp1X, tp1Y+1, null);
-            BlockAbstract blockAtLowerEntry = new TeleporterBlock(tp1X, tp1Y-1, null);
-            BlockAbstract blockAtRightEntry = new TeleporterBlock(tp1X+1, tp1Y, null);
-            BlockAbstract blockAtLeftEntry = new TeleporterBlock(tp1X-1, tp1Y, null);
+            BlockAbstract blockAtUpperEntry = new TeleporterBlock(tp1X, tp1Y+1);
+            BlockAbstract blockAtLowerEntry = new TeleporterBlock(tp1X, tp1Y-1);
+            BlockAbstract blockAtRightEntry = new TeleporterBlock(tp1X+1, tp1Y);
+            BlockAbstract blockAtLeftEntry = new TeleporterBlock(tp1X-1, tp1Y);
             int tp2X = teleporter2.getX();
             int tp2Y = teleporter2.getY();
-
-            assertEquals(teleporter1.getExitPointXY(blockAtUpperEntry)[0], tp2X);
-            assertEquals(teleporter1.getExitPointXY(blockAtUpperEntry)[1], tp2Y-1);
-
-            assertEquals(teleporter1.getExitPointXY(blockAtLowerEntry)[0], tp2X);
-            assertEquals(teleporter1.getExitPointXY(blockAtLowerEntry)[1], tp2Y+1);
-
-            assertEquals(teleporter1.getExitPointXY(blockAtRightEntry)[0], tp2X-1);
-            assertEquals(teleporter1.getExitPointXY(blockAtRightEntry)[1], tp2Y);
-
-            assertEquals(teleporter1.getExitPointXY(blockAtLeftEntry)[0], tp2X+1);
-            assertEquals(teleporter1.getExitPointXY(blockAtLeftEntry)[1], tp2Y);
+            //When entered from above the exit point should be one step below the connected teleporter.
+            assertEquals(teleporter1.getExitPointXY(blockAtUpperEntry)[0], tp2X, "The exit point should have an x-coordinate value equal to the connected teleporter");
+            assertEquals(teleporter1.getExitPointXY(blockAtUpperEntry)[1], tp2Y-1, "The exit point should have a y-coordinate value one less than the connected teleporter");
+            //When entered from below the exit point should be one step above connected teleporter.      
+            assertEquals(teleporter1.getExitPointXY(blockAtLowerEntry)[0], tp2X, "The exit point should have an x-coordinate value equal to the connected teleporter");
+            assertEquals(teleporter1.getExitPointXY(blockAtLowerEntry)[1], tp2Y+1, "The exit point should have a y-coordinate value one greater than the connected teleporter");
+            //When entered from the right the exit point should be one step left of the connected teleporter.
+            assertEquals(teleporter1.getExitPointXY(blockAtRightEntry)[0], tp2X-1, "The exit point should have a x-coordinate value one less than the connected teleporter");
+            assertEquals(teleporter1.getExitPointXY(blockAtRightEntry)[1], tp2Y, "The exit point should have a y-coordinate value equal to the connected teleporter");
+            //When entered from the left the exit point should be one step right of the connected teleporter.
+            assertEquals(teleporter1.getExitPointXY(blockAtLeftEntry)[0], tp2X+1, "The exit point should have a x-coordinate value one greater than the connected teleporter");
+            assertEquals(teleporter1.getExitPointXY(blockAtLeftEntry)[1], tp2Y, "The exit point should have a y-coordinate value equal to the connected teleporter");
         }
         @Test
         @DisplayName("Check that a connected teleporter does not return any entry point coordinates when the entering block is not standing at an entry point.")
         public void testGetExitPointConnectedTeleporterWhileNotAtEntryPoint() {
-            BlockAbstract enteringBlock = new TeleporterBlock(1, 1, null);
+            BlockAbstract enteringBlock = new TeleporterBlock(1, 1);
             teleporter1.setConnection(teleporter2);
             assertNull(teleporter1.getExitPointXY(enteringBlock), "a teleporter with a connection should not return an entry point if the entring block does not stand at one of the teleporter's entry points.");
         }
         @Test
         @DisplayName("Check that a disconnected teleporter does not return any entry point coordinates.")
         public void testGetExitPointDisconnectedTeleporter() {
-            BlockAbstract enteringBlock = new TeleporterBlock(1, 0, null);
+            BlockAbstract enteringBlock = new TeleporterBlock(1, 0);
             assertNull(teleporter1.getConnection());
             assertNull(teleporter1.getExitPointXY(enteringBlock), "a teleporter without a connection should not return an entry point.");
         }
@@ -256,10 +230,10 @@ public class TeleporterBlockTest {
             teleporter1.setConnection(teleporter2);
             int tpX = teleporter1.getX();
             int tpY = teleporter1.getY();
-            BlockAbstract blockAtUpperEntry = new TeleporterBlock(tpX, tpY+1, null);
-            BlockAbstract blockAtLowerEntry = new TeleporterBlock(tpX, tpY-1, null);
-            BlockAbstract blockAtRightEntry = new TeleporterBlock(tpX+1, tpY, null);
-            BlockAbstract blockAtLeftEntry = new TeleporterBlock(tpX-1, tpY, null);
+            BlockAbstract blockAtUpperEntry = new TeleporterBlock(tpX, tpY+1);
+            BlockAbstract blockAtLowerEntry = new TeleporterBlock(tpX, tpY-1);
+            BlockAbstract blockAtRightEntry = new TeleporterBlock(tpX+1, tpY);
+            BlockAbstract blockAtLeftEntry = new TeleporterBlock(tpX-1, tpY);
             //A block entering a teleporter from above should be headed down, thus the direction is represented by a -1 y-coordinate
             assertEquals(teleporter1.getExitDirectionXY(blockAtUpperEntry)[0], 0);
             assertEquals(teleporter1.getExitDirectionXY(blockAtUpperEntry)[1], -1);
@@ -278,7 +252,7 @@ public class TeleporterBlockTest {
         public void testGetExitPointDirectionXYDisconnected() {
             int tpX = teleporter1.getX();
             int tpY = teleporter1.getY();
-            BlockAbstract blockAtRightEntry = new TeleporterBlock(tpX+1, tpY, null);
+            BlockAbstract blockAtRightEntry = new TeleporterBlock(tpX+1, tpY);
             assertNull(teleporter1.getExitDirectionXY(blockAtRightEntry));
         }
         @Test
@@ -287,7 +261,7 @@ public class TeleporterBlockTest {
             teleporter1.setConnection(teleporter2);
             int tpX = teleporter1.getX();
             int tpY = teleporter1.getY();
-            BlockAbstract blockNotAtEntryPoint = new TeleporterBlock(tpX+1, tpY+1, null);
+            BlockAbstract blockNotAtEntryPoint = new TeleporterBlock(tpX+1, tpY+1);
             assertNull(teleporter1.getExitDirectionXY(blockNotAtEntryPoint));
            
         }
@@ -298,10 +272,10 @@ public class TeleporterBlockTest {
             teleporter1.setConnection(teleporter2);
             int tpX = teleporter1.getX();
             int tpY = teleporter1.getY();
-            BlockAbstract blockAtUpperEntry = new TeleporterBlock(tpX, tpY+1, null);
-            BlockAbstract blockAtLowerEntry = new TeleporterBlock(tpX, tpY-1, null);
-            BlockAbstract blockAtRightEntry = new TeleporterBlock(tpX+1, tpY, null);
-            BlockAbstract blockAtLeftEntry = new TeleporterBlock(tpX-1, tpY, null);
+            BlockAbstract blockAtUpperEntry = new TeleporterBlock(tpX, tpY+1);
+            BlockAbstract blockAtLowerEntry = new TeleporterBlock(tpX, tpY-1);
+            BlockAbstract blockAtRightEntry = new TeleporterBlock(tpX+1, tpY);
+            BlockAbstract blockAtLeftEntry = new TeleporterBlock(tpX-1, tpY);
             assertTrue(teleporter1.canBlockEnter(blockAtUpperEntry));
             assertTrue(teleporter1.canBlockEnter(blockAtLowerEntry));
             assertTrue(teleporter1.canBlockEnter(blockAtRightEntry));
@@ -311,17 +285,17 @@ public class TeleporterBlockTest {
         @DisplayName("Check that a connected teleporter CAN NOT be entered by a block that is NOT standing at one of the teleporter's entry points.")
         public void testCanBlockNotAtEntryPointEnterConnectedTeleporter() {
             teleporter1.setConnection(teleporter2);
-            BlockAbstract blockNotAtEntry = new TeleporterBlock(0, 0, null);
+            BlockAbstract blockNotAtEntry = new TeleporterBlock(0, 0);
             assertFalse(teleporter1.canBlockEnter(blockNotAtEntry));
-            BlockAbstract blockAtTeleporterCoordinates = new TeleporterBlock(0, 0, null);
+            BlockAbstract blockAtTeleporterCoordinates = new TeleporterBlock(0, 0);
             assertFalse(teleporter1.canBlockEnter(blockAtTeleporterCoordinates));
-            BlockAbstract blockNearEntry = new TeleporterBlock(1, 1, null);
+            BlockAbstract blockNearEntry = new TeleporterBlock(1, 1);
             assertFalse(teleporter1.canBlockEnter(blockNearEntry ));
         }
         @Test
         @DisplayName("Check that disconnected teleporters can not be entered.")
         public void testCanBlockEnterDisconnectedTeleporter() {
-            BlockAbstract block = new TeleporterBlock(1, 0, null);
+            BlockAbstract block = new TeleporterBlock(1, 0);
             assertFalse(teleporter1.canBlockEnter(block), "A block should not be able to enter a disconnected teleporter, even while standing at an entry point.");
         }
     }
@@ -330,7 +304,7 @@ public class TeleporterBlockTest {
     @Test
     @DisplayName("Test that type checks specific to this class returns the correct truth value according to their current type.")
     public void testTypeChecks() {
-        TeleporterBlock teleporter = new TeleporterBlock(0, 0, null);
+        TeleporterBlock teleporter = new TeleporterBlock(0, 0);
         assertTrue(teleporter.isTeleporter());
     }
 }
