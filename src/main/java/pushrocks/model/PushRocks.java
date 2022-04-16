@@ -1065,12 +1065,6 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
                 wasMoved = true;
             }
         }
-        //If gravity does not move forward on a set interval, then let it instead move forward once every time 
-        //the player block was issued to move
-        System.out.println("Gravity is move input?" + this.isGravityApplicationMoveInput());
-        if (this.isGravityApplicationMoveInput()) {
-            this.gravityStep();
-        }
         if (wasMoved == true) {
             this.incrementMoveCount();
         }
@@ -1078,6 +1072,10 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         this.updateActivePressurePlatesCount();
         this.checkGameOver();
         this.notifyObservers();
+        //If gravity is set to be applied on move input, then gravityStep should be called now that the move input has been processed.
+        if (this.isGravityApplicationMoveInput()) {
+            this.gravityStep();
+        }
         return wasMoved;
     }
 
@@ -1499,6 +1497,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         this.activePressurePlatesCount = 0;
         this.isGravityInverted = false;
         this.isGameOver = false;
+        this.moveCount = 0;
 
         // String typeSequence = this.mapLayout.replace("\n", "");
         String typeSequence =  mapLayout

@@ -42,12 +42,11 @@ public abstract class ObstacleBlock extends DirectedBlock {
         //Connected blocks should have their state set to true, and false otherwise
         this.setState(connection != null);
     }
-    //Removes the connection this transport block has if it exists.
+    //Removes the connection this block has if it exists.
     protected void removeConnection() {
         this.setConnection(null);
     }
-    //Returns the block-block this block has a connection with if it exists. Used to keep track of which 
-    //portals/teleporters are connected to eachother.
+    //Returns the block that this block is connected to if it exists
     public ObstacleBlock getConnection() {
         return this.connection;
     }
@@ -56,8 +55,14 @@ public abstract class ObstacleBlock extends DirectedBlock {
     abstract public int[][] getEntryPointsXY(); 
     abstract public int[] getExitPointXY(BlockAbstract entryBlock); 
     public int[] getExitDirectionXY(BlockAbstract entryBlock) {
+        if (this.connection == null) {
+            return null;
+        }
         int[] exitPorterXY = this.getConnection().getCoordinatesXY();
         int[] exitPointXY = this.getExitPointXY(entryBlock);
+        if (exitPointXY == null) {
+            return null;
+        }
         return new int[] {exitPointXY[0] - exitPorterXY[0], exitPointXY[1] - exitPorterXY[1]};
     }
 
