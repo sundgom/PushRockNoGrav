@@ -224,8 +224,8 @@ public class PortalWallBlockTest {
             for (String direction : validDirectionsPortal) {
                 portalWall1.setPortal(true, direction, null);
                 portalWall2.setPortal(false, "left", portalWall1);
-                int tpX = portalWall1.getX();
-                int tpY = portalWall1.getY();
+                int pX = portalWall1.getX();
+                int pY = portalWall1.getY();
                 //Portals have a single entry point, and it is always placed one step away in the direction of the portal from the portal itself.
                 int[][] entryPoints = portalWall1.getEntryPointsXY();
                 //the method getEntryPointsXY() is inherited from ObstacleBlock and should return every entry point of the given ObstacleBlock.
@@ -234,20 +234,20 @@ public class PortalWallBlockTest {
                     switch (direction) {
                         //check that the direction the portal was set with results in a direction that is correct for that direction.
                         case "up":
-                            assertEquals(tpX, entry[0], "when the entry portal's direction is up, then the entry point should have an x-coordinate equal to the portal itself.");
-                            assertEquals(tpY+1, entry[1], "when the entry portal's direction is up, then the entry point should have a y-coordinate one greater than the portal itself.");
+                            assertEquals(pX, entry[0], "when the entry portal's direction is up, then the entry point should have an x-coordinate equal to the portal itself.");
+                            assertEquals(pY+1, entry[1], "when the entry portal's direction is up, then the entry point should have a y-coordinate one greater than the portal itself.");
                             break;
                         case "down":
-                            assertEquals(tpX, entry[0], "when the entry portal's direction is down, then the entry point should have an x-coordinate equal to the portal itself.");
-                            assertEquals(tpY-1, entry[1], "when the entry portal's direction is down, then the entry point should have a y-coordinate one less than the portal itself.");
+                            assertEquals(pX, entry[0], "when the entry portal's direction is down, then the entry point should have an x-coordinate equal to the portal itself.");
+                            assertEquals(pY-1, entry[1], "when the entry portal's direction is down, then the entry point should have a y-coordinate one less than the portal itself.");
                             break;
                         case "right":
-                            assertEquals(tpX+1, entry[0], "when the entry portal's direction is right, then the entry point should have an x-coordinate one greater than the portal itself.");
-                            assertEquals(tpY, entry[1], "when the entry portal's direction is right, then the entry point should have a y-coordinate equal to the the portal itself.");
+                            assertEquals(pX+1, entry[0], "when the entry portal's direction is right, then the entry point should have an x-coordinate one greater than the portal itself.");
+                            assertEquals(pY, entry[1], "when the entry portal's direction is right, then the entry point should have a y-coordinate equal to the the portal itself.");
                             break;
                         case "left":
-                            assertEquals(tpX-1, entry[0], "when the entry portal's direction is left, then the entry point should have an x-coordinate one less than the portal itself.");
-                            assertEquals(tpY, entry[1], "when the entry portal's direction is left, then the entry point should have a y-coordinate equal to the the portal itself.");
+                            assertEquals(pX-1, entry[0], "when the entry portal's direction is left, then the entry point should have an x-coordinate one less than the portal itself.");
+                            assertEquals(pY, entry[1], "when the entry portal's direction is left, then the entry point should have a y-coordinate equal to the the portal itself.");
                             break;
                         default:
                             assertTrue(false, "portals should never have a direction other than up, down, right or left.");
@@ -269,35 +269,40 @@ public class PortalWallBlockTest {
             assertNull(portalWall1.getEntryPointsXY(), "a portalWall without a connection should not return entry points.");
         }
         @Test
-        @DisplayName("Check that a connected portal returns the correct exit point coordinate and direction when the entering block is standing at an entry point.")
+        @DisplayName("Check that a connected portal returns the correct exit point coordinate when the entering block is standing at an entry point.")
         public void testGetExitPointXYConnectedPortalWhileAtEntryPoint() {
             for (String direction1 : validDirectionsPortal) {
-                portalWall1.setPortal(true, direction1, null);
-                int tp1X = portalWall1.getX();
-                int tp1Y = portalWall1.getY();
-                int entryX = tp1X;
-                int entryY = tp1Y;
-                switch (direction1) {
-                    case "up":
-                        entryY++;
-                        break;
-                    case "down":
-                        entryY--;
-                        break;
-                    case "right":
-                        entryX++;
-                        break;
-                    case "left":
-                        entryX--;
-                        break;
-                }
-                BlockAbstract entryBlock = new PortalWallBlock(entryX, entryY);
                 for (String direction2 : validDirectionsPortal) {
-                    portalWall2.setPortal(false, direction2, portalWall1);
-                    int tp2X = portalWall2.getX();
-                    int tp2Y = portalWall2.getY();
-                    int exitX = tp2X;
-                    int exitY = tp2Y;
+                    //Create portal1 and portal2, which will serve as the entry and exit portal respectively.
+                    PortalWallBlock portal1 = new PortalWallBlock(1, 2);
+                    PortalWallBlock portal2 = new PortalWallBlock(-3, -4);
+                    //Test every valid direction combination for setting portal1 and portal2, as provided by the nested for loop through the valid portal directions.
+                    portal1.setPortal(true, direction1, null);
+                    portal2.setPortal(false, direction2, portal1);
+                    //direction1 is portal1's direction, and thus the entry point coordinate is determined based on it in relation to that entry portal's coordinates
+                    int entryX = portal1.getX();
+                    int entryY = portal1.getY();
+                    switch (direction1) {
+                        case "up":
+                            entryY++;
+                            break;
+                        case "down":
+                            entryY--;
+                            break;
+                        case "right":
+                            entryX++;
+                            break;
+                        case "left":
+                            entryX--;
+                            break;
+                    }
+                    //create a block that is standing at the coordinates of portal1's entry point.
+                    BlockAbstract entryBlock = new PortalWallBlock(entryX, entryY);
+                    //direction1 is portal2's direction, and thus the exit point coordinate is determined based on it in relation to that exit portal's coordinates
+                    int portal2X = portal2.getX();
+                    int portal2Y = portal2.getY();
+                    int exitX = portal2X;
+                    int exitY = portal2Y;
                     switch (direction2) {
                         case "up":
                             exitY++;
@@ -312,10 +317,9 @@ public class PortalWallBlockTest {
                             exitX--;
                             break;
                     }
-                    assertEquals(exitX, portalWall1.getExitPointXY(entryBlock)[0]);
-                    assertEquals(exitY, portalWall1.getExitPointXY(entryBlock)[1]);
-                    assertEquals(exitX-tp2X, portalWall1.getExitDirectionXY(entryBlock)[0]);
-                    assertEquals(exitY-tp2Y, portalWall1.getExitDirectionXY(entryBlock)[1]);
+                    //Once the actual exit point coordinates have been found, they can be compared to what the method 'getExitPointXY(..)' returns once the entryBlock is given as a parameter.
+                    assertEquals(exitX, portal1.getExitPointXY(entryBlock)[0], "the exit point should have been one step " + direction2 + " from the exit portal (portal2), which has an x-coordinate: " + portal2X);
+                    assertEquals(exitY, portal1.getExitPointXY(entryBlock)[1], "the exit point should have been one step " + direction2 + " from the exit portal (portal2), which has an y-coordinate: " + portal2Y);
                 }
             }
         }
@@ -342,104 +346,157 @@ public class PortalWallBlockTest {
         }
         @Test
         @DisplayName("Check that a disconnected portal does not return any exit point coordinates.")
-        public void testGetExitPointDisconnectedportalWall() {
+        public void testGetExitPointDisconnectedPortal() {
             portalWall1.setPortal(true, "right", null);
             //create a block that is standing ontop of the portal's entry point (one step away from the portal's coordinates in the direction the portal is facing: right)
             BlockAbstract enteringBlock = new PortalWallBlock(portalWall1.getX()+1, portalWall1.getY());
             assertNull(portalWall1.getConnection(), "the portal should not have a connection.");
-            assertNull(portalWall1.getExitPointXY(enteringBlock), "a disconnected portal should not return an entry point, even if the entry block is at the portal's entry point.");
+            assertNull(portalWall1.getExitPointXY(enteringBlock), "a disconnected portal should not return an exit point, even if the entry block is at the portal's entry point.");
+        }
+        @Test
+        @DisplayName("Check that a wall does not return any exit point coordinates.")
+        public void testGetExitPointWall() {
+            //create a block that is standing ontop of the wall, as a wall does not have a direction or entry point.
+            BlockAbstract enteringBlock = new PortalWallBlock(portalWall1.getX(), portalWall1.getY());
+            assertNull(portalWall1.getConnection(), "the wall should not have a connection.");
+            assertNull(portalWall1.getExitPointXY(enteringBlock), "a wall should not return an entry point.");
         }
 
-    //     @Test
-    //     @DisplayName("Check that a connected portalWall returns the correct exit direction for getExitDirectionXY()")
-    //     public void testGetExitPointDirectionXYConnectedWithBlockAtEntryPoint() {
-    //         portalWall1.setConnection(portalWall2);
-    //         int tpX = portalWall1.getX();
-    //         int tpY = portalWall1.getY();
-    //         BlockAbstract blockAtUpperEntry = new PortalWallBlock(tpX, tpY+1);
-    //         BlockAbstract blockAtLowerEntry = new PortalWallBlock(tpX, tpY-1);
-    //         BlockAbstract blockAtRightEntry = new PortalWallBlock(tpX+1, tpY);
-    //         BlockAbstract blockAtLeftEntry = new PortalWallBlock(tpX-1, tpY);
-    //         //A block entering a portalWall from above should be headed down, thus the direction is represented by a -1 y-coordinate
-    //         assertEquals(portalWall1.getExitDirectionXY(blockAtUpperEntry)[0], 0);
-    //         assertEquals(portalWall1.getExitDirectionXY(blockAtUpperEntry)[1], -1);
-    //         //A block entering a portalWall from below should be headed up, thus the direction is represented by a +1 y-coordinate
-    //         assertEquals(portalWall1.getExitDirectionXY(blockAtLowerEntry)[0], 0);
-    //         assertEquals(portalWall1.getExitDirectionXY(blockAtLowerEntry)[1], +1);
-    //         //A block entering a portalWall from the right should be headed left, thus the direction is represented by a -1 x-coordinate
-    //         assertEquals(portalWall1.getExitDirectionXY(blockAtRightEntry)[0], -1);
-    //         assertEquals(portalWall1.getExitDirectionXY(blockAtRightEntry)[1], 0);
-    //         //A block entering a portalWall from the left should be headed right, thus the direction is represented by a +1 x-coordinate
-    //         assertEquals(portalWall1.getExitDirectionXY(blockAtLeftEntry)[0], +1);
-    //         assertEquals(portalWall1.getExitDirectionXY(blockAtLeftEntry)[1], 0);
-    //     }
-    //     @Test
-    //     @DisplayName("Check that a portalWall returns null when disconnected")
-    //     public void testGetExitPointDirectionXYDisconnected() {
-    //         int tpX = portalWall1.getX();
-    //         int tpY = portalWall1.getY();
-    //         BlockAbstract blockAtRightEntry = new PortalWallBlock(tpX+1, tpY);
-    //         assertNull(portalWall1.getExitDirectionXY(blockAtRightEntry));
-    //     }
-    //     @Test
-    //     @DisplayName("Check that a connected portalWall returns null when the entering block is not standing at an entry point")
-    //     public void testGetExitPointDirectionXYConnectedWithBlockNotAtEntryPoint() {
-    //         portalWall1.setConnection(portalWall2);
-    //         int tpX = portalWall1.getX();
-    //         int tpY = portalWall1.getY();
-    //         BlockAbstract blockNotAtEntryPoint = new PortalWallBlock(tpX+1, tpY+1);
-    //         assertNull(portalWall1.getExitDirectionXY(blockNotAtEntryPoint));
-        
-    //     }
+        @Test
+        @DisplayName("Check that a connected portalWall returns the correct exit direction for getExitDirectionXY()")
+        public void testGetExitPointDirectionXYConnectedWithBlockAtEntryPoint() {
+            for (String direction1 : validDirectionsPortal) {
+                for (String direction2 : validDirectionsPortal) {
+                    //Create portal1 and portal2, which will serve as the entry and exit portal respectively.
+                    PortalWallBlock portal1 = new PortalWallBlock(1, 2);
+                    PortalWallBlock portal2 = new PortalWallBlock(-3, -4);
+                    //Test every valid direction combination for setting portal1 and portal2, as provided by the nested for loop through the valid portal directions.
+                    portal1.setPortal(true, direction1, null);
+                    portal2.setPortal(false, direction2, portal1);
+                    //direction1 is portal1's direction, and thus the entry point coordinate is determined based on it in relation to that entry portal's coordinates
+                    int entryX = portal1.getX();
+                    int entryY = portal1.getY();
+                    switch (direction1) {
+                        case "up":
+                            entryY++;
+                            break;
+                        case "down":
+                            entryY--;
+                            break;
+                        case "right":
+                            entryX++;
+                            break;
+                        case "left":
+                            entryX--;
+                            break;
+                    }
+                    //create a block that is standing at the coordinates of portal1's entry point.
+                    BlockAbstract entryBlock = new PortalWallBlock(entryX, entryY);
+                    //direction1 is portal2's direction, and thus the exit point coordinate is determined based on it in relation to that exit portal's coordinates
+                    int portal2X = portal2.getX();
+                    int portal2Y = portal2.getY();
+                    int exitX = portal2X;
+                    int exitY = portal2Y;
+                    switch (direction2) {
+                        case "up":
+                            exitY++;
+                            break;
+                        case "down":
+                            exitY--;
+                            break;
+                        case "right":
+                            exitX++;
+                            break;
+                        case "left":
+                            exitX--;
+                            break;
+                    }
+                    //Once the actual exit point coordinates have been found, they can be compared to what the method 'getExitPointXY(..)' returns once the entryBlock is given as a parameter.
+                    assertEquals(exitX - portal2X, portal1.getExitDirectionXY(entryBlock)[0], "the exit direction should have been " + direction2 + " which translates to a x-coordinate change of: " + (exitX - portal2X));
+                    assertEquals(exitY - portal2Y, portal1.getExitDirectionXY(entryBlock)[1], "the exit direction should have been " + direction2 + " which translates to a y-coordinate change of: " + (exitY - portal2Y));
+                }
+            }
+        }
+        @Test
+        @DisplayName("Check that a disconnected portal returns null as direction when getExitPointDirection() is called.")
+        public void testGetExitPointDirectionXYDisconnected() {
+            //set a portal with "right" as direction, which in turn means entry points would be placed to the right of its coordinate.
+            portalWall1.setPortal(true, "right", null);
+            assertNull(portalWall1.getConnection());
+            //Retrieve the port
+            int pX = portalWall1.getX();
+            int pY = portalWall1.getY();
+            //An entry block would be at a right-facing portal's entry point if it is one step to the right of that portal's coordinates.
+            BlockAbstract blockAtEntry = new PortalWallBlock(pX+1, pY);
+            assertNull(portalWall1.getExitDirectionXY(blockAtEntry), "a disconnected portal should return null as entry point, as the portal does not have an entry point when disconnected.");
+        }
+        @Test
+        @DisplayName("Check that a connected portal returns null as direction when getExitPointDirectionXY(..) is called and the entering block is not standing at an entry point")
+        public void testGetExitPointDirectionXYConnectedWithBlockNotAtEntryPoint() {
+            //set a portal with "right" as direction, which in turn means entry points would be placed to the right of its coordinate.
+            portalWall1.setPortal(true, "right", null);
+            portalWall2.setPortal(false, "left", null);
+            int pX = portalWall1.getX();
+            int pY = portalWall1.getY();
+            //An entry block would be at a right-facing portal's entry point if it is one step to the right of that portal's coordinates.
+            BlockAbstract blockAtEntry = new PortalWallBlock(pX+1, pY);
+            assertNull(portalWall1.getExitDirectionXY(blockAtEntry));
+        }
 
-    //     @Test
-    //     @DisplayName("Check that a connected portalWall CAN be entered by a block that is standing at one of the portalWall's entry points.")
-    //     public void testCanBlockAtEntryPointEnterConnectedportalWall() {
-    //         portalWall1.setConnection(portalWall2);
-    //         int tpX = portalWall1.getX();
-    //         int tpY = portalWall1.getY();
-    //         BlockAbstract blockAtUpperEntry = new PortalWallBlock(tpX, tpY+1);
-    //         BlockAbstract blockAtLowerEntry = new PortalWallBlock(tpX, tpY-1);
-    //         BlockAbstract blockAtRightEntry = new PortalWallBlock(tpX+1, tpY);
-    //         BlockAbstract blockAtLeftEntry = new PortalWallBlock(tpX-1, tpY);
-    //         assertTrue(portalWall1.canBlockEnter(blockAtUpperEntry));
-    //         assertTrue(portalWall1.canBlockEnter(blockAtLowerEntry));
-    //         assertTrue(portalWall1.canBlockEnter(blockAtRightEntry));
-    //         assertTrue(portalWall1.canBlockEnter(blockAtLeftEntry));
-    //     }
-    //     @Test
-    //     @DisplayName("Check that a connected portalWall CAN NOT be entered by a block that is NOT standing at one of the portalWall's entry points.")
-    //     public void testCanBlockNotAtEntryPointEnterConnectedportalWall() {
-    //         portalWall1.setConnection(portalWall2);
-    //         BlockAbstract blockNotAtEntry = new PortalWallBlock(0, 0);
-    //         assertFalse(portalWall1.canBlockEnter(blockNotAtEntry));
-    //         BlockAbstract blockAtportalWallCoordinates = new PortalWallBlock(0, 0);
-    //         assertFalse(portalWall1.canBlockEnter(blockAtportalWallCoordinates));
-    //         BlockAbstract blockNearEntry = new PortalWallBlock(1, 1);
-    //         assertFalse(portalWall1.canBlockEnter(blockNearEntry ));
-    //     }
-    //     @Test
-    //     @DisplayName("Check that disconnected portalWalls can not be entered.")
-    //     public void testCanBlockEnterDisconnectedportalWall() {
-    //         BlockAbstract block = new PortalWallBlock(1, 0);
-    //         assertFalse(portalWall1.canBlockEnter(block), "A block should not be able to enter a disconnected portalWall, even while standing at an entry point.");
-    //     }
-    // }
+        @Test
+        @DisplayName("Check that a connected portalWall CAN be entered by a block that is standing at one of the portalWall's entry points.")
+        public void testCanBlockAtEntryPointEnterConnectedportalWall() {
+            for (String direction : validDirectionsPortal) {
+                PortalWallBlock portal1 = new PortalWallBlock(0, 1);
+                PortalWallBlock portal2 = new PortalWallBlock(-2, -3);
+                portal1.setPortal(true, direction, null);
+                portal2.setPortal(false, "right", portal1);
+                BlockAbstract blockAtEntry = new PortalWallBlock(portal1.getEntryPointsXY()[0][0], portal1.getEntryPointsXY()[0][1]);
+                assertTrue(portal1.canBlockEnter(blockAtEntry));
+            }
+        }
+        @Test
+        @DisplayName("Check that a connected portalWall CAN NOT be entered by a block that is NOT standing at one of the portalWall's entry points.")
+        public void testCanBlockNotAtEntryPointEnterConnectedPortall() {
+            portalWall1.setPortal(true, "right", null);
+            portalWall2.setPortal(false, "right", portalWall1);
+            BlockAbstract blockNotAtEntry = new PortalWallBlock(33, 33);
+            assertFalse(portalWall1.canBlockEnter(blockNotAtEntry));
+            BlockAbstract blockAtPortalCoordinates = new PortalWallBlock(portalWall1.getX(), portalWall2.getY());
+            assertFalse(portalWall1.canBlockEnter(blockAtPortalCoordinates));
+            BlockAbstract blockNearEntry = new PortalWallBlock(portalWall1.getEntryPointsXY()[0][0], portalWall1.getEntryPointsXY()[0][1] +1);
+            assertFalse(portalWall1.canBlockEnter(blockNearEntry ));
+        }
+        @Test
+        @DisplayName("Check that disconnected portals can not be entered.")
+        public void testCanBlockEnterDisconnectedportalWall() {
+            portalWall1.setPortal(true, "right", null);
+            BlockAbstract blockAtEntry = new PortalWallBlock(portalWall1.getX()+1, portalWall1.getY());
+            assertFalse(portalWall1.canBlockEnter(blockAtEntry), "A block should not be able to enter a disconnected portal, even if standing at an entry point.");
+        }
     }
     //Tests constructor and class methods specific to PortalWallBlock
     @Test
     @DisplayName("Test that type checks specific to this class returns the correct truth value according to their current type.")
     public void testTypeChecks() {
         PortalWallBlock wall = new PortalWallBlock(0, 0);
-        assertTrue(wall.isWall());
+        assertTrue(wall.isWall(), "Walls should be acknowledges as walls.");
+        assertFalse(wall.isPortal(), "Walls are not portals.");
+        assertFalse(wall.isPortalOne() , "Walls can not be portal one.");
+        assertFalse(wall.isPortalTwo(), "Walls can not be portal two.");
+        assertFalse(wall.isTransporter(), "Walls can not be transporters.");
         PortalWallBlock portalOne = new PortalWallBlock(0, 0);
         portalOne.setPortal(true, "right", null);
-        assertTrue(portalOne.isPortal());
-        assertTrue(portalOne.isPortalOne());
+        assertTrue(portalOne.isPortal(), "PortalWalls set as portal one are portals.");
+        assertTrue(portalOne.isPortalOne(), "PortalWalls that are set as portal one should be acknowledged as portal one.");
+        assertFalse(portalOne.isPortalTwo(), "PortalWalls that are set as portal one are not portal two.");
+        assertTrue(portalOne.isTransporter(), "PortalWalls that are set as portal one are also transporters.");
         PortalWallBlock portalTwo = new PortalWallBlock(0, 0);
         portalTwo.setPortal(false, "right", null);
-        assertTrue(portalTwo.isPortal());
-        assertTrue(portalTwo.isPortalTwo());
+        assertTrue(portalTwo.isPortal(), "PortalWalls that are set as portal two are portals.");
+        assertFalse(portalTwo.isPortalOne(), "PortalWalls that are set as portal two are not portal one.");
+        assertTrue(portalTwo.isPortalTwo(), "PortalWalls that are set as portal two should be acknowledged as portal two.");
+        assertTrue(portalTwo.isTransporter(), "PortalWalls that are set as portal two are also transporters.");
     }
 
 }
