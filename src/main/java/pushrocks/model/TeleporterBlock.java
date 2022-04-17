@@ -90,9 +90,6 @@ public class TeleporterBlock extends ObstacleBlock {
         if (this.getConnection() == null) {
             return null;
         }
-        if (!this.isTeleporter()) {
-            return null;
-        }
         int entryBlockX = entryBlock.getX();
         int entryBlockY = entryBlock.getY();
         int[][] entryPoints = this.getEntryPointsXY();

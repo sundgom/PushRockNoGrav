@@ -209,14 +209,14 @@ public class TeleporterBlockTest {
             assertEquals(teleporter1.getExitPointXY(blockAtLeftEntry)[1], tp2Y, "The exit point should have a y-coordinate value equal to the connected teleporter");
         }
         @Test
-        @DisplayName("Check that a connected teleporter does not return any entry point coordinates when the entering block is not standing at an entry point.")
+        @DisplayName("Check that a connected teleporter does not return any exit point coordinates when the entering block is not standing at an entry point.")
         public void testGetExitPointConnectedTeleporterWhileNotAtEntryPoint() {
             BlockAbstract enteringBlock = new TeleporterBlock(1, 1);
             teleporter1.setConnection(teleporter2);
             assertNull(teleporter1.getExitPointXY(enteringBlock), "a teleporter with a connection should not return an entry point if the entring block does not stand at one of the teleporter's entry points.");
         }
         @Test
-        @DisplayName("Check that a disconnected teleporter does not return any entry point coordinates.")
+        @DisplayName("Check that a disconnected teleporter does not return any exit point coordinates.")
         public void testGetExitPointDisconnectedTeleporter() {
             BlockAbstract enteringBlock = new TeleporterBlock(1, 0);
             assertNull(teleporter1.getConnection());
@@ -247,7 +247,7 @@ public class TeleporterBlockTest {
             assertEquals(teleporter1.getExitDirectionXY(blockAtLeftEntry)[1], 0);
         }
         @Test
-        @DisplayName("Check that a teleporter returns null when disconnected")
+        @DisplayName("Check that a teleporter returns direction null when disconnected")
         public void testGetExitPointDirectionXYDisconnected() {
             int tpX = teleporter1.getX();
             int tpY = teleporter1.getY();

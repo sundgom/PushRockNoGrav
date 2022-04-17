@@ -139,6 +139,9 @@ public class PortalWallBlock extends ObstacleBlock {
     }
 
     public int[][] getEntryPointsXY() {
+        if (this.getConnection() == null) {
+            return null;
+        }
         int[][] entryPoints = new int[1][2];
         int[] entryPoint = this.getPortalEntryPointXY();
         entryPoints[0][0] = entryPoint[0];

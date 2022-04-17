@@ -106,7 +106,7 @@ public class PortalWallBlockTest {
 
         @Test
         @DisplayName("portalWall1 should be connected to portalWall2 and vice versa after a portalWall1 has been set to portal with portalWall2 as a connection when both are portals of opposing types.")
-        public void testSetPortalConnectionOpposingType() {
+        public void testSetPortalConnectionIsOpposingType() {
             portalWall1.setPortal(true, "right", null);
             portalWall2.setPortal(false, "right", portalWall1);
             assertEquals(portalWall2, portalWall1.getConnection(), "portalWall1 should be connected to portalWall2");
@@ -116,7 +116,7 @@ public class PortalWallBlockTest {
         }
         @Test
         @DisplayName("Attempting to set a portal with a connection of identical portal-type to the portal should throw an IllegalArgumentException, and the portalWall objects should remain unchanged.")
-        public void testSetPortalConnectionIdenticalType() {
+        public void testSetPortalConnectionIsIdenticalType() {
             portalWall1.setPortal(true, "right", null);
             assertThrows(IllegalArgumentException.class, 
             () -> portalWall2.setPortal(true, "right", portalWall1),
@@ -136,7 +136,7 @@ public class PortalWallBlockTest {
         }
         @Test
         @DisplayName("Attempting to set a portal with itself as a connection should set the connection to null, but otherwise change properties accordingly")
-        public void testSetPortalConnectionToSelf() {
+        public void testSetPortalConnectionIsSelf() {
             portalWall1.setPortal(true, "right", null);
             assertNull(portalWall1.getConnection());
             portalWall1.setPortal(false, "left", portalWall1);
@@ -150,138 +150,205 @@ public class PortalWallBlockTest {
             assertFalse(portalWall1.getState(), "portalWall1's state should remain false after connecting to itself, as it should not be connected to itself, and thus has null as connection.");
         }
 
-    //     @Test
-    //     @DisplayName("Setting a connected portalWall's connection to null should remove the connection of both that portalWall and its connection, and their state should be set to false.")
-    //     public void testSetConnectionNull() {
-    //         portalWall1.setConnection(portalWall2);
-    //         assertEquals(portalWall2, portalWall1.getConnection(), "portalWall1 should be connected to portalWall2");
-    //         assertEquals(portalWall1, portalWall2.getConnection(), "portalWall2 should be connected to portalWall1");
-    //         portalWall1.setConnection(null);
-    //         assertNull(portalWall1.getConnection(), "portalWall1 should no longer have a connection after the setConnection(null) was called on it.");
-    //         assertNull(portalWall2.getConnection(), "portalWall2 should no longer have a connection after the setConnection(null) was called on its connection.");
-    //         assertFalse(portalWall1.getState(), "portalWall1 should have its state set to false once its connection has been set to null.");
-    //         assertFalse(portalWall2.getState(), "portalWall2 should have its state set to false once its connection's connection set to null.");
-    //     }
-    //     @Test
-    //     @DisplayName("Removing a connected portalWall's connection should remove the connection of both that portalWall and its connection, and their state should be set to false.")
-    //     public void testRemoveConnection() {
-    //         portalWall1.setConnection(portalWall2);
-    //         assertEquals(portalWall2, portalWall1.getConnection(), "portalWall1 should be connected to portalWall2");
-    //         assertEquals(portalWall1, portalWall2.getConnection(), "portalWall2 should be connected to portalWall1");
-    //         portalWall1.removeConnection();
-    //         assertNull(portalWall1.getConnection(), "portalWall1 should no longer have a connection after the removeConnection() was called on it.");
-    //         assertNull(portalWall2.getConnection(), "portalWall2 should no longer have a connection after the removeConnection() was called on its connection.");
-    //         assertFalse(portalWall1.getState(), "portalWall1 should have its state set to false once its connection has been removed.");
-    //         assertFalse(portalWall2.getState(), "portalWall2 should have its state set to false once its connection's connection has been removed.");
-    //     }
-    //     @Test
-    //     @DisplayName("Removing a connected portalWall's connection should remove the connection of both that portalWall and its connection, and their state should be set to false.")
-    //     public void testReplaceConnectionWithNewConnection() {
-    //         portalWall1.setConnection(portalWall2);
-    //         assertEquals(portalWall2, portalWall1.getConnection(), "portalWall1 should be connected to portalWall2");
-    //         assertEquals(portalWall1, portalWall2.getConnection(), "portalWall2 should be connected to portalWall1");
-    //         PortalWallBlock portalWall3 = new PortalWallBlock(0, 0);
-    //         //portalWall3 replaces portalWall2 as portalWall1's connection
-    //         portalWall1.setConnection(portalWall3);
-    //         assertEquals(portalWall3, portalWall1.getConnection(), "portalWall1 should be connected to portalWall3");
-    //         assertEquals(portalWall1, portalWall3.getConnection(), "portalWall3 should be connected to portalWall1");
-    //         assertNull(portalWall2.getConnection(), "portalWall2 should no longer have a connection once it's been replaced by portalWall3 as portalWall1's connection.");
-    //         assertTrue(portalWall1.getState(), "portalWall1 should have its state set to false once its connection has been removed.");
-    //         assertTrue(portalWall3.getState(), "portalWall2 should have its state set to false once its connection's connection has been removed.");
-    //         assertFalse(portalWall2.getState(), "portalWall2 should have its state set to false once its connection's connection has been removed.");
-    //     }
-    //     @Test
-    //     @DisplayName("Attempting to connect a portalWall to itself should set the connection to null.")
-    //     public void testSetConnectionToSelf() {
-    //         portalWall1.setConnection(portalWall1);
-    //         assertNull(portalWall1.getConnection(), "portalWall connection should stay null after attempting to connect to itself.");
-    //         portalWall1.setConnection(portalWall2);
-    //         assertNotNull(portalWall1.getConnection(), "portalWall connection should no longer be null after connecting to another portalWall.");
-    //         portalWall1.setConnection(portalWall1);
-    //         assertNull(portalWall1.getConnection(), "portalWall connection should be back to null after attempting to connect to itself again.");
-    //         assertNull(portalWall2.getConnection(), "the previously connected portalWall should no longer be connected to the portalWall that attempted to connect to itself.");
-    //     }
+        @Test
+        @DisplayName("Setting a portal-wall to be a portal with the connection-parameter set to null should remove the connection of both that portalWall and its connection, and their state should be set to false.")
+        public void testSetPortalConnectionIsNull() {
+            portalWall1.setPortal(true, "right", null);
+            portalWall2.setPortal(false, "right", portalWall1);
+            assertEquals(portalWall2, portalWall1.getConnection(), "portalWall1 should be connected to portalWall2");
+            assertEquals(portalWall1, portalWall2.getConnection(), "portalWall2 should be connected to portalWall1");
+            portalWall1.setPortal(true, "right", null);
+            assertNull(portalWall1.getConnection(), "portalWall1 should no longer have a connection after the setConnection(null) was called on it.");
+            assertNull(portalWall2.getConnection(), "portalWall2 should no longer have a connection after the setConnection(null) was called on its connection.");
+            assertFalse(portalWall1.getState(), "portalWall1 should have its state set to false once its connection has been set to null.");
+            assertFalse(portalWall2.getState(), "portalWall2 should have its state set to false once its connection's connection set to null.");
+        }
+        @Test
+        @DisplayName("Clearing a portal that is connected should: remove connection for both portals, set type to wall ('w') for the cleared portal while keeping the type unchanged for " 
+                    + "its connection, set direction to null for the cleared portal while keeping the direction unchanged for its connection, and change the state of both from true to false.")
+        public void testClearPortalConnectedPortal() {
+            portalWall1.setPortal(true, "right", null);
+            portalWall2.setPortal(false, "right", portalWall1);
+            assertEquals(portalWall2, portalWall1.getConnection(), "portalWall1 should be connected to portalWall2");
+            assertEquals(portalWall1, portalWall2.getConnection(), "portalWall2 should be connected to portalWall1");
+            assertEquals('v', portalWall1.getType(), "portalWall1's type should be 'v' for portal one.");
+            assertEquals('u', portalWall2.getType(), "portalWall2's type should be 'u' for portal two");
+            assertEquals("right", portalWall1.getDirection(), "portalWall1's direction should be set to 'right'.");
+            assertEquals("right", portalWall2.getDirection(), "portalWall2's direction should be set to 'right'.");
+            assertTrue(portalWall1.getState(), "portalWall1 should have its state set to true once its been connected to portalWall2 through portalWall2.setPortal(...) call.");
+            assertTrue(portalWall2.getState(), "portalWall2 should have its state set to true once its been connected to portalWall1 through portalWall2.setPortal(...) call.");
+            //Clear the portal held by portalWall1
+            portalWall1.clearPortal();
+            assertNull(portalWall1.getConnection(), "portalWall1 should no longer have a connection after the clearPortal() was called on it.");
+            assertNull(portalWall2.getConnection(), "portalWall2 should no longer have a connection after the clearPortal() was called on its connection.");
+            assertEquals('w', portalWall1.getType(), "portalWall1's type should be 'w' for walll.");
+            assertEquals('u', portalWall2.getType(), "portalWall2's type should be 'u' for portal two");
+            assertNull(portalWall1.getDirection(), "portalWall1's direction should be set to null.");
+            assertEquals("right", portalWall2.getDirection(), "portalWall2's direction should remain 'right'.");
+            assertFalse(portalWall1.getState(), "portalWall1 should have its state set to false once its connection has been removed.");
+            assertFalse(portalWall2.getState(), "portalWall2 should have its state set to false once its connection's connection has been removed.");
+        }
+        @Test
+        @DisplayName("Clearing a portal that is disconnected should: keep connection null, change its type to wall 'w' as it no longer holds a portal, set direction to null, keep state false.")
+        public void testClearPortalDisconnectedPortal() {
+            portalWall1.setPortal(true, "right", null);
+            assertNull(portalWall1.getConnection(), "portalWall1 should be connected to portalWall2");
+            assertEquals('v', portalWall1.getType(), "portalWall1's type should be 'v' for portal one.");
+            assertEquals("right", portalWall1.getDirection(), "portalWall1's direction should be set to 'right'.");
+            assertFalse(portalWall1.getState(), "portalWall1 should have its state set to true once its been connected to portalWall2 through portalWall2.setPortal(...) call.");
+            //Clear the portal held by portalWall1
+            portalWall1.clearPortal();
+            assertNull(portalWall1.getConnection(), "portalWall1 should no longer have a connection after the clearPortal() was called on it.");
+            assertEquals('w', portalWall1.getType(), "portalWall1's type should be 'w' for walll.");
+            assertNull(portalWall1.getDirection(), "portalWall1's direction should be set to null.");
+            assertFalse(portalWall1.getState(), "portalWall1 should have its state set to false once its connection has been removed.");
+        }
+        @Test
+        @DisplayName("Calling 'clearPortal(..)' on a portal-wall whose type is wall 'w' should change nothing as there is no portal to clear.")
+        public void testClearPortalWall() {
+            assertNull(portalWall1.getConnection(), "portalWall1's connection should be null as walls can not be connected");
+            assertEquals('w', portalWall1.getType(), "portalWall1's type should be 'w' for wall.");
+            assertNull(portalWall1.getDirection(), "portalWall1's direction should be null, as it is a wall.");
+            assertFalse(portalWall1.getState(), "portalWall1's state should be false as walls can not be connected.");
+            //Clear the portal held by portalWall1
+            portalWall1.clearPortal();
+            assertNull(portalWall1.getConnection(), "portalWall1's connection should remain null.");
+            assertEquals('w', portalWall1.getType(), "portalWall1's type should remain 'w' for wall.");
+            assertNull(portalWall1.getDirection(), "portalWall1's direction should remain null.");
+            assertFalse(portalWall1.getState(), "portalWall1's state should remain false.");
+        }
 
-    //     @Test
-    //     @DisplayName("Check that a connected portalWall returns a list containing correct entry point coordinates")
-    //     public void testGetEntryPointsConnectedportalWall() {
-    //         portalWall1.setConnection(portalWall2);
-    //         int tpX = portalWall1.getX();
-    //         int tpY = portalWall1.getY();
-    //         //Entry points are always placed one step away from the portalWall itself, either horizontal or vertical, not both.
-    //         int[][] entryPoints = portalWall1.getEntryPointsXY();
-    //         for (int[] entry : entryPoints) {
-    //             //If the provided entry point is one right step away from the portalWall
-    //             if (entry[0] == tpX + 1) {
-    //                 //then the y coordinate must be the same for both the portalWall and the entry point.
-    //                 assertEquals(tpY, entry[1]);
-    //             }
-    //             //If the provided entry point is one left step away from the portalWall
-    //             else if (entry[0] == tpX - 1) {
-    //                 //then the y coordinate must be the same for both the portalWall and the entry point.
-    //                 assertEquals(tpY, entry[1]);
-    //             }
-    //             //If the provided entry point is one upward step away from the portalWall
-    //             else if (entry[1] == tpY + 1) {
-    //                 //then the x coordinate must be the same for both the portalWall and the entry point.
-    //                 assertEquals(tpX, entry[0]);
-    //             }
-    //             //If the provided entry point is one downward step away from the portalWall
-    //             else if (entry[1] == tpY - 1) {
-    //                 //then the x coordinate must be the same for both the portalWall and the entry point.
-    //                 assertEquals(tpX, entry[0]);
-    //             }
-    //             else {
-    //                 //In all other cases the coordinate is not a correctly placed entry point.
-    //                 assertFalse(true, "The coordinate (x:" + entry[0] + ", y:" + entry[1] + ") is not valid coordinate for a portalWall with coordinates: (x:" + tpX + ", y:" + tpY + ").");
-    //             }
-    //         }
-    //     }
-    //     @Test
-    //     @DisplayName("Check that a disconnected portalWall does not return any entry point coordinates when getEntryPointsXY() is called.")
-    //     public void testGetEntryPointsXYDisconnectedportalWall() {
-    //         assertNull(portalWall1.getConnection());
-    //         assertNull(portalWall1.getEntryPointsXY(), "a portalWall without a connection should not return an entry point.");
-    //     }
-    //     @Test
-    //     @DisplayName("Check that a connected portalWall returns a correct exit point coordinate when it is connected and the entering block is standing at an entry point.")
-    //     public void testGetExitPointXYConnectedportalWallWhileAtEntryPoint() {
-    //         portalWall1.setConnection(portalWall2);
-    //         int tp1X = portalWall1.getX();
-    //         int tp1Y = portalWall1.getY();
-    //         BlockAbstract blockAtUpperEntry = new PortalWallBlock(tp1X, tp1Y+1);
-    //         BlockAbstract blockAtLowerEntry = new PortalWallBlock(tp1X, tp1Y-1);
-    //         BlockAbstract blockAtRightEntry = new PortalWallBlock(tp1X+1, tp1Y);
-    //         BlockAbstract blockAtLeftEntry = new PortalWallBlock(tp1X-1, tp1Y);
-    //         int tp2X = portalWall2.getX();
-    //         int tp2Y = portalWall2.getY();
-    //         //When entered from above the exit point should be one step below the connected portalWall.
-    //         assertEquals(portalWall1.getExitPointXY(blockAtUpperEntry)[0], tp2X, "The exit point should have an x-coordinate value equal to the connected portalWall");
-    //         assertEquals(portalWall1.getExitPointXY(blockAtUpperEntry)[1], tp2Y-1, "The exit point should have a y-coordinate value one less than the connected portalWall");
-    //         //When entered from below the exit point should be one step above connected portalWall.      
-    //         assertEquals(portalWall1.getExitPointXY(blockAtLowerEntry)[0], tp2X, "The exit point should have an x-coordinate value equal to the connected portalWall");
-    //         assertEquals(portalWall1.getExitPointXY(blockAtLowerEntry)[1], tp2Y+1, "The exit point should have a y-coordinate value one greater than the connected portalWall");
-    //         //When entered from the right the exit point should be one step left of the connected portalWall.
-    //         assertEquals(portalWall1.getExitPointXY(blockAtRightEntry)[0], tp2X-1, "The exit point should have a x-coordinate value one less than the connected portalWall");
-    //         assertEquals(portalWall1.getExitPointXY(blockAtRightEntry)[1], tp2Y, "The exit point should have a y-coordinate value equal to the connected portalWall");
-    //         //When entered from the left the exit point should be one step right of the connected portalWall.
-    //         assertEquals(portalWall1.getExitPointXY(blockAtLeftEntry)[0], tp2X+1, "The exit point should have a x-coordinate value one greater than the connected portalWall");
-    //         assertEquals(portalWall1.getExitPointXY(blockAtLeftEntry)[1], tp2Y, "The exit point should have a y-coordinate value equal to the connected portalWall");
-    //     }
-    //     @Test
-    //     @DisplayName("Check that a connected portalWall does not return any entry point coordinates when the entering block is not standing at an entry point.")
-    //     public void testGetExitPointConnectedportalWallWhileNotAtEntryPoint() {
-    //         BlockAbstract enteringBlock = new PortalWallBlock(1, 1);
-    //         portalWall1.setConnection(portalWall2);
-    //         assertNull(portalWall1.getExitPointXY(enteringBlock), "a portalWall with a connection should not return an entry point if the entring block does not stand at one of the portalWall's entry points.");
-    //     }
-    //     @Test
-    //     @DisplayName("Check that a disconnected portalWall does not return any entry point coordinates.")
-    //     public void testGetExitPointDisconnectedportalWall() {
-    //         BlockAbstract enteringBlock = new PortalWallBlock(1, 0);
-    //         assertNull(portalWall1.getConnection());
-    //         assertNull(portalWall1.getExitPointXY(enteringBlock), "a portalWall without a connection should not return an entry point.");
-    //     }
+        @Test
+        @DisplayName("Check that a connected portalWall returns a list containing correct entry point coordinates")
+        public void testGetEntryPointsConnectedPortal() {
+            for (String direction : validDirectionsPortal) {
+                portalWall1.setPortal(true, direction, null);
+                portalWall2.setPortal(false, "left", portalWall1);
+                int tpX = portalWall1.getX();
+                int tpY = portalWall1.getY();
+                //Portals have a single entry point, and it is always placed one step away in the direction of the portal from the portal itself.
+                int[][] entryPoints = portalWall1.getEntryPointsXY();
+                //the method getEntryPointsXY() is inherited from ObstacleBlock and should return every entry point of the given ObstacleBlock.
+                for (int[] entry : entryPoints) {
+                    //for the case of portals there is only a single entry point, thus this for loop should only run once.
+                    switch (direction) {
+                        //check that the direction the portal was set with results in a direction that is correct for that direction.
+                        case "up":
+                            assertEquals(tpX, entry[0], "when the entry portal's direction is up, then the entry point should have an x-coordinate equal to the portal itself.");
+                            assertEquals(tpY+1, entry[1], "when the entry portal's direction is up, then the entry point should have a y-coordinate one greater than the portal itself.");
+                            break;
+                        case "down":
+                            assertEquals(tpX, entry[0], "when the entry portal's direction is down, then the entry point should have an x-coordinate equal to the portal itself.");
+                            assertEquals(tpY-1, entry[1], "when the entry portal's direction is down, then the entry point should have a y-coordinate one less than the portal itself.");
+                            break;
+                        case "right":
+                            assertEquals(tpX+1, entry[0], "when the entry portal's direction is right, then the entry point should have an x-coordinate one greater than the portal itself.");
+                            assertEquals(tpY, entry[1], "when the entry portal's direction is right, then the entry point should have a y-coordinate equal to the the portal itself.");
+                            break;
+                        case "left":
+                            assertEquals(tpX-1, entry[0], "when the entry portal's direction is left, then the entry point should have an x-coordinate one less than the portal itself.");
+                            assertEquals(tpY, entry[1], "when the entry portal's direction is left, then the entry point should have a y-coordinate equal to the the portal itself.");
+                            break;
+                        default:
+                            assertTrue(false, "portals should never have a direction other than up, down, right or left.");
+                    }
+                }
+            }
+        }
+        @Test
+        @DisplayName("Check that a disconnected portal does not return any entry point coordinates when getEntryPointsXY() is called.")
+        public void testGetEntryPointsXYWall() {
+            assertNull(portalWall1.getConnection());
+            assertNull(portalWall1.getEntryPointsXY(), "a portalWall without a connection should not return entry points.");
+        }
+        @Test
+        @DisplayName("Check that a disconnected portal does not return any entry point coordinates when getEntryPointsXY() is called.")
+        public void testGetEntryPointsXYDisconnectedPortal() {
+            portalWall1.setPortal(true, "right", null);
+            assertNull(portalWall1.getConnection());
+            assertNull(portalWall1.getEntryPointsXY(), "a portalWall without a connection should not return entry points.");
+        }
+        @Test
+        @DisplayName("Check that a connected portal returns the correct exit point coordinate and direction when the entering block is standing at an entry point.")
+        public void testGetExitPointXYConnectedPortalWhileAtEntryPoint() {
+            for (String direction1 : validDirectionsPortal) {
+                portalWall1.setPortal(true, direction1, null);
+                int tp1X = portalWall1.getX();
+                int tp1Y = portalWall1.getY();
+                int entryX = tp1X;
+                int entryY = tp1Y;
+                switch (direction1) {
+                    case "up":
+                        entryY++;
+                        break;
+                    case "down":
+                        entryY--;
+                        break;
+                    case "right":
+                        entryX++;
+                        break;
+                    case "left":
+                        entryX--;
+                        break;
+                }
+                BlockAbstract entryBlock = new PortalWallBlock(entryX, entryY);
+                for (String direction2 : validDirectionsPortal) {
+                    portalWall2.setPortal(false, direction2, portalWall1);
+                    int tp2X = portalWall2.getX();
+                    int tp2Y = portalWall2.getY();
+                    int exitX = tp2X;
+                    int exitY = tp2Y;
+                    switch (direction2) {
+                        case "up":
+                            exitY++;
+                            break;
+                        case "down":
+                            exitY--;
+                            break;
+                        case "right":
+                            exitX++;
+                            break;
+                        case "left":
+                            exitX--;
+                            break;
+                    }
+                    assertEquals(exitX, portalWall1.getExitPointXY(entryBlock)[0]);
+                    assertEquals(exitY, portalWall1.getExitPointXY(entryBlock)[1]);
+                    assertEquals(exitX-tp2X, portalWall1.getExitDirectionXY(entryBlock)[0]);
+                    assertEquals(exitY-tp2Y, portalWall1.getExitDirectionXY(entryBlock)[1]);
+                }
+            }
+        }
+        @Test
+        @DisplayName("Check that a connected portal does not return any entry point coordinates when the entering block is not standing at an entry point.")
+        public void testGetExitPointConnectedportalWallWhileNotAtEntryPoint() {
+            portalWall1.setPortal(true, "up", null);
+            portalWall2.setPortal(false, "right", portalWall1);
+            assertNotNull(portalWall1.getConnection());
+            int x = portalWall1.getX();
+            int y = portalWall1.getY();
+            //create blocks that should enter the portal from various positions in relation to that portal's coordinate.
+            BlockAbstract abovePortal = new PortalWallBlock(x, y+1);
+            BlockAbstract wayAbovePortal = new PortalWallBlock(x, y+2);
+            BlockAbstract underPortal = new PortalWallBlock(x, y-1);
+            BlockAbstract rightOfPortal = new PortalWallBlock(x+1, y);
+            BlockAbstract leftOfPortal = new PortalWallBlock(x-1, y);
+            //check that getExitPointXY returns null when the entering block is not standing the portal's entry point.
+            assertNotNull(portalWall1.getExitPointXY(abovePortal), "exit point should not be null the entry block is at the portal's entry point.");
+            assertNull(portalWall1.getExitPointXY(wayAbovePortal), "exit point should be null when the entry block is not at the portal's entry point.");
+            assertNull(portalWall1.getExitPointXY(underPortal), "exit point should be null when the entry block is not at the portal's entry point.");
+            assertNull(portalWall1.getExitPointXY(rightOfPortal), "exit point should be null when the entry block is not at the portal's entry point.");
+            assertNull(portalWall1.getExitPointXY(leftOfPortal), "exit point should be null when the entry block is not at the portal's entry point.");
+        }
+        @Test
+        @DisplayName("Check that a disconnected portal does not return any exit point coordinates.")
+        public void testGetExitPointDisconnectedportalWall() {
+            portalWall1.setPortal(true, "right", null);
+            //create a block that is standing ontop of the portal's entry point (one step away from the portal's coordinates in the direction the portal is facing: right)
+            BlockAbstract enteringBlock = new PortalWallBlock(portalWall1.getX()+1, portalWall1.getY());
+            assertNull(portalWall1.getConnection(), "the portal should not have a connection.");
+            assertNull(portalWall1.getExitPointXY(enteringBlock), "a disconnected portal should not return an entry point, even if the entry block is at the portal's entry point.");
+        }
 
     //     @Test
     //     @DisplayName("Check that a connected portalWall returns the correct exit direction for getExitDirectionXY()")
@@ -358,13 +425,21 @@ public class PortalWallBlockTest {
     //         assertFalse(portalWall1.canBlockEnter(block), "A block should not be able to enter a disconnected portalWall, even while standing at an entry point.");
     //     }
     // }
-
-    // //Tests constructor and class methods specific to PortalWallBlock
-    // @Test
-    // @DisplayName("Test that type checks specific to this class returns the correct truth value according to their current type.")
-    // public void testTypeChecks() {
-    //     PortalWallBlock portalWall = new PortalWallBlock(0, 0);
-    //     assertTrue(portalWall.isportalWall());
+    }
+    //Tests constructor and class methods specific to PortalWallBlock
+    @Test
+    @DisplayName("Test that type checks specific to this class returns the correct truth value according to their current type.")
+    public void testTypeChecks() {
+        PortalWallBlock wall = new PortalWallBlock(0, 0);
+        assertTrue(wall.isWall());
+        PortalWallBlock portalOne = new PortalWallBlock(0, 0);
+        portalOne.setPortal(true, "right", null);
+        assertTrue(portalOne.isPortal());
+        assertTrue(portalOne.isPortalOne());
+        PortalWallBlock portalTwo = new PortalWallBlock(0, 0);
+        portalTwo.setPortal(false, "right", null);
+        assertTrue(portalTwo.isPortal());
+        assertTrue(portalTwo.isPortalTwo());
     }
 
 }
