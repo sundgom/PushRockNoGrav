@@ -3,11 +3,11 @@ package pushrocks.model;
 public class PortalWallBlock extends ObstacleBlock {
 
     public PortalWallBlock(int x, int y) {
-        //All portal-walls are walls that can hold portals, but only when a wall has been set to hold a portal will it act as one.
-        //Thus portal-walls are constructed with their type set to 'w', direction set to null and connection set to null.
+        //All portal-walls are walls that can hold portals, but only when a wall has been set to hold a portal will it act as a portal,
+        //thus portal-walls are constructed with their type set to 'w', direction set to null and connection set to null.
         super(x, y, 'w', null, null);
     }
-    //Valid types include: wall 'w', portal one 'u', and portal two 'v'.
+    //Valid types include: wall 'w', portal-one 'v', and portal-two 'u'.
     @Override
     protected String getValidTypes() {
         return "wuv";
@@ -29,11 +29,6 @@ public class PortalWallBlock extends ObstacleBlock {
             if (!(connection instanceof PortalWallBlock && ((PortalWallBlock) connection).isPortal())) {
                 throw new IllegalArgumentException("A portal can only be connected to another portal.");
             }
-            // else {
-            //     if (this.isPortalOne() == ((PortalWallBlock) connection).isPortalOne()) {
-            //         throw new IllegalArgumentException("A portal can only be connected to another portal of an opposing type.");
-            //     }
-            // }
         }
         super.setConnection(connection);
     }

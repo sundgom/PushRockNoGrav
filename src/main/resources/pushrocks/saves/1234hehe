@@ -1,0 +1,56 @@
+#File type:
+Save
+
+#Level name:
+Custom level
+
+#Level map layout:
+twwwwwwwwwwwwwwwwwd@
+                   @
+                   @
+rrr  r  r  rrr r  r@
+r  r r  r r    r  r@
+rrr  r  r  rr  rrrr@
+r    r  r    r r  r@
+r    rrrr rrr  r  r@
+    p              @
+wwwwwwwwwwwwwwwuwww@
+-------------------@
+RRR--RRRR--RRR-R--R@
+R--R-R--R-R----R-R-@
+RRR--R--R-R----RR--@
+R-R--R--R-R----R-R-@
+R--R-RRRR--RRR-R--R@
+-------------------@
+-------------------@
+DWWWWWWWWWWWWWWVWWT@
+
+#Level direction layout:
+ddddddddddddddddddddddddddddddddddddddddddddddddddduuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuug
+
+#Save map layout:
+twwwwwwwwwwwwwwwwwd@
+r                  @
+                   @
+rrrr rrrr  r   r  r@
+r  r r  r  r   r  r@
+rrrr r  r  r   rrrr@
+r    r  r  r   r  r@
+r    rrrr  r   r  r@
+                p  @
+wwwvuwwwwwwwwwwwwww@
+-------------------@
+RRR--RRRR--RRR-R--R@
+R--R-R--R-R----R-R-@
+RRR--R--R-R----RR--@
+R-R--R--R-R----R-R-@
+R--R-RRRR--RRR-R--R@
+-------------------@
+-------------------@
+DWWWWWWWWWWWWWWWWWT@
+
+#Save direction layout:
+lddddluudlddddddlddddduddddddddddlddddllllddruuddddduuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuug
+
+#Save move count:
+438
