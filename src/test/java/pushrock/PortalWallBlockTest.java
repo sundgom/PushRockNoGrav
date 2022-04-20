@@ -1,14 +1,15 @@
-package pushrocks;
+package pushrock;
 
 import org.junit.jupiter.api.Test;
+
+import pushrock.model.BlockAbstract;
+import pushrock.model.PortalWallBlock;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
-
-import pushrocks.model.BlockAbstract;
-import pushrocks.model.PortalWallBlock;
 
 public class PortalWallBlockTest {
     // private char[] validTypes = new char[] {'w', 'v', 'u'};

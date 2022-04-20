@@ -1,10 +1,10 @@
-package pushrocks.model;
+package pushrock.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifier {
+public class PushRock implements IObservablePushRock, IObserverIntervalNotifier {
 
     private int width;
     private int height;
@@ -24,7 +24,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     private List<TeleporterBlock> teleporters = new ArrayList<TeleporterBlock>();
     private List<PortalWallBlock> portals = new ArrayList<PortalWallBlock>();
 
-    private List<IObserverPushRocks> observers = new ArrayList<>();
+    private List<IObserverPushRock> observers = new ArrayList<>();
 
     private int gravityApplicationChoice;
     
@@ -848,7 +848,9 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
         //Check if the game is over after gravity was applied
         this.checkGameOver();
+        
         this.notifyObservers();
+        System.out.println();
     }
 
     private BlockAbstract getFootingBlock(MoveableBlock block, boolean isTransportationConsidered) {
@@ -1326,23 +1328,23 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
     public String toString() {
         System.out.println("MAP TO STRING START");
-        String pushRocksString = new String();
+        String pushRockString = new String();
         for (int y = 0; y > height*(-1); y--) {
             for (int x = 0; x < width; x++) {
                 if (getMoveableBlock(x, y) != null) {
-                    pushRocksString += this.getMoveableBlock(x, y).toString();
+                    pushRockString += this.getMoveableBlock(x, y).toString();
                 }
                 else if (getObstacleBlock(x, y) != null) {
-                    pushRocksString += this.getObstacleBlock(x, y).toString();
+                    pushRockString += this.getObstacleBlock(x, y).toString();
                 }
                 else {
-                    pushRocksString += this.getTraversableBlock(x, y).toString();
+                    pushRockString += this.getTraversableBlock(x, y).toString();
                 }
             }
-            pushRocksString += "\n";
+            pushRockString += "\n";
         } 
         System.out.println("MAP TO STRING SUCCESSFUL");
-        return pushRocksString;
+        return pushRockString;
     }
 
     public String prettyString() {
@@ -1372,7 +1374,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
 
 
     //Constructors
-    public PushRocks(String levelMapLayout, String levelDirectionLayout) {
+    public PushRock(String levelMapLayout, String levelDirectionLayout) {
         System.out.println("Constructor: minimal");
         this.levelName = "Custom level";
         this.levelMapLayout = levelMapLayout;
@@ -1381,7 +1383,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         
         // this.setGravityApplicationInterval();
     }
-    public PushRocks(String levelName, String levelMapLayout, String levelDirectionLayout) {
+    public PushRock(String levelName, String levelMapLayout, String levelDirectionLayout) {
         System.out.println("Constructor: build from level information");
         this.levelName = levelName;
         this.levelMapLayout = levelMapLayout;
@@ -1390,7 +1392,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
         
         // this.setGravityApplicationInterval();
     }
-    public PushRocks(String levelName, String levelMapLayout, String levelDirectionLayout, String saveMapLayout, String saveDirectionLayout, int saveMoveCount) {
+    public PushRock(String levelName, String levelMapLayout, String levelDirectionLayout, String saveMapLayout, String saveDirectionLayout, int saveMoveCount) {
         System.out.println("Constructor: build from save information");
         this.levelName = levelName;
         this.levelMapLayout = levelMapLayout;
@@ -1665,14 +1667,14 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
     }
     
     @Override
-    public void addObserver(IObserverPushRocks observer) {
+    public void addObserver(IObserverPushRock observer) {
         if (!this.observers.contains(observer)) {
             this.observers.add(observer);
         }
     }
 
     @Override
-    public void removeObserver(IObserverPushRocks observer) {
+    public void removeObserver(IObserverPushRock observer) {
         if (this.observers.contains(observer)) {
             this.observers.remove(observer);
         }
@@ -1966,7 +1968,7 @@ public class PushRocks implements IObservablePushRocks, IObserverIntervalNotifie
             DWWWWWWWWWWWWWWVWWT@""";
         String directionLayout1 = "ddddddddddddddddddddddddddddddddddddddddddddddddddduuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuug";
 
-        PushRocks push = new PushRocks(levelLayout1, directionLayout1);
+        PushRock push = new PushRock(levelLayout1, directionLayout1);
         System.out.println(push.prettyString());
         
     }

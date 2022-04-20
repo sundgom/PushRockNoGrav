@@ -1,4 +1,4 @@
-package pushrocks.model;
+package pushrock.model;
 
 import java.util.ArrayList;
 import java.util.List;

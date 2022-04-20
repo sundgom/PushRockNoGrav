@@ -1,4 +1,4 @@
-package pushrocks.fxui;
+package pushrock.fxui;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,11 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import pushrocks.model.BlockAbstract;
-import pushrocks.model.DirectedBlock;
-import pushrocks.model.MoveableBlock;
-import pushrocks.model.PushRocks;
-import pushrocks.model.TraversableBlock;
+import pushrock.model.BlockAbstract;
+import pushrock.model.DirectedBlock;
+import pushrock.model.MoveableBlock;
+import pushrock.model.PushRock;
+import pushrock.model.TraversableBlock;
 
 public class SaveHandler implements ISaveHandler {
 
@@ -36,11 +36,11 @@ public class SaveHandler implements ISaveHandler {
     }
 
     public Path getResourceFoldersPath(String folderName) {
-        return Path.of(System.getProperty("user.dir"), "src", "main", "resources", "pushrocks", folderName);
+        return Path.of(System.getProperty("user.dir"), "src", "main", "resources", "pushrock", folderName);
     }
 
-    public PushRocks loadGame(InputStream inputStream) throws IllegalArgumentException, NumberFormatException {
-        PushRocks pushRocks = null;
+    public PushRock loadGame(InputStream inputStream) throws IllegalArgumentException, NumberFormatException {
+        PushRock pushRock = null;
         try (var scanner = new Scanner(inputStream)) {
             scanner.useDelimiter("#");
             // PushRocks(String levelName, String mapLayout, String directionLayout, int moveCount, boolean isSave) //from save
@@ -103,7 +103,7 @@ public class SaveHandler implements ISaveHandler {
             }
 
             if (fileType.equals("Level")) {
-                pushRocks = new PushRocks(levelName, levelMapLayout, levelDirectionLayout);
+                pushRock = new PushRock(levelName, levelMapLayout, levelDirectionLayout);
             }
             else if (fileType.equals("Save")) {
                 if (saveMapLayout == null) {
@@ -115,25 +115,25 @@ public class SaveHandler implements ISaveHandler {
                 if (saveMoveCount == -1) {
                     throw new IllegalArgumentException("File is not formated correctly: could not find save move count");
                 }
-                pushRocks = new PushRocks(levelName, levelMapLayout, levelDirectionLayout, saveMapLayout, saveDirectionLayout, saveMoveCount);
+                pushRock = new PushRock(levelName, levelMapLayout, levelDirectionLayout, saveMapLayout, saveDirectionLayout, saveMoveCount);
             }
             else {
                 throw new IllegalArgumentException("fileType must be either 'Level' or 'Save', but was: " + fileType);
             }
 
-            // pushRocks = new PushRocks(levelMapLayout, levelDirectionLayout);
-            // pushRocks = new PushRocks(levelName, levelMapLayout, levelDirectionLayout);
-            // pushRocks = new PushRocks(levelName, levelMapLayout, levelDirectionLayout, saveMapLayout, saveDirectionLayout, saveMoveCount);
+            // pushRock = new PushRocks(levelMapLayout, levelDirectionLayout);
+            // pushRock = new PushRocks(levelName, levelMapLayout, levelDirectionLayout);
+            // pushRock = new PushRocks(levelName, levelMapLayout, levelDirectionLayout, saveMapLayout, saveDirectionLayout, saveMoveCount);
             
-            // pushRocks.setlevelName(levelName);              //only allowed if levelName is empty
-            // pushRocks.setLevelMapLayout(levelMapLayout);    //only allowed if levelMapLayout is empty
-            // pushRocks.setMoveCount(saveMoveCount);          //only allowed if moveCount is 0
+            // pushRock.setlevelName(levelName);              //only allowed if levelName is empty
+            // pushRock.setLevelMapLayout(levelMapLayout);    //only allowed if levelMapLayout is empty
+            // pushRock.setMoveCount(saveMoveCount);          //only allowed if moveCount is 0
             
         }
-        return pushRocks;
+        return pushRock;
     }
 
-    public PushRocks loadGame(String fileName, boolean isSave) throws FileNotFoundException, IOException {
+    public PushRock loadGame(String fileName, boolean isSave) throws FileNotFoundException, IOException {
         Path folderPath = null;
         // if (fileName == null) {
         //     throw new IllegalArgumentException("Can not load file if no file name is provided.");
@@ -149,7 +149,7 @@ public class SaveHandler implements ISaveHandler {
             return loadGame(inputStream);
         }
     }
-    public PushRocks loadGame(Path filePath) throws FileNotFoundException, IOException, NumberFormatException, IllegalArgumentException, NullPointerException {
+    public PushRock loadGame(Path filePath) throws FileNotFoundException, IOException, NumberFormatException, IllegalArgumentException, NullPointerException {
         // System.out.println(filePath.toString().length());
         // System.out.println(filePath == null);
         // if (filePath.toString().length() == 0) {
@@ -160,22 +160,22 @@ public class SaveHandler implements ISaveHandler {
         }
     }
 
-    public void saveGame(PushRocks pushRocks, OutputStream outputStream) {
+    public void saveGame(PushRock pushRock, OutputStream outputStream) {
         try (var printWriter = new PrintWriter(outputStream)) {
             printWriter.println("#File type:");
             printWriter.println("Save");
             printWriter.println();
             printWriter.println("#Level name:");
-            printWriter.println(pushRocks.getLevelName());
+            printWriter.println(pushRock.getLevelName());
             printWriter.println();
             printWriter.println("#Level map layout:");
-            printWriter.println(pushRocks.getLevelMapLayout());
+            printWriter.println(pushRock.getLevelMapLayout());
             printWriter.println();
             printWriter.println("#Level direction layout:");
-            printWriter.println(pushRocks.getLevelDirectionLayout());
+            printWriter.println(pushRock.getLevelDirectionLayout());
             printWriter.println();
      
-            List<String> gameLayout = this.gameLayoutToSaveFormat(pushRocks);
+            List<String> gameLayout = this.gameLayoutToSaveFormat(pushRock);
             String mapLayout = gameLayout.get(0);
             String directionLayout = gameLayout.get(1);
             printWriter.println("#Save map layout:");
@@ -184,11 +184,11 @@ public class SaveHandler implements ISaveHandler {
             printWriter.println(directionLayout);
             printWriter.println();
             printWriter.println("#Save move count:");
-            printWriter.println(pushRocks.getMoveCount());
+            printWriter.println(pushRock.getMoveCount());
         }
     }
 
-    public void saveGame(PushRocks pushRocks, Path savePath) throws IOException {
+    public void saveGame(PushRock pushRock, Path savePath) throws IOException {
         if (savePath.toString().length() < 1) {
             throw new IllegalArgumentException("A file path or a file name of at least one character is needed to save.");
         }
@@ -197,29 +197,29 @@ public class SaveHandler implements ISaveHandler {
             savePath = this.getResourceFoldersPath("saves").resolve(savePathOld + ".txt");
         }
         try (var outputStream = new FileOutputStream(savePath.toFile())) {
-            saveGame(pushRocks, outputStream);
+            saveGame(pushRock, outputStream);
         }
     }
 
 
-    private List<String> gameLayoutToSaveFormat(PushRocks pushRocks) {
-        if (pushRocks.isGameOver()) {
+    private List<String> gameLayoutToSaveFormat(PushRock pushRock) {
+        if (pushRock.isGameOver()) {
             throw new IllegalArgumentException("Can not save a completed game.");
         }
         System.out.println("Save format start.");
         String mapLayoutSave = "";
         String directionLayoutSave = "";
-        int height = pushRocks.getHeight();
-        int width = pushRocks.getWidth();
+        int height = pushRock.getHeight();
+        int width = pushRock.getWidth();
 
 
         for (int y = 0; y > height*(-1); y--) {
             for (int x = 0; x < width; x++) {
                 char blockCopyType = '?';
                 
-                BlockAbstract blockCopy = pushRocks.getTopBlockCopy(x, y);
+                BlockAbstract blockCopy = pushRock.getTopBlockCopy(x, y);
                 blockCopyType = blockCopy.getType();
-                TraversableBlock traversableBlockCopy = pushRocks.getTraversableBlockCopy(x, y);
+                TraversableBlock traversableBlockCopy = pushRock.getTraversableBlockCopy(x, y);
 
                 //At most one directed block can occupy a given coordinate in the level, and this block must have a type, 
                 // thus let this block's type represent this coordinate in the level layout string.
@@ -265,7 +265,7 @@ public class SaveHandler implements ISaveHandler {
         } 
         //At the very end of the direction layout string the letter 'g' should be added, lower case indicates that gravity was not inverted when the game was saved, wheras
         // uppercase indicates that it was inverted.
-        if (!pushRocks.isGravityInverted()) {
+        if (!pushRock.isGravityInverted()) {
             directionLayoutSave += 'g';
         }
         else {
@@ -289,5 +289,5 @@ public class SaveHandler implements ISaveHandler {
             e.printStackTrace();
         }
     }
-    // C:\Users\magnu\Documents\LocalUNI\2022V\GIT\TDT4100_prosjekt_magnsu\src\main\resources\pushrocks\levels\Level 1.txt
+    // C:\Users\magnu\Documents\LocalUNI\2022V\GIT\TDT4100_prosjekt_magnsu\src\main\resources\pushrock\levels\Level 1.txt
 }

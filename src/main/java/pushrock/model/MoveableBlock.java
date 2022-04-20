@@ -1,4 +1,4 @@
-package pushrocks.model;
+package pushrock.model;
 
 public class MoveableBlock extends DirectedBlock {
 

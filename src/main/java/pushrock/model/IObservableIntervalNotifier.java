@@ -1,4 +1,4 @@
-package pushrocks.model;
+package pushrock.model;
 
 public interface IObservableIntervalNotifier {
     public void addObserver(IObserverIntervalNotifier observer);

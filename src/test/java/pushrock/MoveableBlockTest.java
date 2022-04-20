@@ -1,4 +1,4 @@
-package pushrocks;
+package pushrock;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -9,9 +9,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import pushrocks.model.BlockAbstract;
-import pushrocks.model.DirectedBlock;
-import pushrocks.model.MoveableBlock;
+import pushrock.model.BlockAbstract;
+import pushrock.model.DirectedBlock;
+import pushrock.model.MoveableBlock;
 
 public class MoveableBlockTest {
     private char[] validTypes = new char[] {'p', 'r'};

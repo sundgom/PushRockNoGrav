@@ -1,10 +1,11 @@
-package pushrocks;
+package pushrock;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import pushrocks.model.BlockAbstract;
-import pushrocks.model.TraversableBlock;
+
+import pushrock.model.BlockAbstract;
+import pushrock.model.TraversableBlock;
 
 public class TraversableBlockTest {
     //Tests of constructor and methods inherited by BlockAbstract

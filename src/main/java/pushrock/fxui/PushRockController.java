@@ -1,4 +1,4 @@
-package pushrocks.fxui;
+package pushrock.fxui;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,17 +23,17 @@ import javafx.scene.layout.RowConstraints;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
-import pushrocks.model.BlockAbstract;
-import pushrocks.model.DirectedBlock;
-import pushrocks.model.IObservableIntervalNotifier;
-import pushrocks.model.IObservablePushRocks;
-import pushrocks.model.IObserverIntervalNotifier;
-import pushrocks.model.IObserverPushRocks;
-import pushrocks.model.PushRocks;
+import pushrock.model.BlockAbstract;
+import pushrock.model.DirectedBlock;
+import pushrock.model.IObservableIntervalNotifier;
+import pushrock.model.IObservablePushRock;
+import pushrock.model.IObserverIntervalNotifier;
+import pushrock.model.IObserverPushRock;
+import pushrock.model.PushRock;
 
-public class PushRocksController implements IObserverPushRocks, IObserverIntervalNotifier {
+public class PushRockController implements IObserverPushRock, IObserverIntervalNotifier {
 
-    private PushRocks pushRocks;
+    private PushRock pushRock;
     private int blockSize;
     // private boolean incrementGravityOnInterval;
     private SaveHandler saveHandler = new SaveHandler();
@@ -178,9 +178,9 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         menuLevelChoiceBox.setItems(levelList);
         handleGravityChoiceManual(); //Gravity application is set to manual until other is chosen.
         
-		pushRocks = new PushRocks(levelLayout1, directionLayout1);
-        pushRocks.addObserver(this);
-        pushRocks.pause(true);
+		pushRock = new PushRock(levelLayout1, directionLayout1);
+        pushRock.addObserver(this);
+        pushRock.pause(true);
 		createMap();
 		drawMap();
         // this.incrementGravityOnInterval = true;
@@ -196,8 +196,8 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         this.blockSize = 25;
         int mapWidth;
         int mapHeight; 
-        mapWidth = pushRocks.getWidth();
-        mapHeight = pushRocks.getHeight();
+        mapWidth = pushRock.getWidth();
+        mapHeight = pushRock.getHeight();
 
         map.setPrefWidth(mapWidth*blockSize);
         map.setMaxWidth(mapWidth*blockSize);
@@ -215,8 +215,8 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         anchorPane.setMaxHeight(mapHeight*blockSize+controlBoxRowConstraints.getMaxHeight());
         anchorPane.setMinHeight(mapHeight*blockSize+controlBoxRowConstraints.getMaxHeight());
 
-		for (int y = 0; y < pushRocks.getHeight(); y++) {
-            for (int x = 0; x < pushRocks.getWidth(); x++) {
+		for (int y = 0; y < pushRock.getHeight(); y++) {
+            for (int x = 0; x < pushRock.getWidth(); x++) {
 				//creates a new pane that will represent a given block 
                 Pane block = new Pane();
 				//determines the positioning of the pane 
@@ -250,8 +250,21 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
                 return "#b5b5b5";
             //PressurePlate
             case 'd':   
-                return "#a72702";
-                // // return "#f1b469";
+                // return "#a72702";
+                // // // return "#f1b469";
+                if (!isBirdView) {
+                    return "#7cb1fc"; //this color made things look ugly
+                    // return "#6a98d9"; //this color made things look ugly
+                    // return "#5b82bb"; //this color made things look ugly
+                    // return "#1db121";
+                }
+                else {
+                    // return "#84786a";
+                    // return "#168c4d";
+                    // return "#1bab5e";
+                    return "#21cc70";
+                    // return "#32804e";
+                }
             //Teleporter
             case 't':   
                 if (state) {
@@ -299,11 +312,18 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 	}
 
     private String getBorderColor(char type, boolean state) {
-        if (type == 'v' || type == 'u') {
+        if (type == 'd') {
+            // return "#a72702";
+            // return "#f1b469";
+            // return "#0fffe7";
+            // return "#454545";
+            return "#5b5b5b";
+        }
+        else if (type == 'v' || type == 'u') {
             // return "#a0a0a1";
             return "#b5b5b5";
         }
-        if (type == 'p') {
+        else if (type == 'p') {
 			if (state) {
                 return "#245097";
 				
@@ -317,6 +337,8 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 
     private int getBorderWidth(char type) {
         switch(type) {
+            case 'd':
+                return this.blockSize * 1/8;
             //Player
             case 'p':
                 return this.blockSize * 3/4;
@@ -333,10 +355,10 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     }
 
     private String getBlockStyle(int x, int y) {
-        BlockAbstract blockCopy = pushRocks.getTopBlockCopy(x, y);
+        BlockAbstract blockCopy = pushRock.getTopBlockCopy(x, y);
         char type = blockCopy.getType();
         boolean state = blockCopy.getState();
-        boolean isBirdView = pushRocks.getTraversableBlockCopy(x, y).isBirdView();
+        boolean isBirdView = pushRock.getTraversableBlockCopy(x, y).isBirdView();
         String style = "-fx-background-color: " + getBackgroundColor(type, state, isBirdView) + ";";
 
         if (blockCopy instanceof DirectedBlock) {
@@ -361,6 +383,12 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
                 }
             }
         }
+        else if (type == 'd') {
+            style += "-fx-border-color: " + getBorderColor(type, state) + ";";
+            int borderWidth = getBorderWidth(type);
+            style += "-fx-border-width: " + borderWidth + " " + borderWidth + " " + borderWidth + " " + borderWidth + ";";
+        }
+        
         return style;
     }
 
@@ -420,7 +448,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     }
     private void movePlayer(String direction) {
         try {
-            pushRocks.movePlayer(direction);
+            pushRock.movePlayer(direction);
         } catch (Exception e) {
             this.appInformationText.setText(e.getMessage());
             this.appInformationText.setVisible(true);
@@ -456,7 +484,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 
     @FXML private void placePortal(boolean isPortalOne) {
         try {
-            pushRocks.placePortal(isPortalOne);
+            pushRock.placePortal(isPortalOne);
         } catch (IllegalStateException e) {
             this.appInformationText.setVisible(true);
             this.appInformationText.setText(e.getMessage());
@@ -465,12 +493,12 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 
     @FXML
     private void handleGravityInverter() {
-        pushRocks.gravityInverter();
+        pushRock.gravityInverter();
         updateGravityButton();
     }
 
     public void updateGravityButton() {
-        if (pushRocks.getGravityDirectionY() < 0) {
+        if (pushRock.getGravityDirectionY() < 0) {
             gravityButton.setText("Gravity ▼");
         }
         else {
@@ -479,11 +507,11 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     }
     @FXML 
     private void handleManualGravityIncrement() {
-        pushRocks.gravityStep();
+        pushRock.gravityStep();
     }
     @FXML
     private void handleResetLevel() {
-        pushRocks.resetLevel();
+        pushRock.resetLevel();
         updateGravityButton();     
     }
 
@@ -494,8 +522,8 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         statusPage.setVisible(false);
         gravityManualIncrementButton.setVisible(false);
         // if (this.incrementGravityOnInterval) {
-        if (this.pushRocks.isGravityApplicationInterval()) {
-            this.pushRocks.pause(true);
+        if (this.pushRock.isGravityApplicationInterval()) {
+            this.pushRock.pause(true);
         }
     }
     private void unpause() {
@@ -505,8 +533,8 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         statusPage.setVisible(false);
         gravityManualIncrementButton.setVisible(false); 
         // if (this.incrementGravityOnInterval) {
-        if (this.pushRocks.isGravityApplicationInterval()) {
-            this.pushRocks.pause(true);
+        if (this.pushRock.isGravityApplicationInterval()) {
+            this.pushRock.pause(true);
         }
     }
 
@@ -531,7 +559,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     @FXML
     private void handleContinue() {
         System.out.println("Continue!");
-        if (pushRocks.isGameOver()) {
+        if (pushRock.isGameOver()) {
             handleResetLevel();
         }
         updateGravityButton();
@@ -539,21 +567,21 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 
         if (menuGravityMoveInputButton.isSelected()) {
             System.out.println("Gravity: moveInput");
-            this.pushRocks.setGravityApplicationMoveInput();
-            System.out.println("gMoveInput:" + this.pushRocks.isGravityApplicationMoveInput());
+            this.pushRock.setGravityApplicationMoveInput();
+            System.out.println("gMoveInput:" + this.pushRock.isGravityApplicationMoveInput());
             gravityManualIncrementButton.setVisible(false);
         }
         else if (menuGravityIntervalButton.isSelected()) {
             System.out.println("Gravity: interval");
-            this.pushRocks.setGravityApplicationInterval();
-            System.out.println("gInterval" + this.pushRocks.isGravityApplicationInterval());
+            this.pushRock.setGravityApplicationInterval();
+            System.out.println("gInterval" + this.pushRock.isGravityApplicationInterval());
             gravityManualIncrementButton.setVisible(false);
-            this.pushRocks.pause(false);
+            this.pushRock.pause(false);
         }
         else {
             System.out.println("Gravity: manual");
-            this.pushRocks.setGravityApplicationManual();
-            System.out.println("gManual" + this.pushRocks.isGravityApplicationManual());
+            this.pushRock.setGravityApplicationManual();
+            System.out.println("gManual" + this.pushRock.isGravityApplicationManual());
             gravityManualIncrementButton.setVisible(true);
         }
     }
@@ -561,7 +589,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
     private void handleLevelButton() {
         System.out.println("Level button");
         try {
-            this.pushRocks = this.saveHandler.loadGame(menuLevelChoiceBox.getValue(), false);
+            this.pushRock = this.saveHandler.loadGame(menuLevelChoiceBox.getValue(), false);
         } catch (FileNotFoundException e) {
             this.appInformationText.setVisible(true);
             this.appInformationText.setText("The file: " + menuLevelChoiceBox.getValue() + " could not be found. Please try another file.");
@@ -571,8 +599,8 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
             this.appInformationText.setText(e.getMessage());
             e.printStackTrace();
         }
-        pushRocks.addObserver(this);
-        pushRocks.pause(true);
+        pushRock.addObserver(this);
+        pushRock.pause(true);
         createMap();
 		drawMap();
         // this.incrementGravityOnInterval = true;
@@ -594,7 +622,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         System.out.println("Load path:" + filePath);
         boolean loadSuccessful = false;
         try {
-            this.pushRocks = this.saveHandler.loadGame(filePath);
+            this.pushRock = this.saveHandler.loadGame(filePath);
             this.appInformationText.setText("Level-load successful.");
             loadSuccessful = true;
         } catch (FileNotFoundException e) {
@@ -611,8 +639,8 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
             this.appInformationText.setText(e.getMessage());
         }
         if (loadSuccessful) {
-            pushRocks.addObserver(this);
-            pushRocks.pause(true);
+            pushRock.addObserver(this);
+            pushRock.pause(true);
             createMap();
             drawMap();
             updateLevelText();
@@ -624,7 +652,7 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
         Path savePath = Paths.get(menuSaveFileLocationField.getText());
         System.out.println("Save path:" + savePath);
         try {
-            this.saveHandler.saveGame(this.pushRocks, savePath);
+            this.saveHandler.saveGame(this.pushRock, savePath);
             this.appInformationText.setText("Game-save successful.");
         } catch (IOException e) {
             this.appInformationText.setVisible(true);
@@ -708,14 +736,14 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 
     //GAME STATUS UPDATES
     private void updateScore() {
-        int score = this.pushRocks.getMoveCount();
+        int score = this.pushRock.getMoveCount();
         scoreButton.setText("Score: " + score); 
         menuScoreText.setText("Score: " + score);
         statusScoreText.setText("Score: " + score);
     }
 
     private void updateLevelText() {
-        String levelName = pushRocks.getLevelName();
+        String levelName = pushRock.getLevelName();
         menuLevelText.setText(levelName);
         statusLevelText.setText(levelName);
     }
@@ -723,14 +751,14 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 	private void drawMap() {
 		//for every possible block coordinate, set the background color according the block
 		//representing that specific coordinate
-		for (int y = 0; y < pushRocks.getHeight(); y++) {
-            for (int x = 0; x < pushRocks.getWidth(); x++) {
+		for (int y = 0; y < pushRock.getHeight(); y++) {
+            for (int x = 0; x < pushRock.getWidth(); x++) {
                 String style = getBlockStyle(x, -y);
-                map.getChildren().get(y * pushRocks.getWidth() + x).setStyle(style);
+                map.getChildren().get(y * pushRock.getWidth() + x).setStyle(style);
             }
         }
         this.updateScore();
-        if (this.pushRocks.isGameOver()) {
+        if (this.pushRock.isGameOver()) {
             this.handleScore();
             statusTitleRightText.setText("PUSHED");
             statusMessageText.setText("Congratulations, you managed to complete this absolutely meaningless test.");
@@ -739,15 +767,15 @@ public class PushRocksController implements IObserverPushRocks, IObserverInterva
 	}
 
     @Override
-    public void update(IObservablePushRocks observable) {
-        if (observable == this.pushRocks) {
+    public void update(IObservablePushRock observable) {
+        if (observable == this.pushRock) {
             this.drawMap();
         }
     }
 
     @Override
     public void update(IObservableIntervalNotifier observable) {
-        this.pushRocks.gravityStep();
+        this.pushRock.gravityStep();
         
     }
 
