@@ -1,0 +1,20 @@
+#File type:
+Save
+
+#Level name:
+Level test
+
+#Level map layout:
+prrrrotwuvd -@
+
+#Level direction layout:
+uudrlurlg
+
+#Save map layout:
+prrrrotwuvd -@
+
+#Save direction layout:
+uudrlurlg
+
+#Save move count:
+0

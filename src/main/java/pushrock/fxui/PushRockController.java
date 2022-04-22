@@ -12,7 +12,9 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
@@ -35,17 +37,13 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
 
     private PushRock pushRock;
     private int blockSize;
-    // private boolean incrementGravityOnInterval;
-    private SaveHandler saveHandler = new SaveHandler();
-    //Controller attributes
-    private int gravityChoice;
+    private ISaveHandler saveHandler = new SaveHandler();
 
     //APP
     @FXML 
     private AnchorPane anchorPane;
     @FXML
     private Text appInformationText;
-    private Text appInformationIcon;
 
     //GAME PAGE
     @FXML
@@ -96,11 +94,17 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
     private RadioButton menuGravityMoveInputButton;
     @FXML 
     private RadioButton menuGravityIntervalButton;
+    @FXML
+    private ToggleGroup gravityApplicationChoice;
 
-    @FXML
-    private Button menuApplyChangesButton;
-    @FXML
-    private Button menuRevertChangesButton;
+    @FXML 
+    private Slider menuGravityIntervalSlider;
+
+    // @FXML
+    // private Button menuApplyChangesButton;
+    // @FXML
+    // private Button menuRevertChangesButton;
+
    
     //STATUS PAGE
     @FXML
@@ -123,28 +127,6 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
 
     @FXML
     public void initialize() {
-
-        // String levelLayout1 = """
-        //     wwwwwwwwwwwwwwwwwww@
-        //     w  w     w        w@
-        //     w  w r   w  r     w@
-        //     w  wwww ww        w@
-        //     w   r    w        w@
-        //     w        www      w@
-        //     w        w        w@
-        //     w        w        w@
-        //     w        w        w@
-        //     wwwwwwwwwwwwwwwwwww@
-        //     W--------W---T----W@
-        //     W--------W------ -W@
-        //     W--------WWW----WWW@
-        //     W--------W-   --D-W@
-        //     W--------W--------W@
-        //     W--------W-WVR----W@
-        //     W- ------W-T------W@
-        //     W--------W---R--P-W@
-        //     WWWWWWWWWWWWWUWWWWW@""";
-        // String directionLayout1 = "rrrrrrruG";
 
         String levelLayout1 = """
             twwwwwwwwwwwwwwwwwd@
@@ -176,14 +158,12 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
         ObservableList<String> levelList = FXCollections.observableArrayList();
         levelList.addAll(this.saveHandler.getLevelNames());
         menuLevelChoiceBox.setItems(levelList);
-        handleGravityChoiceManual(); //Gravity application is set to manual until other is chosen.
         
 		pushRock = new PushRock(levelLayout1, directionLayout1);
         pushRock.addObserver(this);
         pushRock.pause(true);
 		createMap();
 		drawMap();
-        // this.incrementGravityOnInterval = true;
         updateLevelText();
 	}
 
@@ -236,34 +216,21 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
             //Floor
             case ' ':
                 if (!isBirdView) {
-                    return "#5b82bb"; //this color made things look ugly
-                    // return "#1db121";
+                    return "#5b82bb";
                 }
                 else {
-                    // return "#84786a";
                     return "#168c4d";
-                    // return "#32804e";
                 }
             //Wall
             case 'w':
-                // return "#a0a0a1";
                 return "#b5b5b5";
             //PressurePlate
             case 'd':   
-                // return "#a72702";
-                // // // return "#f1b469";
                 if (!isBirdView) {
-                    return "#7cb1fc"; //this color made things look ugly
-                    // return "#6a98d9"; //this color made things look ugly
-                    // return "#5b82bb"; //this color made things look ugly
-                    // return "#1db121";
+                    return "#7cb1fc"; 
                 }
                 else {
-                    // return "#84786a";
-                    // return "#168c4d";
-                    // return "#1bab5e";
                     return "#21cc70";
-                    // return "#32804e";
                 }
             //Teleporter
             case 't':   
@@ -305,22 +272,18 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
                 else {
                     return "#c95604";
                 }
-            //Defaults to match the floor-color, used if the input type has no other specified color
+                //A default color is set for any other type, which should only be used in the case that a new type has been introduced 
+                //and the controller has yet to assign it a color of its own.
             default:
-                return "#84786a";  //may be better to throw exception here
+                return "#84786a"; 
         }
 	}
 
     private String getBorderColor(char type, boolean state) {
         if (type == 'd') {
-            // return "#a72702";
-            // return "#f1b469";
-            // return "#0fffe7";
-            // return "#454545";
             return "#5b5b5b";
         }
         else if (type == 'v' || type == 'u') {
-            // return "#a0a0a1";
             return "#b5b5b5";
         }
         else if (type == 'p') {
@@ -399,7 +362,6 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
     }
 
     //GAME
-
     @FXML
     private void handlePlayerInput(KeyEvent keyEvent) {
         if (keyEvent.getCode() == KeyCode.ESCAPE) {
@@ -513,6 +475,7 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
     private void handleResetLevel() {
         pushRock.resetLevel();
         updateGravityButton();     
+        appInformationText.setText("Level reset.");
     }
 
     private void pause() {
@@ -553,6 +516,7 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
         System.out.println("Open menu.");
         this.pause();
         menuPage.setVisible(true);
+        appInformationText.setText("Open menu.");
     }
 
     //MENU PAGE
@@ -561,6 +525,9 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
         System.out.println("Continue!");
         if (pushRock.isGameOver()) {
             handleResetLevel();
+        }
+        else {
+            appInformationText.setText("Continue!");
         }
         updateGravityButton();
         this.unpause();
@@ -573,6 +540,9 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
         }
         else if (menuGravityIntervalButton.isSelected()) {
             System.out.println("Gravity: interval");
+            
+            double interval = menuGravityIntervalSlider.getValue();
+            System.out.println(interval);
             this.pushRock.setGravityApplicationInterval();
             System.out.println("gInterval" + this.pushRock.isGravityApplicationInterval());
             gravityManualIncrementButton.setVisible(false);
@@ -588,8 +558,11 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
     @FXML
     private void handleLevelButton() {
         System.out.println("Level button");
+        boolean loadSuccessful = false;
+        String levelFileName = menuLevelChoiceBox.getValue();
         try {
-            this.pushRock = this.saveHandler.loadGame(menuLevelChoiceBox.getValue(), false);
+            this.pushRock = this.saveHandler.loadGame(levelFileName, false);
+            loadSuccessful = true;
         } catch (FileNotFoundException e) {
             this.appInformationText.setVisible(true);
             this.appInformationText.setText("The file: " + menuLevelChoiceBox.getValue() + " could not be found. Please try another file.");
@@ -598,12 +571,17 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
             this.appInformationText.setVisible(true);
             this.appInformationText.setText(e.getMessage());
             e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            this.appInformationText.setVisible(true);
+            this.appInformationText.setText(e.getMessage());
         }
-        pushRock.addObserver(this);
-        pushRock.pause(true);
-        createMap();
-		drawMap();
-        // this.incrementGravityOnInterval = true;
+        if (loadSuccessful) {
+            pushRock.addObserver(this);
+            pushRock.pause(true);
+            appInformationText.setText(levelFileName + " was loaded successfully!");
+            createMap();
+            drawMap();
+        }
         updateLevelText();
         updateLevelList();
     }
@@ -643,6 +621,7 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
             pushRock.pause(true);
             createMap();
             drawMap();
+            appInformationText.setText("Game-save loaded successfully!");
             updateLevelText();
         }
     }   
@@ -699,34 +678,25 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
         }
     }
 
-    @FXML
-    private void handleGravityChoiceManual() {
-        System.out.println("Gravity application: manual");
-        menuGravityChoice(1);
-    }
-    @FXML
-    private void handleGravityChoiceMoveInput() {
-        System.out.println("Gravity application: move input");
-        menuGravityChoice(0);
-    }
-    @FXML
-    private void handleGravityChoiceInterval() {
-        System.out.println("Gravity application: interval");
-        menuGravityChoice(-1);
-    }
+    // @FXML 
+    // private void handleGravityApplicationChange() {
+    //     System.out.println("Gravity application change.");
+    //     if (menuGravityIntervalButton.isSelected()) {
+    //         menuGravityIntervalSlider.setDisable(false);
+    //     }
+    //     else {
+    //         menuGravityIntervalSlider.setDisable(true);
+    //     }
+    // }
 
-    @FXML
-    private void handleApplyChanges() {
-        System.out.println("Apply changes");
-    }
-    @FXML
-    private void handleRevertChanges() {
-        System.out.println("Revert changes");
-    }
-
-    private void menuGravityChoice(int c) {
-        this.gravityChoice = c;
-    }
+    // @FXML
+    // private void handleApplyChanges() {
+    //     System.out.println("Apply changes");
+    // }
+    // @FXML
+    // private void handleRevertChanges() {
+    //     System.out.println("Revert changes");
+    // }
 
     //STATUS PAGE
     @FXML
@@ -760,6 +730,7 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
         this.updateScore();
         if (this.pushRock.isGameOver()) {
             this.handleScore();
+            appInformationText.setText("Level complete!");
             statusTitleRightText.setText("PUSHED");
             statusMessageText.setText("Congratulations, you managed to complete this absolutely meaningless test.");
             // statusSituationalButton.setText("Reset"); //causes thread exception
@@ -776,7 +747,6 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
     @Override
     public void update(IObservableIntervalNotifier observable) {
         this.pushRock.gravityStep();
-        
     }
 
 }   

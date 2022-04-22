@@ -1,0 +1,56 @@
+#File type:
+Save
+
+#Level name:
+Level 5
+
+#Level map layout:
+WWWWWWWWWWWWWWWWWWW@
+W-D--------------TW@
+W-----------------W@
+WWWW-----------D--W@
+W-------------WWWWW@
+W-r---------------W@
+W-------------r---W@
+W-----------------W@
+W------           w@
+W-----            w@
+W----             w@
+w        w   r  d w@
+w     p  www    www@
+w     wwww   r  d w@
+w        w        w@
+w        w ww     w@
+w t      w t      w@
+w                 w@
+wwwwwwwwwwwwwwwwwww@
+
+#Level direction layout:
+rrrrrg
+
+#Save map layout:
+WWWWWWWWWWWWWWWWWWW@
+W-D--------------TW@
+W-----------------W@
+WWWW-----------D--W@
+W-------------WWWWW@
+W-r---------------W@
+W-------------r---W@
+W-----------------W@
+W-----P           w@
+W-----            w@
+W----             w@
+w        w   r  d w@
+w        www    www@
+w     wwww   r  d w@
+w        w        w@
+w        w ww     w@
+w t      w t      w@
+w                 w@
+wwwwwwwwwwwwwwwwwww@
+
+#Save direction layout:
+rrrrrg
+
+#Save move count:
+4

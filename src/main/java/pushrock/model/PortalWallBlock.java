@@ -166,20 +166,20 @@ public class PortalWallBlock extends ObstacleBlock {
     public String toString() {
         switch (this.getType()) {
             case 'w':
-                return "#";
+                return "w";
             case 'v':
                 if (this.getState()) {
-                    return "v";
+                    return "ṿ";
                 }
                 else {
-                    return "V";
+                    return "v";
                 }
             case 'u':
                 if (this.getState()) {
-                    return "u";
+                    return "ụ";
                 }
                 else {
-                    return "U";
+                    return "u";
                 }
 
             default:

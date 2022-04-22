@@ -5,10 +5,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.List;
 
 import pushrock.model.PushRock;
 
 public interface ISaveHandler {
+
+    public List<String> getLevelNames();
 
     public Path getResourceFoldersPath(String folder);
 
@@ -16,7 +19,7 @@ public interface ISaveHandler {
 
     public PushRock loadGame(String fileName, boolean isSave) throws FileNotFoundException, IOException;
     
-    public PushRock loadGame(Path filePath) throws FileNotFoundException, IOException, NumberFormatException, IllegalArgumentException;
+    public PushRock loadGame(Path filePath) throws FileNotFoundException, IOException;
 
     public void saveGame(PushRock pushRock, OutputStream outputStream);
     

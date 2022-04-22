@@ -122,17 +122,17 @@ public class MoveableBlock extends DirectedBlock {
         switch (this.getType()) {
             case 'p':
                 if (this.getState()) {
-                    return "p";
+                    return "q";
                 }
                 else {
-                    return "q";
+                    return "p";
                 }
             case 'r':
                 if (this.getState()) {
-                    return "Ø";
+                    return "o";
                 }
                 else {
-                    return "O";
+                    return "r";
                 }
             default:
                 return "";

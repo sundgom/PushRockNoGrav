@@ -111,10 +111,10 @@ public class TeleporterBlock extends ObstacleBlock {
         switch (this.getType()) {
             case 't':
                 if (this.getState()) {
-                    return "+";
+                    return "ṭ";
                 }
                 else {
-                    return "-";
+                    return "t";
                 }
             default:
                 return "";

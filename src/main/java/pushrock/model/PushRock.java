@@ -49,7 +49,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     }
 
     public boolean isGravityInverted() {
-        return false;
+        return this.isGravityInverted;
     }
 
     public void setGravityApplicationManual() {
@@ -171,6 +171,9 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     //Similar to the method given above, except a copy of the block is returned instead.
     public BlockAbstract getTopBlockCopy(int x, int y) {
         BlockAbstract block = this.getTopBlock(x, y);
+        if (block == null) {
+            return null;
+        }
         BlockAbstract blockCopy;
         if (block instanceof MoveableBlock) {
             blockCopy = new MoveableBlock(x, y, block.getType(), ((MoveableBlock) block).getDirection());
@@ -197,7 +200,6 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                 if (((PortalWallBlock) block).isPortal()) {
                     ((PortalWallBlock) blockCopy).setPortal(((PortalWallBlock) block).isPortalOne(), ((DirectedBlock) block).getDirection(), (PortalWallBlock) blockConnectionCopy);
                 }
-                
             }
         }
         //Otherwise it must be a traversable block.
@@ -209,6 +211,9 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     //Returns a copy of the traversable block at the given coordinate
     public TraversableBlock getTraversableBlockCopy(int x, int y) {
         TraversableBlock block = this.getTraversableBlock(x, y);
+        if (block == null) {
+            return null;
+        }
         return new TraversableBlock(x, y, block.getType(), block.isBirdView());
     }
 
@@ -262,7 +267,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     //Updates the teleporter connections according to the current activePressurePlatesCount, and thus activates/deactivates them depending on wether they are connected or not
     private void updateTeleporters() {
         if (this.teleporters.size() < 2) {
-            System.out.println("There are not enough teleporters, thus there is nothing to update."); //COULD THROW EXCEPTION MAYBE? !!!!!!!!!!!
+            System.out.println("There are not enough teleporters, thus there is nothing to update.");
             return;
         }
         //Connects two teleporters together based on the game's current activePressurePlatesCount. A previous connection is removed once a new one is made.
@@ -584,23 +589,28 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                 //of the blocks entering the portal that were pulled down by gravity. If one of these blocks was to fall, then that would break the
                 //original chain at that block, and instead reform a new chain consisting of all blocks up until that break point, and then continue
                 //down in the direction of gravity
-                if (exitDirectionX != 0) { 
-                    for (BlockAbstract chainBlock : exitChainPotential) {
-                        //Since the chain has remained intact until this block, then this block must be part of the actual chain
-                        exitChain.add(chainBlock); 
-                        //If this block is airborne, then the horizontal chain will break at this point, and then instead connect with the block
-                        //chain that falls down in the direction of gravity from that break point.
-                        if (isBlockAirborne((MoveableBlock) chainBlock)) {
-                            exitChain.addAll(getBlockChain(chainBlock, 0, this.getGravityDirectionY()));
-                            break;
-                        }
-                    }
-                }
-                //Otherwise the exit direction must be vertical, in which case the exit chain will be equal to the potential one.
-                else {
-                    exitChain = exitChainPotential;
-                }
-            } 
+                // if (exitDirectionX != 0) { 
+                //     for (BlockAbstract chainBlock : exitChainPotential) {
+                //         //Since the chain has remained intact until this block, then this block must be part of the actual chain
+                //         exitChain.add(chainBlock); 
+                //         //If this block is airborne, then the horizontal chain will break at this point, and then instead connect with the block
+                //         //chain that falls down in the direction of gravity from that break point.
+                //         if (isBlockAirborne((MoveableBlock) chainBlock)) {
+                //             exitChain.addAll(getBlockChain(chainBlock, 0, this.getGravityDirectionY()));
+                //             break;
+                //         }
+                //     }
+                // }
+                // //Otherwise the exit direction must be vertical, in which case the exit chain will be equal to the potential one.
+                // else {
+                //     exitChain = exitChainPotential;
+                // }
+                exitChain = exitChainPotential; //most recent change, temporary replacement for commented-out code
+            } //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // } //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // } //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // } //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // } //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             //The two moveable block lists should thus be put together, bound together by the entry and exit porter, which forms the complete chain
             List<BlockAbstract> completeChain = new ArrayList<BlockAbstract>();
 
@@ -691,9 +701,10 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
 
     public void gravityStep() {
         //Gravity should not be applied when the game is over
-        if (this.isGameOver == true) {
+        if (this.isGameOver) {
             return; 
         }
+        boolean anyBlockMoved = false;
         // The first blocks that should fall down are the ones furthest down in the gravity's direction, thus
         // these blocks should be issued to move first.
         // // // // // // List<MoveableBlock> transportersAsFooting = this.moveableBlocks.stream()
@@ -773,8 +784,9 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                             int indexOfNewYCoordinate = Math.floorMod(blockIndex - 1, uniqueMoveableBlocks.size());
                             int newY = oldYCoordinates.get(indexOfNewYCoordinate);
                             ((MoveableBlock) block).setY(newY);
-                            //Blocks should only be gravity once, thus these blocks will be added to the list of moved blocks.
+                            //Blocks should only be moved by gravity once, thus these blocks will be added to the list of moved blocks.
                             movedBlocks.add(block);
+                            anyBlockMoved = true; 
                         }
                     }
                 }
@@ -821,36 +833,41 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                         //If the block could not be moved in the direction of gravity
                         if (!moveBlock((MoveableBlock) block, this.getGravityDirection(), 1, "gravity")) {
                             //Then try to move it in the direction of the transporter instead
-                            moveBlock((MoveableBlock) block, porterDirection, 1, "gravity");
+                            if (moveBlock((MoveableBlock) block, porterDirection, 1, "gravity")) {
+                                anyBlockMoved = true;
+                            };
                         }
                     }
                     //Otherwise if the porterdirection is vertical and the block is airborne, then move that block in the direction of that porter
                     else if (isBlockAirborne((MoveableBlock) block)) {
-                        moveBlock((MoveableBlock) block, porterDirection, 1, "gravity");
+                        if (moveBlock((MoveableBlock) block, porterDirection, 1, "gravity")) {
+                            anyBlockMoved = true;
+                        }
                     }
                     //Then add the current block to the moved block list, as to keep track of those that have been moved
                     movedBlocks.add(block);
-                    System.out.println(this.prettyString());
+                    // System.out.println(this.prettyString());
                 }
-                System.out.println(this.prettyString());
+                // System.out.println(this.prettyString());
             }
         }
         //Once all the blockchains placed at portals have been moved according to gravity the remainder of the moveable
         //blocks should be moved in the direction of gravity. The first to fall will be the block furthest down (in relation to gravity),
         //and then by horizontal position should the vertical one by equal.
         int g = this.getGravityDirectionY();
-        this.moveableBlocks.stream()
+        List<MoveableBlock> successfullyMovedBlocks = this.moveableBlocks.stream()
             .filter(a -> !movedBlocks.contains(a))
             .filter(a -> isBlockAirborne(a))
             .sorted((a, b) -> g*(b.getX() - a.getX()))
             .sorted((a, b) -> g*(b.getY() - a.getY()))
-            .forEach(a -> moveBlock(a, this.getGravityDirection(), 1, "gravity"));
-
+            .filter(a -> moveBlock(a, this.getGravityDirection(), 1, "gravity"))
+            .collect(Collectors.toList());
         //Check if the game is over after gravity was applied
-        this.checkGameOver();
-        
-        this.notifyObservers();
-        System.out.println();
+        if (successfullyMovedBlocks.size() > 0 || anyBlockMoved) {
+            this.checkGameOver();
+            this.notifyObservers();
+            System.out.println(this.prettyString());
+        }
     }
 
     private BlockAbstract getFootingBlock(MoveableBlock block, boolean isTransportationConsidered) {
@@ -1073,9 +1090,9 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         if (wasMoved == true) {
             this.incrementMoveCount();
         }
-        System.out.println(this.prettyString());
         this.updateActivePressurePlatesCount();
         this.checkGameOver();
+        System.out.println(this.prettyString());
         this.notifyObservers();
         //If gravity is set to be applied on move input, then gravityStep should be called now that the move input has been processed.
         if (this.isGravityApplicationMoveInput()) {
@@ -1135,8 +1152,8 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
             }
         }
         //If the push is made by a player, then the strength of the pushing motion increases
-        if (block.isPlayer() || (movementSource.equals("gravity") && isBlockAirborne(block))) {
-            // strength++;
+        if ((movementSource.equals("gravity") && isBlockAirborne(pushingBlock))) {
+            strength--;
         }
         //Otherwise it must have been made by a rock, which itself will cost strength to push forward, thus the strength of the pushing motion decreases
         else { 
@@ -1145,7 +1162,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
 
         //If the block to be pushed is able to be moved in the given direction, then the push has been successful, thus return true
         if (moveBlock(block, direction, strength, movementSource)) {
-            System.out.println(this.prettyString());
+            // System.out.println(this.prettyString());
             return true;
         }
         //Otherwise the block could not be pushed, thus false is returned
@@ -1179,7 +1196,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                 //If the block to be moved can not enter the transporter, then the transporter will instead be treated
                 //as if it was a wall, thus hindering the movement of the block.
                 if (!obstacleBlock.canBlockEnter(blockOld)) {
-                    System.out.println("Can not move further: can only enter portal from its entry point");
+                    System.out.println("A transporter can only be entered when connected, and must be entered from its entry point.");
                     return false;
                 }
                 //Otherwise the transporter must be connected, thus the moving block should be transported out of the connected transporter in
@@ -1265,19 +1282,15 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                 if (movementSource != "gravity" && block.isPlayer()) {
                     block.setDirection(blockNew.getDirection());
                 }
-                System.out.println(this.prettyString());
-
                 //Then
-
                 block.setState(getTraversableBlock(block.getX(), block.getY()).isPressurePlate());
                 moveBaggage(blockOld, directionOriginal);
-                System.out.println(this.prettyString());
+                // System.out.println(this.prettyString());
                 return true;
             }
             // do not move this block if the block ahead could not be moved
             return false;
         }
-    
         System.out.println("Can not move, block occupied.");
         return false;
     }
@@ -1327,33 +1340,36 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
 
 
     public String toString() {
-        System.out.println("MAP TO STRING START");
         String pushRockString = new String();
         for (int y = 0; y > height*(-1); y--) {
             for (int x = 0; x < width; x++) {
+                String type = "?";
                 if (getMoveableBlock(x, y) != null) {
-                    pushRockString += this.getMoveableBlock(x, y).toString();
+                    type = this.getMoveableBlock(x, y).toString();
                 }
                 else if (getObstacleBlock(x, y) != null) {
-                    pushRockString += this.getObstacleBlock(x, y).toString();
+                    type = this.getObstacleBlock(x, y).toString();
                 }
                 else {
-                    pushRockString += this.getTraversableBlock(x, y).toString();
+                    type = this.getTraversableBlock(x, y).toString();
                 }
+                if (!this.getTraversableBlock(x, y).isBirdView()) {
+                    type = type.toUpperCase();
+                }
+                pushRockString += type;
             }
             pushRockString += "\n";
         } 
-        System.out.println("MAP TO STRING SUCCESSFUL");
         return pushRockString;
     }
 
     public String prettyString() {
         String prettyString = new String();
-        prettyString += "Score:" + this.getActivePressurePlatesCount() + " isGameOver?" + this.isGameOver() + "\n";
+        prettyString += "Score:" + this.getMoveCount() + " isGravityInverted:" + this.isGravityInverted + " isGameOver:" + this.isGameOver() + "\n";
         String originalString = this.toString();
         for (int i = 0; i < originalString.length(); i++) {
             if (i==0) {
-                for (int j = 0; j < traversableBlocks.length + 1; j++) {
+                for (int j = 0; j < this.width + 1; j++) {
                     if (j==0) {
                         prettyString += "X";
                     }
@@ -1371,46 +1387,44 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         return prettyString;
     }
     
-
+    private void setLevelValues(String levelName, String levelMapLayout, String levelDirectionLayout) {
+        if (levelName.length() < 1) {
+            throw new IllegalArgumentException("Level name must contain at least one character.");
+        }
+        this.levelName = levelName.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
+        this.levelMapLayout = levelMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
+        this.levelDirectionLayout = levelDirectionLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
+    }
 
     //Constructors
     public PushRock(String levelMapLayout, String levelDirectionLayout) {
         System.out.println("Constructor: minimal");
-        this.levelName = "Custom level";
-        this.levelMapLayout = levelMapLayout;
-        this.levelDirectionLayout = levelDirectionLayout;
-        this.buildWorld(this.levelMapLayout, this.levelDirectionLayout);
-        
-        // this.setGravityApplicationInterval();
+        this.buildWorld(levelMapLayout, levelDirectionLayout, false);
+        this.setLevelValues("Custom level", levelMapLayout, levelDirectionLayout);
     }
     public PushRock(String levelName, String levelMapLayout, String levelDirectionLayout) {
         System.out.println("Constructor: build from level information");
-        this.levelName = levelName;
-        this.levelMapLayout = levelMapLayout;
-        this.levelDirectionLayout = levelDirectionLayout;
-        this.buildWorld(this.levelMapLayout, this.levelDirectionLayout);
         
-        // this.setGravityApplicationInterval();
+        this.buildWorld(levelMapLayout, levelDirectionLayout, false);
+        this.setLevelValues(levelName, levelMapLayout, levelDirectionLayout);
     }
     public PushRock(String levelName, String levelMapLayout, String levelDirectionLayout, String saveMapLayout, String saveDirectionLayout, int saveMoveCount) {
         System.out.println("Constructor: build from save information");
-        this.levelName = levelName;
-        this.levelMapLayout = levelMapLayout;
-        this.levelDirectionLayout = levelDirectionLayout;
-        this.buildWorld(this.levelMapLayout, this.levelDirectionLayout);
-        this.buildWorld(saveMapLayout, saveDirectionLayout);
+        this.buildWorld(levelMapLayout, levelDirectionLayout, false);
+        this.setLevelValues(levelName, levelMapLayout, levelDirectionLayout);
+        this.checkLayoutCompabillityWithLevel(saveMapLayout, saveDirectionLayout);
+        saveMapLayout = saveMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
+        saveDirectionLayout = saveDirectionLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
+        this.buildWorld(saveMapLayout, saveDirectionLayout, true);
+        if (moveCount < 0) {
+            throw new IllegalArgumentException("Move count must be at least zero.");
+        }
         this.moveCount = saveMoveCount;
-        
-        // this.setGravityApplicationInterval();
     }
 
     private String checkLayoutCompabillityWithLevel(String mapLayout, String directionLayout) {
-        mapLayout = mapLayout            
-            .replaceAll("\\n", "")
-            .replaceAll("\\r", "");
-        String levelMapLayout = this.levelMapLayout
-            .replaceAll("\\n", "")
-            .replaceAll("\\r", "");
+        mapLayout = mapLayout.replaceAll("\\n|\\r\\n", "").stripTrailing();
+        String levelMapLayout = this.levelMapLayout.replaceAll("\\n|\\r\\n", "").stripTrailing();
 
         //If the input map and direction layouts are equal to the level map and direction layouts, then they are the same, as they must be compatible with themselves.
         if (mapLayout == this.levelMapLayout && directionLayout.length() == this.levelDirectionLayout.length()) {
@@ -1418,16 +1432,17 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         }
         //The map layouts must be of equal length
         if (mapLayout.length() != levelMapLayout.length()) {
-            return "Map layout and level layout must be of equal length to be compatible. Map layout length was: " + mapLayout.length() + " and level layout length was: " + this.levelMapLayout.length();
+            return "Save map layout and level map layout must be of equal length to be compatible. Save map layout length was: " + mapLayout.length() + " and level map layout length was: " + this.levelMapLayout.length();
         }
-        //The direction layouts must also be of equal length
-        if (directionLayout.length() != this.levelDirectionLayout.length()) {
-            return "Map layout and level layout must be of equal length to be compatible. Map layout length was: " + mapLayout.length() + " and level layout length was: " + this.levelMapLayout.length();
-        }
-        //The map layouts must be of equal width
         if (mapLayout.indexOf("@") != levelMapLayout.indexOf("@")) {
             return "Map layout and level layout must be of equal width to be compatible. Map layout width was: " + mapLayout.indexOf("@") + " and level layout width was: " + this.levelMapLayout.indexOf("@");
         }
+        // //The direction layouts must also be of equal length
+        // if (directionLayout.length() != this.levelDirectionLayout.length()) {
+        //     return "Save direction layout and level direction layout must be of equal length to be compatible. Save direction layout length was: " + mapLayout.length() + " and level direction layout length was: " + this.levelMapLayout.length();
+        // }
+        //The map layouts must be of equal width
+
         //The layouts must have matching counts of players and rocks, thus we keep track of how many of each the layouts have.
         int inputPlayerCount = 0;
         int inputRockCount = 0;
@@ -1484,16 +1499,29 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         if (inputRockCount != levelRockCount) {
             return "Map layouts must have matching counts of players. Count for input was: " + inputRockCount + " count for level was: " + levelRockCount;
         }
+
         //Otherwise the map-layouts must be compatible, in which case no exception message is returned.
         return null;
     }
 
-    private void buildWorld(String mapLayout, String directionLayout) {
+    private void buildWorld(String mapLayout, String directionLayout, boolean isSave) {
         //If the world is being built from a layout other than that of the level, then it must be checked that this
         //new layout is compatible with the level. 
-        String exceptionMessage = this.checkLayoutCompabillityWithLevel(mapLayout, directionLayout);
-        if (exceptionMessage != null) {
-            throw new IllegalArgumentException(exceptionMessage);
+        mapLayout = mapLayout.stripTrailing();
+        if (mapLayout.length() < 2) {
+            throw new IllegalArgumentException("Map layout length must be at least 2. Length was: " + mapLayout.length());
+        }
+        if (!(mapLayout.toLowerCase().contains("p") || (mapLayout.toLowerCase().contains("q")))) {
+            throw new IllegalArgumentException("Map layout must contain at least one player 'p'/'q'.");
+        }
+        if (!(mapLayout.toLowerCase().contains("d"))) {
+            throw new IllegalArgumentException("Map layout must contain at least one unoccupied pressure plate 'd'.");
+        }
+        if (isSave) {
+            String exceptionMessage = this.checkLayoutCompabillityWithLevel(mapLayout, directionLayout);
+            if (exceptionMessage != null) {
+                throw new IllegalArgumentException(exceptionMessage);
+            }
         }
 
         this.moveableBlocks.clear();
@@ -1512,8 +1540,8 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         this.width = mapLayout.indexOf("@");
         this.height = typeSequence.length() / this.width;
 
-        String[] blockDirections = new String[this.levelDirectionLayout.length()-1];
-        char gravityDirection = this.levelDirectionLayout.charAt(levelDirectionLayout.length()-1);
+        String[] blockDirections = new String[directionLayout.length()-1];
+        char gravityDirection = directionLayout.charAt(directionLayout.length()-1);
         if (Character.toLowerCase(gravityDirection) != 'g') {
             throw new IllegalArgumentException("The direction layout must end with the character 'g', which will determine gravity direction depending on being upper or lower case. Character was: " + gravityDirection);
         }
@@ -1528,8 +1556,8 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
             }
         }
         
-        for (int i = 0; i < levelDirectionLayout.length()-1; i++) {
-            String blockDirection = levelDirectionLayout.substring(i, i+1);
+        for (int i = 0; i < directionLayout.length()-1; i++) {
+            String blockDirection = directionLayout.substring(i, i+1);
             if (!"udlr".contains(blockDirection)) {
                 throw new IllegalArgumentException("Direction layout only supports a character representation of the following directions: up 'u', down 'd', left 'l', right 'r'.");
             }
@@ -1626,7 +1654,6 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
 
                 if ("pr".contains(tangibleType+"")) {
                     MoveableBlock moveableBlock = new MoveableBlock(x, -y, tangibleType, blockDirection);
-                    System.out.println("x=" + x + "y=" + -y);
                     //Moveable blocks standing on pressure plates will have their state set to true.
                     if (isPressurePlatePlacement) {
                         moveableBlock.setState(true);
@@ -1717,234 +1744,15 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
 
     public void resetLevel() {
         this.pause(false);
-        this.buildWorld(this.levelMapLayout, this.levelDirectionLayout);
+        System.out.println("Reset level.");
+        this.buildWorld(this.levelMapLayout, this.levelDirectionLayout, false);
+        
     }
 
 
 
 
     public static void main(String[] args) {
-   
-        // String string2 = """
-        // wwwwwwwwwwwwwwwwwww
-        // w  wp    w        w
-        // w  w r   w  r     w
-        // w  wwww ww        w
-        // w   r    w        w
-        // w      d w        w
-        // w        w        w
-        // w t  d d w  t     w
-        // w        w        w
-        // wwwwwwwwwwwwwwwwwww
-        // W--------W--------W
-        // W--------W---R--D-W
-        // W--------WWW----WWW
-        // W--------W---R--D-W
-        // W--------W--------W
-        // W--------W-WW-----W
-        // W-T------W-T------W
-        // W--------W--------W
-        // WWWWWWWWWWWWWWWWWWW""";
-        // String string2Directions = "rrrrrr";
-
-        // System.out.println(string2.indexOf("\n"));
-        // System.out.println(string2.indexOf("2"));
-        // System.out.println(string2.replace("\n", "").length() / string2.indexOf("\n"));
-
-        // PushRocks game0 = new PushRocks(string2, string2Directions);
-        // System.out.println(game0.prettyString());
-
-        // // game0.resetStationaryBlock(3, -1);
-        // System.out.println(game0);
-        // System.out.println(game0.prettyString());
-
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "left");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "left");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "left");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "down");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "down");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "down");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "down");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "down");
-        // System.out.println(game0.prettyString());
-
-        // System.out.println(game0.getObstacleBlock(2, -7).isTeleporter());
-        // System.out.println(game0.getObstacleBlock(2, -16).isTeleporter());
-
-        // System.out.println(game0.getObstacleBlock(2, -7).getState());
-        // System.out.println(game0.getObstacleBlock(2, -16).getState());
-    
-
-        // System.out.println(game0.getObstacleBlock(2, -7).getState());
-        // System.out.println(game0.getObstacleBlock(2, -16).getState());
-
-        // System.out.println(game0.prettyString());
-
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "left");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "left");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "left");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "left");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "left");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "left");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "left");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "down");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "down");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "down");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "left");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "left");
-        // System.out.println(game0.prettyString());
-
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "left");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "left");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "down");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "down");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "up");
-        // System.out.println(game0.prettyString());
-        // game0.movePlayer(1, "right");
-        // System.out.println(game0.prettyString());
-        // game0.placePortal(true, game0.getPlayer(1));
-        // game0.movePlayer(1, "left");
-        // System.out.println(game0.prettyString());
-        // game0.placePortal(false, game0.getPlayer(1));
-        // System.out.println(game0.prettyString());
-        
- 
-        // System.out.println(game0.moveableBlocks.size());
-        // System.out.println(game0.getMoveableBlock(4, 1));
-        // System.out.println(game0.getPlayer(1).getX());
-        // System.out.println(game0.getPlayer(1).getY());
-
-        // String levelMapLayout1 = """
-        //     wwwwwwwwwwwwwwwwwww
-        //     w  w     w        w
-        //     w  w r   w  r     w
-        //     w  wwww ww        w
-        //     w   r    w        w
-        //     w      d www      w
-        //     w        w        w
-        //     w    d d w        w
-        //     w        w        w
-        //     wwwwwwwwwwwwwwwwwww
-        //     W--------W--PT----W
-        //     W--------W------D-W
-        //     W--------WWW----WWW
-        //     W--------W------D-W
-        //     W--------W---R----W
-        //     W--------W--WR--R-W
-        //     W- ------W-T-R--R-W
-        //     W--------W---R--R-W
-        //     WWWWWWWWWWWWWVWWUWW""";
-        // String levelDirectionLayout1 = "rrrrrrrrrrruu";
-
-        // PushRocks game0 = new PushRocks(levelMapLayout1, levelDirectionLayout1);
-        
-        // game0.gravityInverter();
-
-        // BlockAbstract block1 = new ObstacleBlock(0, 0, 'w', null, null);
-        // ObstacleBlock block2 = new ObstacleBlock(0, 0, 'w', null, null);
-        // // block = game0.getDirectedBlock(1, 1);
-        
-        // BlockAbstract mBlock = new MoveableBlock(0, 0, 'p', "right");
-        // ((ObstacleBlock) block2).clearPortal();
-
-        // String news = "strìng";  
-        // CharSequence newnews = "a,b";
-        // String hest = Normalizer.normalize(news, Form.NFC);
-        // System.out.println(news + hest);
 
         String levelLayout1 = """
             twwwwwwwwwwwwwwwwwd@

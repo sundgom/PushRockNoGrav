@@ -4,7 +4,6 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.RadioButton?>
-<?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -212,13 +211,20 @@
                      <children>
                         <HBox alignment="CENTER" spacing="3.0">
                            <children>
-                              <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="31.0" prefWidth="115.0" spacing="3.0" />
+                              <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="31.0" prefWidth="115.0" spacing="3.0">
+                                 <children>
+                                    <Button fx:id="menuApplyChangesButton" mnemonicParsing="false" onMouseClicked="#handleApplyChanges" prefHeight="25.0" prefWidth="110.0" text="Apply changes" />
+                                 </children>
+                              </VBox>
                            </children>
                         </HBox>
-                        <Slider fx:id="menuGravityIntervalSlider" disable="true" majorTickUnit="1.0" max="2.0" min="0.1" minorTickCount="0" prefHeight="22.0" prefWidth="226.0" showTickLabels="true" showTickMarks="true" value="1.0" visible="false" />
                         <HBox alignment="CENTER" spacing="3.0">
                            <children>
-                              <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="31.0" prefWidth="115.0" spacing="3.0" />
+                              <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="31.0" prefWidth="115.0" spacing="3.0">
+                                 <children>
+                                    <Button fx:id="menuRevertChangesButton" mnemonicParsing="false" onMouseClicked="#handleRevertChanges" prefHeight="25.0" prefWidth="110.0" text="Revert changes" />
+                                 </children>
+                              </VBox>
                            </children></HBox>
                      </children>
                   </HBox>

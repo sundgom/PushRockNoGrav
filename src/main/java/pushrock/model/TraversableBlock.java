@@ -56,9 +56,14 @@ public class TraversableBlock extends BlockAbstract {
     public String toString() {
         switch (this.getType()) {
             case ' ':
-                return " ";
+                if (isBirdView()) {
+                    return " ";
+                }
+                else {
+                    return "-";
+                }
             case 'd':
-                return "/";
+                return "d";
             default:
                 return "";
         }

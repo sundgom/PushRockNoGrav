@@ -1,0 +1,11 @@
+#File type:
+Level
+
+#Level name:
+PushRock
+
+#Level map layout:
+pd@
+
+#Level direction layout:
+ug

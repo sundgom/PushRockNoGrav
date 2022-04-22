@@ -21,7 +21,7 @@ import pushrock.model.TraversableBlock;
 
 public class SaveHandler implements ISaveHandler {
 
-
+    @Override
     public List<String> getLevelNames() {
         Path levelsFolderPath = getResourceFoldersPath("levels");
         File[] levelFiles = levelsFolderPath.toFile().listFiles();
@@ -35,10 +35,12 @@ public class SaveHandler implements ISaveHandler {
         return levelFileNames;
     }
 
+    @Override
     public Path getResourceFoldersPath(String folderName) {
         return Path.of(System.getProperty("user.dir"), "src", "main", "resources", "pushrock", folderName);
     }
 
+    @Override
     public PushRock loadGame(InputStream inputStream) throws IllegalArgumentException, NumberFormatException {
         PushRock pushRock = null;
         try (var scanner = new Scanner(inputStream)) {
@@ -57,6 +59,9 @@ public class SaveHandler implements ISaveHandler {
             while (scanner.hasNext()) {
                 String nextScan = scanner.next();
                 System.out.println(nextScan);
+                if (!nextScan.contains(":")) {
+                    throw new IllegalArgumentException("Save format is invalid, missing ':' in title.");
+                }
                 String fieldName = nextScan.substring(0, nextScan.indexOf(":"));
                 String fieldData = nextScan.substring(fieldName.length()+3).stripTrailing(); //Each fieldName is followed by a colon and a line shift (":\n"), the remainder will then be the data
                 System.out.println("fieldName:" + fieldName);
@@ -103,11 +108,20 @@ public class SaveHandler implements ISaveHandler {
             }
 
             if (fileType.equals("Level")) {
+                if (saveMapLayout != null) {
+                    throw new IllegalArgumentException("File is not formated correctly: a level-file should not contain a save map layout");
+                }
+                if (saveDirectionLayout != null) {
+                    throw new IllegalArgumentException("File is not formated correctly: a level-file should not contain a save direction layout");
+                }
+                if (saveMoveCount != -1) {
+                    throw new IllegalArgumentException("File is not formated correctly: a level-file should not contain a save move count");
+                }
                 pushRock = new PushRock(levelName, levelMapLayout, levelDirectionLayout);
             }
             else if (fileType.equals("Save")) {
                 if (saveMapLayout == null) {
-                    throw new IllegalArgumentException("File is not formated correctly: could not find save direction layout");
+                    throw new IllegalArgumentException("File is not formated correctly: could not find save map layout");
                 }
                 if (saveDirectionLayout == null) {
                     throw new IllegalArgumentException("File is not formated correctly: could not find save direction layout");
@@ -120,19 +134,11 @@ public class SaveHandler implements ISaveHandler {
             else {
                 throw new IllegalArgumentException("fileType must be either 'Level' or 'Save', but was: " + fileType);
             }
-
-            // pushRock = new PushRocks(levelMapLayout, levelDirectionLayout);
-            // pushRock = new PushRocks(levelName, levelMapLayout, levelDirectionLayout);
-            // pushRock = new PushRocks(levelName, levelMapLayout, levelDirectionLayout, saveMapLayout, saveDirectionLayout, saveMoveCount);
-            
-            // pushRock.setlevelName(levelName);              //only allowed if levelName is empty
-            // pushRock.setLevelMapLayout(levelMapLayout);    //only allowed if levelMapLayout is empty
-            // pushRock.setMoveCount(saveMoveCount);          //only allowed if moveCount is 0
-            
         }
         return pushRock;
     }
 
+    @Override
     public PushRock loadGame(String fileName, boolean isSave) throws FileNotFoundException, IOException {
         Path folderPath = null;
         // if (fileName == null) {
@@ -149,6 +155,7 @@ public class SaveHandler implements ISaveHandler {
             return loadGame(inputStream);
         }
     }
+    @Override
     public PushRock loadGame(Path filePath) throws FileNotFoundException, IOException, NumberFormatException, IllegalArgumentException, NullPointerException {
         // System.out.println(filePath.toString().length());
         // System.out.println(filePath == null);
@@ -160,6 +167,7 @@ public class SaveHandler implements ISaveHandler {
         }
     }
 
+    @Override
     public void saveGame(PushRock pushRock, OutputStream outputStream) {
         try (var printWriter = new PrintWriter(outputStream)) {
             printWriter.println("#File type:");
@@ -187,7 +195,7 @@ public class SaveHandler implements ISaveHandler {
             printWriter.println(pushRock.getMoveCount());
         }
     }
-
+    @Override
     public void saveGame(PushRock pushRock, Path savePath) throws IOException {
         if (savePath.toString().length() < 1) {
             throw new IllegalArgumentException("A file path or a file name of at least one character is needed to save.");
@@ -277,17 +285,4 @@ public class SaveHandler implements ISaveHandler {
         layoutList.add(directionLayoutSave);
         return layoutList;
     }
-    public static void main(String[] args) {
-        SaveHandler save = new SaveHandler();
-        try {
-            save.loadGame("Level 2", false);
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-    // C:\Users\magnu\Documents\LocalUNI\2022V\GIT\TDT4100_prosjekt_magnsu\src\main\resources\pushrock\levels\Level 1.txt
 }
