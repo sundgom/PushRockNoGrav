@@ -1,5 +1,6 @@
 package pushrock;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -8,8 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Paths;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -355,13 +358,41 @@ public class SaveHandlerTest {
         }
     }
 
-    // @Test
-    // @DisplayName("Check that ")
+    @Test
+    @DisplayName("Check that attempting to load a non-existent file throws FileNotFoundException")
+    public void testLoadFromPathNonExistentFile() {
+        assertThrows(
+            FileNotFoundException.class,
+            () -> saveHandler.loadGame(Paths.get("This does not exist")),
+            "A path that does not lead to an existing file should throw FileNotFoundException.");
+    }
+    
+    @Test //This test assumes that the file "Level test.txt" exists in the levels resource folder, and that it is of a valid format.
+    @DisplayName("Check that attempting to load a valid and existent level file does not throw any exceptions.")
+    public void testLoadFromFileNameLevel() {
+        assertDoesNotThrow(
+            () -> saveHandler.loadGame("Level test", false),
+            "No exceptions should be thrown when a valid level with the given name to be loaded exists.");
+    }
+    @Test //This test assumes that the file "Save test.txt" exists in the saves resource folder, and that it is of a valid format.
+    @DisplayName("Check that attempting to load a valid and existent save file does not throw any exceptions.")
+    public void testLoadFromFileNameSave() {
+        assertDoesNotThrow(
+            () -> saveHandler.loadGame("Save test", true),
+            "No exceptions should be thrown when a valid save with the given name to be loaded exists.");
+    }
+    @Test
+    @DisplayName("Check that attempting to load a non-existent file throws FileNotFoundException")
+    public void testSaveWithFileName() {
+        
+    }
 
 
 
 
 
+
+    // public List<String> getLevelNames();
 // + Path getResourceFoldersPath(String folder)                                        @O.r
 // + PushRock loadGame(InputStream inputStream)                                  @O.r
 // + PushRock loadGame(String fileName, boolean isSave)                       @O.r

@@ -2,7 +2,7 @@
 Save
 
 #Level name:
-Custom level
+Level test
 
 #Level map layout:
 twwwwwwwwwwwwwwwwwd@

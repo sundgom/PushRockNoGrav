@@ -156,7 +156,7 @@ public class SaveHandler implements ISaveHandler {
         }
     }
     @Override
-    public PushRock loadGame(Path filePath) throws FileNotFoundException, IOException, NumberFormatException, IllegalArgumentException, NullPointerException {
+    public PushRock loadGame(Path filePath) throws FileNotFoundException, IOException {
         // System.out.println(filePath.toString().length());
         // System.out.println(filePath == null);
         // if (filePath.toString().length() == 0) {
