@@ -1391,30 +1391,40 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         if (levelName.length() < 1) {
             throw new IllegalArgumentException("Level name must contain at least one character.");
         }
-        this.levelName = levelName.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
-        this.levelMapLayout = levelMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
-        this.levelDirectionLayout = levelDirectionLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
+        this.levelName = levelName;
+        this.levelMapLayout = levelMapLayout;
+        this.levelDirectionLayout = levelDirectionLayout;
     }
 
     //Constructors
     public PushRock(String levelMapLayout, String levelDirectionLayout) {
         System.out.println("Constructor: minimal");
+        levelMapLayout = levelMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
+        levelDirectionLayout = levelDirectionLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
+
         this.buildWorld(levelMapLayout, levelDirectionLayout, false);
         this.setLevelValues("Custom level", levelMapLayout, levelDirectionLayout);
     }
     public PushRock(String levelName, String levelMapLayout, String levelDirectionLayout) {
         System.out.println("Constructor: build from level information");
-        
+        levelName = levelName.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
+        levelMapLayout = levelMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
+        levelDirectionLayout = levelDirectionLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
+
         this.buildWorld(levelMapLayout, levelDirectionLayout, false);
         this.setLevelValues(levelName, levelMapLayout, levelDirectionLayout);
     }
     public PushRock(String levelName, String levelMapLayout, String levelDirectionLayout, String saveMapLayout, String saveDirectionLayout, int saveMoveCount) {
         System.out.println("Constructor: build from save information");
+        levelName = levelName.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
+        levelMapLayout = levelMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
+        levelDirectionLayout = levelDirectionLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
+        saveMapLayout = saveMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
+        saveDirectionLayout = saveDirectionLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
+
         this.buildWorld(levelMapLayout, levelDirectionLayout, false);
         this.setLevelValues(levelName, levelMapLayout, levelDirectionLayout);
         this.checkLayoutCompabillityWithLevel(saveMapLayout, saveDirectionLayout);
-        saveMapLayout = saveMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
-        saveDirectionLayout = saveDirectionLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
         this.buildWorld(saveMapLayout, saveDirectionLayout, true);
         if (moveCount < 0) {
             throw new IllegalArgumentException("Move count must be at least zero.");
@@ -1437,10 +1447,18 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         if (mapLayout.indexOf("@") != levelMapLayout.indexOf("@")) {
             return "Map layout and level layout must be of equal width to be compatible. Map layout width was: " + mapLayout.indexOf("@") + " and level layout width was: " + this.levelMapLayout.indexOf("@");
         }
-        // //The direction layouts must also be of equal length
-        // if (directionLayout.length() != this.levelDirectionLayout.length()) {
-        //     return "Save direction layout and level direction layout must be of equal length to be compatible. Save direction layout length was: " + mapLayout.length() + " and level direction layout length was: " + this.levelMapLayout.length();
-        // }
+        // //The direction layouts must contain the same amount of non-portal directions.
+        int d1 = directionLayout.length();
+        int d2 = this.levelDirectionLayout.length();
+        int c1 = Math.round(mapLayout.toLowerCase().chars().filter(ch -> ch == 'u' || ch == 'v').count());
+        int c2 = Math.round(this.levelMapLayout.toLowerCase().chars().filter(ch -> ch == 'u' || ch == 'v').count());
+        int a = d1 - c1;
+        int b = d2 - c2;
+
+
+        if (directionLayout.length() - mapLayout.toLowerCase().chars().filter(ch -> ch == 'u' || ch == 'v').count()  != this.levelDirectionLayout.length() - this.levelMapLayout.toLowerCase().chars().filter(ch -> ch == 'u' || ch == 'v').count()) {
+            return "Save direction layout must contain the same amount character representations for non-portal directions.";
+        }
         //The map layouts must be of equal width
 
         //The layouts must have matching counts of players and rocks, thus we keep track of how many of each the layouts have.
@@ -1507,15 +1525,30 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     private void buildWorld(String mapLayout, String directionLayout, boolean isSave) {
         //If the world is being built from a layout other than that of the level, then it must be checked that this
         //new layout is compatible with the level. 
-        mapLayout = mapLayout.stripTrailing();
+        mapLayout = mapLayout.replaceAll("\\n|\\r\\n", "").stripTrailing();
         if (mapLayout.length() < 2) {
             throw new IllegalArgumentException("Map layout length must be at least 2. Length was: " + mapLayout.length());
         }
-        if (!(mapLayout.toLowerCase().contains("p") || (mapLayout.toLowerCase().contains("q")))) {
-            throw new IllegalArgumentException("Map layout must contain at least one player 'p'/'q'.");
+        if (mapLayout.toLowerCase().chars().filter(ch -> ch == 'p' || ch == 'q').count() != 1) {
+            throw new IllegalArgumentException("Map layout must contain exactly one player: 'p'/'q'.");
         }
         if (!(mapLayout.toLowerCase().contains("d"))) {
             throw new IllegalArgumentException("Map layout must contain at least one unoccupied pressure plate 'd'.");
+        }
+        if(!mapLayout.toLowerCase().matches("[ -prqotwuv@]+")) {
+            throw new IllegalArgumentException("The map layout can only contain the letters representing existing types: ' -prqotwu' and the width marker '@'.");
+        }
+        if (!(mapLayout.contains("@"))) {
+            throw new IllegalArgumentException("Map layout must contain at least one '@' as to mark the map's width.");
+        }
+        if (directionLayout.length() < 2) {
+            throw new IllegalArgumentException("Direction layout must contain at least 2 characters, one for the direction of the player and another for the direction of gravity.");
+        }
+        if (!directionLayout.toLowerCase().endsWith("g") || directionLayout.toLowerCase().chars().filter(ch -> ch == 'g').count() > 1) {
+            throw new IllegalArgumentException("Direction layout must contain exactly one instance of the character 'g', and it must be placed at the end.");
+        }
+        if(!directionLayout.toLowerCase().matches("[udrlg]+")) {
+            throw new IllegalArgumentException("The direction layout can only contain the letters udrlg.");
         }
         if (isSave) {
             String exceptionMessage = this.checkLayoutCompabillityWithLevel(mapLayout, directionLayout);

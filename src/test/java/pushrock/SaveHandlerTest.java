@@ -6,14 +6,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Paths;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -246,7 +250,6 @@ public class SaveHandlerTest {
             4
             """.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
         InputStream inputStream = new ByteArrayInputStream(saveStringRepresentation.getBytes("UTF-8"));
-
         PushRock expectedPushRock = getPushRockSave(levelName, levelMapLayout, levelDirectionLayout, saveMapLayout, saveDirectionLayout, moveCount);
         PushRock actualPushRock = saveHandler.loadGame(inputStream);
         checkThatExpectedAndActualPushRocksAreEqual(expectedPushRock, actualPushRock);
@@ -330,8 +333,9 @@ public class SaveHandlerTest {
                 () -> saveHandler.loadGame(inputStream), 
                 "Loading from an input stream that is missing the ':' separator should throw IllegalArgumentException.");
         }
+
         @Test
-        @DisplayName("Check that loading from an inputstream that is missing content throws IllegalArgumentException.")
+        @DisplayName("Check that loading a save from an inputstream that is missing content throws IllegalArgumentException.")
         public void testNoContentInputStream() throws UnsupportedEncodingException {
             String saveNoContent = """
                 #File type:
@@ -355,6 +359,19 @@ public class SaveHandlerTest {
                 IllegalArgumentException.class, 
                 () -> saveHandler.loadGame(inputStream), 
                 "Loading from an input stream that is missing content should throw IllegalArgumentException.");
+        }
+    
+
+        @Test
+        @DisplayName("Check that loading a save from an inputstream that is has letters instead integers in the 'Sove move count' content field throws NumberFormatException.")
+        public void testInvalidMoveCountContentInputStream() throws UnsupportedEncodingException {
+            String invalidMoveCountContent = this.validSaveString.replace("0", "Not an integer.");
+            
+            InputStream inputStream = new ByteArrayInputStream(invalidMoveCountContent.getBytes("UTF-8"));
+            assertThrows(
+                NumberFormatException.class, 
+                () -> saveHandler.loadGame(inputStream), 
+                "Loading from an input stream that is missing content should throw NumberFormatException.");
         }
     }
 
@@ -381,22 +398,67 @@ public class SaveHandlerTest {
             () -> saveHandler.loadGame("Save test", true),
             "No exceptions should be thrown when a valid save with the given name to be loaded exists.");
     }
+    @Test //This test assumes that the file "Level test.txt" exists in the levels resource folder, and that it is of a valid format.
+    @DisplayName("Check that attempting to load a valid and existent level file does not throw any exceptions.")
+    public void testLoadFromFilePathLevel() {
+        assertDoesNotThrow(
+            () -> saveHandler.loadGame("Level test", false),
+            "No exceptions should be thrown when a valid level with the given name to be loaded exists.");
+    }
+    @Test //This test assumes that the file "Save test.txt" exists in the saves resource folder, and that it is of a valid format.
+    @DisplayName("Check that attempting to load a valid and existent save file does not throw any exceptions.")
+    public void testLoadFromFilePathSave() {
+        assertDoesNotThrow(
+            () -> saveHandler.loadGame("Save test", true),
+            "No exceptions should be thrown when a valid save with the given name to be loaded exists.");
+    }
     @Test
     @DisplayName("Check that attempting to load a non-existent file throws FileNotFoundException")
     public void testSaveWithFileName() {
-        
+        PushRock pushRock = getPushRockLevel("Test", "pd@", "dG");
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> saveHandler.saveGame(pushRock, Paths.get("")),
+            "A path that does not lead to an existing file should throw FileNotFoundException.");
     }
 
+    @Nested 
+    class testSavingFile {
+        @Test //Inspired by SaveHandlerTest code applied for the Snake Example project
+        @DisplayName("Check that saving the ")
+        public void testSavingFileToSavesFolder() {
+            PushRock pushRock = getPushRockLevel("Test", "pd@", "rG");
+            try {
+                saveHandler.saveGame(pushRock, saveHandler.getResourceFoldersPath("saves").resolve("Temporary save test.txt"));
+            } catch (IOException e) {
+                fail("The game could not be saved.");
+            }
+
+            
+        }
+
+        @AfterAll 
+        static void teardown() {
+            SaveHandler sh = new SaveHandler();
+            File temporarySaveTest = sh.getResourceFoldersPath("saves").resolve("Temporary save test.txt").toFile();
+            temporarySaveTest.delete();
+        }
+    }
+    
+
+    
 
 
 
 
 
-    // public List<String> getLevelNames();
+
+
+// public List<String> getLevelNames();
 // + Path getResourceFoldersPath(String folder)                                        @O.r
 // + PushRock loadGame(InputStream inputStream)                                  @O.r
 // + PushRock loadGame(String fileName, boolean isSave)                       @O.r
-// + PushRock loadGame(Path filePath)                                                      @O.r
-// + void saveGame(PushRock pushRock, OutputStream outputStream)   @O.r
+// + PushRock loadGame(Path filePath)                                       @O.r
+// + void saveGame(PushRock pushRock, OutputStream outputStream)            @O.r
 // + void saveGame(PushRock pushRock, Path savePath)                         @O.r
 }

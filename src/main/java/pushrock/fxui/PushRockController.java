@@ -3,6 +3,7 @@ package pushrock.fxui;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -484,7 +485,6 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
         menuPage.setVisible(false);
         statusPage.setVisible(false);
         gravityManualIncrementButton.setVisible(false);
-        // if (this.incrementGravityOnInterval) {
         if (this.pushRock.isGravityApplicationInterval()) {
             this.pushRock.pause(true);
         }
@@ -566,11 +566,9 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
         } catch (FileNotFoundException e) {
             this.appInformationText.setVisible(true);
             this.appInformationText.setText("The file: " + menuLevelChoiceBox.getValue() + " could not be found. Please try another file.");
-            e.printStackTrace();
         } catch (IOException e) {
             this.appInformationText.setVisible(true);
             this.appInformationText.setText(e.getMessage());
-            e.printStackTrace();
         } catch (IllegalArgumentException e) {
             this.appInformationText.setVisible(true);
             this.appInformationText.setText(e.getMessage());
@@ -596,49 +594,65 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
     @FXML
     private void handleLoadButton() {
         System.out.println("Load button");
-        Path filePath = Paths.get(menuLoadFileLocationField.getText());
+        Path filePath = null;
+        try { 
+            filePath = Paths.get(menuLoadFileLocationField.getText());
+        } catch (InvalidPathException e) {
+            this.appInformationText.setVisible(true);
+            this.appInformationText.setText("Path contains illegal characters.");
+        }
         System.out.println("Load path:" + filePath);
-        boolean loadSuccessful = false;
-        try {
-            this.pushRock = this.saveHandler.loadGame(filePath);
-            this.appInformationText.setText("Level-load successful.");
-            loadSuccessful = true;
-        } catch (FileNotFoundException e) {
-            this.appInformationText.setVisible(true);
-            this.appInformationText.setText("Could not find the file from the provided path.");
-        } catch (IOException e) {
-            this.appInformationText.setVisible(true);
-            this.appInformationText.setText(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            this.appInformationText.setVisible(true);
-            this.appInformationText.setText(e.getMessage());
-        } catch (NullPointerException e) {
-            this.appInformationText.setVisible(true);
-            this.appInformationText.setText(e.getMessage());
+        if (filePath != null) {
+            try {
+                this.pushRock = this.saveHandler.loadGame(filePath);
+                this.appInformationText.setText("Level-load successful.");
+                pushRock.addObserver(this);
+                pushRock.pause(true);
+                createMap();
+                drawMap();
+                appInformationText.setText("Game-save loaded successfully!");
+                updateLevelText();
+            } catch (FileNotFoundException e) {
+                this.appInformationText.setVisible(true);
+                this.appInformationText.setText("Could not find the file from the provided path.");
+            } catch (IOException e) {
+                this.appInformationText.setVisible(true);
+                this.appInformationText.setText(e.getMessage());
+            } catch (NullPointerException e) {
+                this.appInformationText.setVisible(true);
+                this.appInformationText.setText(e.getMessage());
+            } catch (NumberFormatException e) {
+                this.appInformationText.setVisible(true);
+                this.appInformationText.setText("Incorrect save format for save file. Move count must only contain integers.");
+            } catch (IllegalArgumentException e) {
+                this.appInformationText.setVisible(true);
+                this.appInformationText.setText(e.getMessage());
+            } 
         }
-        if (loadSuccessful) {
-            pushRock.addObserver(this);
-            pushRock.pause(true);
-            createMap();
-            drawMap();
-            appInformationText.setText("Game-save loaded successfully!");
-            updateLevelText();
-        }
+
     }   
     @FXML
     private void handleSaveButton() {
         System.out.println("Save button");
-        Path savePath = Paths.get(menuSaveFileLocationField.getText());
+        Path savePath = null;
+        try { 
+            savePath = Paths.get(menuSaveFileLocationField.getText());
+        } catch (InvalidPathException e) {
+            this.appInformationText.setVisible(true);
+            this.appInformationText.setText("Path contains illegal characters.");
+        }
         System.out.println("Save path:" + savePath);
-        try {
-            this.saveHandler.saveGame(this.pushRock, savePath);
-            this.appInformationText.setText("Game-save successful.");
-        } catch (IOException e) {
-            this.appInformationText.setVisible(true);
-            this.appInformationText.setText("Could not save at the given file path.");
-        } catch (IllegalArgumentException e) {
-            this.appInformationText.setVisible(true);
-            this.appInformationText.setText(e.getMessage());
+        if (savePath != null) {
+            try {
+                this.saveHandler.saveGame(this.pushRock, savePath);
+                this.appInformationText.setText("Game-save successful.");
+            } catch (IOException e) {
+                this.appInformationText.setVisible(true);
+                this.appInformationText.setText("Could not save at the given file path.");
+            } catch (IllegalArgumentException e) {
+                this.appInformationText.setVisible(true);
+                this.appInformationText.setText(e.getMessage());
+            }
         }
     }
 

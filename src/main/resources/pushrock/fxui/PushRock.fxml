@@ -192,13 +192,13 @@
                                     <ChoiceBox fx:id="menuLevelChoiceBox" prefHeight="25.0" prefWidth="230.0" />
                                     <HBox fx:id="inputBox221" alignment="CENTER" layoutX="10.0" layoutY="105.0" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="15.0" prefWidth="227.0" spacing="5.0">
                                        <children>
-                                          <TextField fx:id="menuLoadFileLocationField" prefHeight="25.0" prefWidth="190.0" />
+                                          <TextField fx:id="menuLoadFileLocationField" prefHeight="25.0" prefWidth="190.0" promptText="&lt;File name/path&gt;" />
                                           <Button fx:id="menuLoadFileLocationBrowse" mnemonicParsing="false" onMouseClicked="#handleLoadBrowse" prefHeight="25.0" prefWidth="33.0" text="🗁" />
                                        </children>
                                     </HBox>
                                     <HBox fx:id="inputBox22" alignment="CENTER" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="15.0" prefWidth="227.0" spacing="5.0">
                                        <children>
-                                          <TextField fx:id="menuSaveFileLocationField" prefHeight="25.0" prefWidth="190.0" />
+                                          <TextField fx:id="menuSaveFileLocationField" prefHeight="25.0" prefWidth="190.0" promptText="&lt;File name/path&gt;" />
                                           <Button fx:id="menuSaveFileLocationBrowse" mnemonicParsing="false" onMouseClicked="#handleSaveBrowse" prefHeight="25.0" prefWidth="33.0" text="🗁" />
                                        </children>
                                     </HBox>

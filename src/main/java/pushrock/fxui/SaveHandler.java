@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -141,27 +142,33 @@ public class SaveHandler implements ISaveHandler {
     @Override
     public PushRock loadGame(String fileName, boolean isSave) throws FileNotFoundException, IOException {
         Path folderPath = null;
-        // if (fileName == null) {
-        //     throw new IllegalArgumentException("Can not load file if no file name is provided.");
-        // }
         if (isSave) {
             folderPath = this.getResourceFoldersPath("saves");
         }
         else {
             folderPath = this.getResourceFoldersPath("levels");
         }
-        Path filePath = folderPath.resolve(fileName + ".txt");
+        if (!fileName.endsWith(".txt")) {
+            fileName = fileName + ".txt";
+        }
+        Path filePath = folderPath.resolve(fileName);
+
         try (var inputStream = new FileInputStream(filePath.toFile())) {
             return loadGame(inputStream);
         }
     }
     @Override
     public PushRock loadGame(Path filePath) throws FileNotFoundException, IOException {
-        // System.out.println(filePath.toString().length());
-        // System.out.println(filePath == null);
-        // if (filePath.toString().length() == 0) {
-        //     throw new IllegalArgumentException("Can not load file if no file path is provided.");
-        // }
+        if (filePath.toString().length() < 1) {
+            throw new IllegalArgumentException("A file path or a file name of at least one character is needed to save.");
+        }
+        if (!filePath.toString().contains("\\")) {
+            Path savePathOld = filePath;
+            if (!savePathOld.endsWith(".txt")) {
+                savePathOld = Paths.get(filePath.toString() + ".txt");
+            }
+            filePath = this.getResourceFoldersPath("saves").resolve(savePathOld);
+        }
         try (var inputStream = new FileInputStream(filePath.toFile())) {
             return loadGame(inputStream);
         }

@@ -30,15 +30,15 @@ ddddddddddddddddddddddddddddddddddddddddddddddddddduuuuuuuuuuuuuuuuuuuuuuuuuuuuu
 
 #Save map layout:
 twwwwwwwwwwwwwwwwwd@
-r                  @
                    @
-rrrr rrrr  r   r  r@
-r  r r  r  r   r  r@
-rrrr r  r  r   rrrr@
-r    r  r  r   r  r@
-r    rrrr  r   r  r@
-                p  @
-wwwvuwwwwwwwwwwwwww@
+                   @
+rrr  r  r  rrr r  r@
+r  r r  r r    r  r@
+rrr  r  r  rr  rrrr@
+r    r  r    r r  r@
+r    rrrr rrr  r  r@
+    p              @
+wwwwwwwwwwwwwwwuwww@
 -------------------@
 RRR--RRRR--RRR-R--R@
 R--R-R--R-R----R-R-@
@@ -47,10 +47,10 @@ R-R--R--R-R----R-R-@
 R--R-RRRR--RRR-R--R@
 -------------------@
 -------------------@
-DWWWWWWWWWWWWWWWWWT@
+DWWWWWWWWWWWWWWVWWT@
 
 #Save direction layout:
-lddddluudlddddddlddddduddddddddddlddddllllddruuddddduuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuug
+ddddddddddddddddddddddddddddddddddddddddddddddddddduuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuug
 
 #Save move count:
-438
+not number

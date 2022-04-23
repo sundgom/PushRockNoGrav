@@ -3,10 +3,10 @@ package pushrock.model;
 
 public abstract class BlockAbstract {
 
-    private char type;
-    //Attributes x and y keeps track of current coordinates (x,y) of the block
+    //Attributes x and y keep track of current coordinates (x,y) of the block
     private int x;
     private int y;
+    private char type;
     private boolean state; 
 
     //Constructor for coordinates with specified coordinates and type
@@ -33,10 +33,9 @@ public abstract class BlockAbstract {
         return new int[]{this.x, this.y};
     }
 
-    //Set to protected because what characters are considered valid will depend on the sub-class calling the method. 
-    protected String getValidTypes() {
-        return "";
-    }
+    //What is considered a valid type is left to the classes that inherit this class.
+    abstract protected String getValidTypes();
+
     private boolean isValidType(char type) {
         return this.getValidTypes().contains(type + "");
     }  
@@ -45,6 +44,7 @@ public abstract class BlockAbstract {
             throw new IllegalArgumentException("Type '" + type + "' is not a valid for the " + this.getClass().getSimpleName() + " class. Must be one of the : " + this.getValidTypes());
         }
     }
+    //Set the character that is to represent the type of this block.
     protected void setTypeCharacter(char type) {
         checkForTypeException(type);
         this.type = type;
@@ -58,7 +58,7 @@ public abstract class BlockAbstract {
     public char getType() {
         return this.type;
     }
-
+    
     protected void setState(boolean state) {
         this.state = state;
     }
