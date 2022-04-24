@@ -307,4 +307,18 @@ public class TeleporterBlockTest {
         TeleporterBlock teleporter = new TeleporterBlock(0, 0);
         assertTrue(teleporter.isTeleporter());
     }
+
+    @Test 
+    @DisplayName("Check that toString() returns correct character represenation based on current state and type.")
+    public void testToString() {
+        //teleporters should be represented by 't' while their state is false..
+        TeleporterBlock teleporter1 = new TeleporterBlock(0, 0);
+        TeleporterBlock teleporter2 = new TeleporterBlock(1, 1);
+        assertEquals("t", teleporter1.toString());
+        assertEquals("t", teleporter2.toString());
+        //..and by 'ṭ' while true
+        teleporter1.setConnection(teleporter2);
+        assertEquals("ṭ", teleporter1.toString());
+        assertEquals("ṭ", teleporter2.toString());
+    }
 }

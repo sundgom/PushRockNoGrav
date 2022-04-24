@@ -37,6 +37,7 @@ public class TraversableBlockTest {
         assertEquals('d', constructedPressurePlate.getType());
     }
     @Test
+    @DisplayName("Check that attempting to construct traversable blocks with an invalid type throws IllegalArgumentException.")
     public void testConstructorInvalidTypes() {
         assertThrows(
             IllegalArgumentException.class,
@@ -44,7 +45,7 @@ public class TraversableBlockTest {
             "IllegalArgument should be thrown if the constuctor is provided with an invalid type.");
     }
     @Test
-    @DisplayName("Test that blocks are constructed with the correct state value according to their type.")
+    @DisplayName("Check that blocks are constructed with the correct state value according to their type.")
     public void testConstructorState() {
         BlockAbstract contructedAir = new TraversableBlock(0, 0, ' ', true);
         assertFalse(contructedAir.getState(), "Air blocks should have their state set to false once constructed.");
@@ -52,7 +53,7 @@ public class TraversableBlockTest {
         assertFalse(constructedPressurePlate.getState(), "Pressure plate blocks should have their state set to false once constructed.");
     }
     @Test
-    @DisplayName("Test that hasCollision() returns the correct truth value for the blocks of this class.")
+    @DisplayName("Check that hasCollision() returns the correct truth value for the blocks of this class.")
     public void testHasCollision() {
         BlockAbstract traversableBlock = new TraversableBlock(0, 0, ' ', true);
         assertFalse(traversableBlock.hasCollision(), "Traversable blocks do not have collision, thus hasCollision() should always return false");
@@ -78,5 +79,22 @@ public class TraversableBlockTest {
         TraversableBlock constructedPressurePlate = new TraversableBlock(0, 0, 'd', true);
         assertTrue(constructedPressurePlate.isPressurePlate());
         assertFalse(constructedPressurePlate.isAir());
+    }
+
+    @Test 
+    @DisplayName("Check that toString() returns correct character represenation based on current state and type.")
+    public void testToString() {
+        //air is represented by ' ' while birdView is false..
+        TraversableBlock airBirdViewTrue = new TraversableBlock(0, 0, ' ', true);
+        assertEquals(" ", airBirdViewTrue.toString());
+        //..and by '-' while true
+        TraversableBlock airBirdViewFalse = new TraversableBlock(0, 0, ' ', false);
+        assertEquals("-", airBirdViewFalse.toString());
+        //A pressure plate is represented by 'd' while birdView is false..
+        TraversableBlock pressurePlateBirdViewTrue = new TraversableBlock(0, 0, 'd', true);
+        assertEquals("d", pressurePlateBirdViewTrue.toString());
+        //..and by 'D' while true
+        TraversableBlock pressurePlateBirdViewFalse = new TraversableBlock(0, 0, 'd', false);
+        assertEquals("D", pressurePlateBirdViewFalse.toString());
     }
 }

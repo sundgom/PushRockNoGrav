@@ -1729,7 +1729,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                 }
                 pushRockString += type;
             }
-            pushRockString += "\n";
+            pushRockString += "@\n";
         } 
         return pushRockString;
     }
@@ -1737,7 +1737,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     public String prettyString() {
         String prettyString = new String();
         prettyString += "Score:" + this.getMoveCount() + " isGravityInverted:" + this.isGravityInverted + " isGameOver:" + this.isGameOver() + "\n";
-        String originalString = this.toString();
+        String originalString = this.toString().replaceAll("@", "");
         for (int i = 0; i < originalString.length(); i++) {
             if (i==0) {
                 for (int j = 0; j < this.width + 1; j++) {
@@ -1784,6 +1784,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
 
         PushRock push = new PushRock(levelName, levelLayout1, directionLayout1);
         System.out.println(push.prettyString());
+        System.out.println(push);
         
     }
 }

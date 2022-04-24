@@ -63,7 +63,12 @@ public class TraversableBlock extends BlockAbstract {
                     return "-";
                 }
             case 'd':
-                return "d";
+                if (isBirdView()) {
+                    return "d";
+                }
+                else {
+                    return "D";
+                }
             default:
                 return "";
         }

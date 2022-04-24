@@ -236,4 +236,19 @@ public class MoveableBlockTest {
                 "IllegalArgument should be thrown if the constuctor is provided with an invalid direction.");
         }
     }
+
+    @Test 
+    @DisplayName("Check that toString() returns correct character represenation based on current state and type.")
+    public void testToString() {
+        //players should be represented by 'p' when their state is false, and 'q' while true
+        MoveableBlock player = new MoveableBlock(0, 0, 'p', "right");
+        assertEquals("p", player.toString());
+        player.setState(true);
+        assertEquals("q", player.toString());
+        //rocks should be represented by 'r' when their state is false, and 'o' while true
+        MoveableBlock rock = new MoveableBlock(0, 0, 'r', "right");
+        assertEquals("r", rock.toString());
+        rock.setState(true);
+        assertEquals("o", rock.toString());
+    }
 }

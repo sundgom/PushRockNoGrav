@@ -500,4 +500,26 @@ public class PortalWallBlockTest {
         assertTrue(portalTwo.isTransporter(), "PortalWalls that are set as portal two are also transporters.");
     }
 
+    @Test 
+    @DisplayName("Check that toString() returns correct character represenation based on current state and type.")
+    public void testToString() {
+        //walls should be always be represented by 'w' as they can not change their state while of the wall type
+        PortalWallBlock wall = new PortalWallBlock(0, 0);
+        assertEquals("w", wall.toString());
+        //portal one should be represented by 'v' while its state is false
+        PortalWallBlock portal1 = new PortalWallBlock(0, 0);
+        portal1.setPortal(true, "left", null);
+        assertEquals("v", portal1.toString());
+        //portal two should be represented by 'u' while its state is false
+        PortalWallBlock portal2 = new PortalWallBlock(1, 1);
+        portal2.setPortal(false, "left", null);
+        assertEquals("u", portal2.toString());
+        //portal one should be represented by 'ṿ' while its state is true
+        portal1.setPortal(true, "right", portal2);
+        assertEquals("ṿ", portal1.toString());
+        //portal two should be represented by 'ṿ' while its state is true
+        portal1.setPortal(true, "right", portal2);
+        assertEquals("ụ", portal2.toString());
+    }   
+
 }
