@@ -65,9 +65,9 @@ public abstract class BlockAbstract {
     public boolean getState() {
         return this.state;
     }
-
-    abstract public boolean hasCollision(); //Any block will either have collision or not, wether or not they do will depend on the sub-class
-
+    
+    //Any block will either have collision or not, wether or not they do will depend on the sub-class
+    abstract public boolean hasCollision(); 
 
 
 }

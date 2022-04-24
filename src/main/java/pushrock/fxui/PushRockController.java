@@ -450,7 +450,7 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
     }
 
     public void updateGravityButton() {
-        if (pushRock.getGravityDirectionY() < 0) {
+        if (!pushRock.isGravityInverted()) {
             gravityButton.setText("Gravity ▼");
         }
         else {
