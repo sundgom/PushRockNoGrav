@@ -7,10 +7,8 @@ public class MoveableBlock extends DirectedBlock {
         super(x, y, type, direction);
     }
 
-    //setters for coordinates have their visibillity increased to public for moveable blocks as they
-    //are allowed to change coordinates after construction.
-
-    //should potentially be set to protected, as to deny complete outsiders from changing it however they wish
+    //setters for coordinates have their visibillity increased to public for moveable blocks as their
+    //coordinates should able to be changed dynamically.
     @Override
     public void setX(int x) {
         super.setX(x);
@@ -24,7 +22,7 @@ public class MoveableBlock extends DirectedBlock {
     protected String[] getValidDirections() {
         return new String[] {"up", "down", "left", "right"};
     }
-    //setType() is a method a protected method inherited by DirectedBlock, which has it's visibillity increased to public as to allow moveable blocks to change their direction dynamically.
+    //setDirection(..) is a protected method inherited from DirectedBlock, which has it's visibillity increased to public as to allow moveable blocks to change their direction dynamically.
     @Override
     public void setDirection(String direction) {
         super.setDirection(direction);
@@ -53,7 +51,8 @@ public class MoveableBlock extends DirectedBlock {
     }
     //Move this block in the given direction, return true if the block was moved successfully, false if not.
     public boolean moveInDirection(String direction) {
-        this.setDirection(direction);
+        //setDirection(..) will perform a validation check of the input direction before setting it.
+        this.setDirection(direction); 
         switch (this.getDirection()) {
             case "up":
                 this.up();
@@ -82,11 +81,17 @@ public class MoveableBlock extends DirectedBlock {
         this.setState(false);
         this.setDirection("right"); //chosen default value;
     }
+    public boolean isPlayer() {
+        return this.getType() == 'p';
+    }
     //Rocks can move around in the world, but only if they have been pushed by another object
     private void setRock() {
         this.setTypeCharacter('r');
         this.setState(false);
         this.setDirection("right"); //chosen default value;
+    }
+    public boolean isRock() {
+        return this.getType() == 'r';
     }
     @Override
     protected void setType(char type) {
@@ -103,14 +108,7 @@ public class MoveableBlock extends DirectedBlock {
         }
     }
 
-    public boolean isPlayer() {
-        return this.getType() == 'p';
-    }
-    public boolean isRock() {
-        return this.getType() == 'r';
-    }
-
-    //The "setState()" inherited by BlockAbstract has its visibillity increased to public as to allow moveable blocks to change their
+    //setState() inherited by BlockAbstract and has its visibillity increased to public as to allow moveable blocks to change their
     //state according to their current situation.
     @Override
     public void setState(boolean state) {

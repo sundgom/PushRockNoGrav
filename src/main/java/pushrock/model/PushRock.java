@@ -28,9 +28,8 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
 
     private int gravityApplicationChoice;
     
-    private IntervalNotifier intervalNotifier;
-    private Thread intervalNotifierThread;
-    private boolean ignoreIntervalNotifier;
+    private Thread intervalNotifierThread;      //Experimental 
+    private boolean ignoreIntervalNotifier;     //Experimental 
 
     public int getWidth() {
         return this.width;
@@ -71,7 +70,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     //It is entirely optional, and does not serve the code in any other way than to call the gravityStep() method once each interval.
     public void setGravityApplicationInterval() { 
         this.gravityApplicationChoice = -1;
-        int interval = 1000; //this could have been used as a parameter instead.
+        int interval = 1000; //Interval set to 1s
         if (this.intervalNotifierThread == null) { 
             IntervalNotifier intervalNotifier = new IntervalNotifier(this, interval, true);
             Thread intervalNotifierThread = new Thread(intervalNotifier);
@@ -84,14 +83,6 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     }
     public boolean isGravityApplicationInterval() {
         return gravityApplicationChoice < 0;
-    }
-
-    public void setGravityApplicationChoice(int n) {
-        //manual: n > 0, moveInput: n == 0, interval: n < 0
-        if (n < 0) {
-            setGravityApplicationInterval();
-        }
-        this.gravityApplicationChoice = n;
     }
 
     private String getGravityDirection() {
@@ -111,17 +102,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         }
     }
 
-    public int getRockCount() {
-        int rockCount = 0;
-        for (MoveableBlock block : moveableBlocks) {
-            if (block.isRock()) {
-                rockCount++;
-            }
-        }
-        return rockCount;
-    }
-
-    public int getPressurePlateCount() {
+    private int getPressurePlateCount() {
         int plateCount = 0;
         for (int y = 0; y > -this.height; y--) {
             for (int x = 0; x < this.width; x++) {
@@ -218,7 +199,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     }
 
     //Returns the current amount of activated pressure plates
-    public int getActivePressurePlatesCount() {
+    private int getActivePressurePlatesCount() {
         return this.activePressurePlatesCount;
     }
     public int getMoveCount() {
@@ -1397,14 +1378,6 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     }
 
     //Constructors
-    public PushRock(String levelMapLayout, String levelDirectionLayout) {
-        System.out.println("Constructor: minimal");
-        levelMapLayout = levelMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
-        levelDirectionLayout = levelDirectionLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
-
-        this.buildWorld(levelMapLayout, levelDirectionLayout, false);
-        this.setLevelValues("Custom level", levelMapLayout, levelDirectionLayout);
-    }
     public PushRock(String levelName, String levelMapLayout, String levelDirectionLayout) {
         System.out.println("Constructor: build from level information");
         levelName = levelName.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
@@ -1447,15 +1420,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         if (mapLayout.indexOf("@") != levelMapLayout.indexOf("@")) {
             return "Map layout and level layout must be of equal width to be compatible. Map layout width was: " + mapLayout.indexOf("@") + " and level layout width was: " + this.levelMapLayout.indexOf("@");
         }
-        // //The direction layouts must contain the same amount of non-portal directions.
-        int d1 = directionLayout.length();
-        int d2 = this.levelDirectionLayout.length();
-        int c1 = Math.round(mapLayout.toLowerCase().chars().filter(ch -> ch == 'u' || ch == 'v').count());
-        int c2 = Math.round(this.levelMapLayout.toLowerCase().chars().filter(ch -> ch == 'u' || ch == 'v').count());
-        int a = d1 - c1;
-        int b = d2 - c2;
-
-
+        //The direction layouts must contain the same amount of non-portal directions.
         if (directionLayout.length() - mapLayout.toLowerCase().chars().filter(ch -> ch == 'u' || ch == 'v').count()  != this.levelDirectionLayout.length() - this.levelMapLayout.toLowerCase().chars().filter(ch -> ch == 'u' || ch == 'v').count()) {
             return "Save direction layout must contain the same amount character representations for non-portal directions.";
         }
@@ -1517,38 +1482,46 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         if (inputRockCount != levelRockCount) {
             return "Map layouts must have matching counts of players. Count for input was: " + inputRockCount + " count for level was: " + levelRockCount;
         }
-
         //Otherwise the map-layouts must be compatible, in which case no exception message is returned.
         return null;
     }
+
+    private String checkValidityLayouts(String mapLayout, String directionLayout) {
+        if (mapLayout.length() < 2) {
+            return ("Map layout length must be at least 2. Length was: " + mapLayout.length());
+        }
+        if (mapLayout.toLowerCase().chars().filter(ch -> ch == 'p' || ch == 'q').count() != 1) {
+            return ("Map layout must contain exactly one player: 'p'/'q'.");
+        }
+        if (!(mapLayout.toLowerCase().contains("d"))) {
+            return ("Map layout must contain at least one unoccupied pressure plate 'd'.");
+        }
+        if (!mapLayout.toLowerCase().matches("[ -prqotwuv@]+")) {
+            return ("The map layout can only contain the letters representing existing types: ' -prqotwu' and the width marker '@'.");
+        }
+        if (!(mapLayout.contains("@"))) {
+            return ("Map layout must contain at least one '@' as to mark the map's width.");
+        }
+        if (directionLayout.length() < 2) {
+            return ("Direction layout must contain at least 2 characters, one for the direction of the player and another for the direction of gravity.");
+        }
+        if (!directionLayout.toLowerCase().endsWith("g") || directionLayout.toLowerCase().chars().filter(ch -> ch == 'g').count() > 1) {
+            return ("Direction layout must contain exactly one instance of the character 'g', and it must be placed at the end.");
+        }
+        if (!directionLayout.toLowerCase().matches("[udrlg]+")) {
+            return ("The direction layout can only contain the letters udrlg.");
+        }
+        return null;
+    }
+    
 
     private void buildWorld(String mapLayout, String directionLayout, boolean isSave) {
         //If the world is being built from a layout other than that of the level, then it must be checked that this
         //new layout is compatible with the level. 
         mapLayout = mapLayout.replaceAll("\\n|\\r\\n", "").stripTrailing();
-        if (mapLayout.length() < 2) {
-            throw new IllegalArgumentException("Map layout length must be at least 2. Length was: " + mapLayout.length());
-        }
-        if (mapLayout.toLowerCase().chars().filter(ch -> ch == 'p' || ch == 'q').count() != 1) {
-            throw new IllegalArgumentException("Map layout must contain exactly one player: 'p'/'q'.");
-        }
-        if (!(mapLayout.toLowerCase().contains("d"))) {
-            throw new IllegalArgumentException("Map layout must contain at least one unoccupied pressure plate 'd'.");
-        }
-        if(!mapLayout.toLowerCase().matches("[ -prqotwuv@]+")) {
-            throw new IllegalArgumentException("The map layout can only contain the letters representing existing types: ' -prqotwu' and the width marker '@'.");
-        }
-        if (!(mapLayout.contains("@"))) {
-            throw new IllegalArgumentException("Map layout must contain at least one '@' as to mark the map's width.");
-        }
-        if (directionLayout.length() < 2) {
-            throw new IllegalArgumentException("Direction layout must contain at least 2 characters, one for the direction of the player and another for the direction of gravity.");
-        }
-        if (!directionLayout.toLowerCase().endsWith("g") || directionLayout.toLowerCase().chars().filter(ch -> ch == 'g').count() > 1) {
-            throw new IllegalArgumentException("Direction layout must contain exactly one instance of the character 'g', and it must be placed at the end.");
-        }
-        if(!directionLayout.toLowerCase().matches("[udrlg]+")) {
-            throw new IllegalArgumentException("The direction layout can only contain the letters udrlg.");
+        String validityMessage = this.checkValidityLayouts(mapLayout, directionLayout);
+        if (validityMessage != null) {
+            throw new IllegalArgumentException(validityMessage);
         }
         if (isSave) {
             String exceptionMessage = this.checkLayoutCompabillityWithLevel(mapLayout, directionLayout);
@@ -1755,22 +1728,12 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     public void pause(boolean pauseGame) {
         if (pauseGame) {
             if (this.isGravityApplicationInterval()) {
-                if (this.intervalNotifier != null) {
-                    this.intervalNotifier.stop();
-                }
-                if (this.intervalNotifierThread != null) {
-                    this.ignoreIntervalNotifier = true;
-                }  
+                this.ignoreIntervalNotifier = true;
             }
         }
         else {
             if (this.isGravityApplicationInterval()) {
-                if (this.intervalNotifier != null) {
-                    this.intervalNotifier.start();
-                }
-                if (this.intervalNotifierThread != null) {
-                    this.ignoreIntervalNotifier = false;
-                }  
+                this.ignoreIntervalNotifier = false;
             }
         }
     }
@@ -1779,14 +1742,10 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         this.pause(false);
         System.out.println("Reset level.");
         this.buildWorld(this.levelMapLayout, this.levelDirectionLayout, false);
-        
     }
 
-
-
-
     public static void main(String[] args) {
-
+        String levelName = "LevelName";
         String levelLayout1 = """
             twwwwwwwwwwwwwwwwwd@
                                @
@@ -1809,7 +1768,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
             DWWWWWWWWWWWWWWVWWT@""";
         String directionLayout1 = "ddddddddddddddddddddddddddddddddddddddddddddddddddduuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuug";
 
-        PushRock push = new PushRock(levelLayout1, directionLayout1);
+        PushRock push = new PushRock(levelName, levelLayout1, directionLayout1);
         System.out.println(push.prettyString());
         
     }

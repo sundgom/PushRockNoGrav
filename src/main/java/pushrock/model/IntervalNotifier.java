@@ -30,19 +30,6 @@ public class IntervalNotifier implements Runnable, IObservableIntervalNotifier{
             }
         }
     }
-    
-    public void start() {
-        this.isActive = true;
-    }
-
-    public void stop() {
-        this.isActive = false;
-    }
-
-    @Override
-    public int getInterval() {
-        return this.interval;
-    }
 
     @Override
     public void addObserver(IObserverIntervalNotifier observer) {

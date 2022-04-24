@@ -10,7 +10,7 @@ public abstract class DirectedBlock  extends BlockAbstract {
         this.setDirection(direction); 
     }
     
-    //Returns a string list of valid directions for this block.
+    //Returns a string list of valid directions for this block, what directions are valid should be determined by the class extending this class.
     abstract protected String[] getValidDirections();
     
     //Validation check for direction input.
@@ -30,7 +30,7 @@ public abstract class DirectedBlock  extends BlockAbstract {
         }
         return false;
     }
-    //Sets the direction to the input, a direction set to null indicates that the block is not directed 
+    //Sets the direction to the given input if valid, a direction set to null indicates that the block is not directed 
     //in a specific direction.
     protected void setDirection(String direction) {
         if (direction != null && !direction.isBlank()) {
@@ -44,9 +44,11 @@ public abstract class DirectedBlock  extends BlockAbstract {
         }
         
     }
+    //Returns the direction as a string
     public String getDirection() {
         return this.direction;
     }
+    //Returns the direction as an int[], where int[0] is used for the x-coordiante direction and int[1] for the y-coordinate direction.
     public int[] getDirectionXY() {
         if (this.direction == null) {
             return new int[]{0,0};

@@ -2,7 +2,7 @@ package pushrock.model;
 
 public abstract class ObstacleBlock extends DirectedBlock {
 
-    private ObstacleBlock connection; //used by portals and teleporters
+    private ObstacleBlock connection;
 
     //Constructor with specified direction and connection
     public ObstacleBlock(int x, int y, char type, String direction, ObstacleBlock connection) {
@@ -10,7 +10,7 @@ public abstract class ObstacleBlock extends DirectedBlock {
         this.setConnection(connection);
     }
 
-    //setConnection() is based on code I made for the Partner-exercise:
+    //setConnection() draws inspiration from code I made for the Partner-exercise:
     //Connects this block to another block, and makes sure that the other block is in turn connected to this block.
     //Any previous connections either of these blocks had before will be removed, this way a block can only be connected to one
     //other block at a time.
@@ -52,8 +52,11 @@ public abstract class ObstacleBlock extends DirectedBlock {
     }
 
     abstract public boolean isTransporter();
+    //Returns an int[][] where every contained i[] represents the transporter's entry point coordinates where x = int[0], and y= int[1]
     abstract public int[][] getEntryPointsXY(); 
+    //Returns an int[] that represents the transporter's exit point coordinates where x = int[0], and y= int[1]
     abstract public int[] getExitPointXY(BlockAbstract entryBlock); 
+    //Returns the direction in which an entering block is moved out from the exit transporter
     public int[] getExitDirectionXY(BlockAbstract entryBlock) {
         if (this.connection == null) {
             return null;
@@ -66,7 +69,7 @@ public abstract class ObstacleBlock extends DirectedBlock {
         return new int[] {exitPointXY[0] - exitPorterXY[0], exitPointXY[1] - exitPorterXY[1]};
     }
 
-    // //Checks if this obstacle block can be entered by the given block
+    //Checks if this obstacle block can be entered by the given block
     public boolean canBlockEnter(BlockAbstract entryBlock) {
         //Obstacle blocks can not be entered unless they are transporters
         if (!this.isTransporter()) {
@@ -76,11 +79,14 @@ public abstract class ObstacleBlock extends DirectedBlock {
         if (this.getState()) {
             //And at last the entring block is only allowed to enter if it is standing
             //at one of the transporter's entry points
-            int[] blockPoint = new int[]{entryBlock.getX(), entryBlock.getY()};
 
-            //A teleporter will have four entry points
+            //first retrieve the entering block's current coordinates
+            int[] blockPoint = new int[]{entryBlock.getX(), entryBlock.getY()};
+            //Then retrieve every entry point coordinate for the transporter
             int[][] entryPoints = this.getEntryPointsXY();
             for (int i = 0; i < entryPoints.length; i++) {
+                //If the block's current coordinates are identical to one of the transporter's entry point coordinates,
+                //then that transporter can be entered by the given block.
                 if (blockPoint[0] == entryPoints[i][0] && blockPoint[1] == entryPoints[i][1]) {
                     return true;
                 }
