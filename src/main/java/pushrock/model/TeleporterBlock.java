@@ -1,6 +1,6 @@
 package pushrock.model;
 
-public class TeleporterBlock extends ObstacleBlock {
+public class TeleporterBlock extends TransferBlock {
 
     //Teleporters only have one valid type ('t') and one valid direction (null), these are therefore set as parameters in
     //the inherited constructor by default and are thus omitted as parameters for the TeleporterBlock constructor.
@@ -9,22 +9,28 @@ public class TeleporterBlock extends ObstacleBlock {
         super(x, y, 't', null, null);
     }
 
+    //Valid directions for a teleporter is: null.
+    @Override
+    protected String[] getValidDirections() {
+        return new String[]{null};
+    }
+
     //Valid types include: teleporter 't'.
     @Override
     protected String getValidTypes() {
         return "t";
     }
+
     @Override
-    protected String[] getValidDirections() {
-        return new String[]{null};
-    }
-    
-    //Made public as to allow teleporters to be freely connect to a single other teleporter at a time.
-    @Override
-    public void setConnection(ObstacleBlock connection) {
+    protected String checkConnectionValid(TransferBlock connection) {
         if (!(connection instanceof TeleporterBlock || connection == null)) {
-            throw new IllegalArgumentException("A teleporter can only be connected to other teleporter blocks.");
+            return "Invalid connection. A teleporter can only connect to another teleporter.";
         }
+        return null;
+    }
+    //setConnection(..) is inherited from TransferBlock and made public as to allow teleporters to dynamically connect to a single other teleporter at a time.
+    @Override
+    public void setConnection(TransferBlock connection) {
         super.setConnection(connection);
     }
     @Override 
@@ -51,6 +57,9 @@ public class TeleporterBlock extends ObstacleBlock {
                 checkForTypeException(type);
         }
     }
+
+    //Since all teleporters are able to have a connection through which they can offer an entering block an exit
+    //point once activated, they will always be considered transporters.
     @Override
     public boolean isTransporter() {
         return true;

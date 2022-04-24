@@ -35,7 +35,7 @@ public class PortalWallBlockTest {
         }
     }
 
-    //Tests of constructor and it's inherited properties from BlockAbstract, DirectedBlock, and ObstacleBlock
+    //Tests of constructor and it's inherited properties from BlockAbstract, DirectedBlock, and TransferBlock
     @Test
     @DisplayName("Check that portal wall blocks have their type set to 'w' after being constructed.")
     public void testConstructorCorrectStartValues() {
@@ -47,7 +47,7 @@ public class PortalWallBlockTest {
         assertNull(constructedValidType.getDirection(), "Portal-wall block direction should be null after construction.");
         assertEquals(0, constructedValidType.getDirectionXY()[0], "Portal-wall block x-coordinate direction should be 0 after construction.");
         assertEquals(0, constructedValidType.getDirectionXY()[1], "Portal-wall block y-coordinate direction should be 0 after construction.");
-        //Connection properties inherited by ObstacleBlock.
+        //Connection properties inherited by TransferBlock.
         assertNull(constructedValidType.getConnection(), "Portal-wall block connection should be null after construction.");
     }
 
@@ -229,7 +229,7 @@ public class PortalWallBlockTest {
                 int pY = portalWall1.getY();
                 //Portals have a single entry point, and it is always placed one step away in the direction of the portal from the portal itself.
                 int[][] entryPoints = portalWall1.getEntryPointsXY();
-                //the method getEntryPointsXY() is inherited from ObstacleBlock and should return every entry point of the given ObstacleBlock.
+                //the method getEntryPointsXY() is inherited from TransferBlock and should return every entry point of the given TransferBlock.
                 for (int[] entry : entryPoints) {
                     //for the case of portals there is only a single entry point, thus this for loop should only run once.
                     switch (direction) {

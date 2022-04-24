@@ -18,9 +18,9 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     private boolean isGameOver;
 
     private TraversableBlock[][] traversableBlocks;                                         //Blocks that make out the surface on which other blocks can move through/be placed ontop of
-    private ObstacleBlock[][] obstacleBlocks;                                               //Blocks that are placed ontop of the traversable plane, which can hinder or redirect movement of moveable blocks
+    private TransferBlock[][] transferBlocks;                                               //Blocks that are placed ontop of the traversable plane, which can hinder or redirect movement of moveable blocks
     private List<MoveableBlock> moveableBlocks = new ArrayList<MoveableBlock>();            //Blocks that are free to move around on the traversable plane, but are restricted by placements of directed blocks, which
-                                                                                            // includes both obstacle and other moveable blocks.
+                                                                                            // includes both transfer and other moveable blocks.
     private List<TeleporterBlock> teleporters = new ArrayList<TeleporterBlock>();
     private List<PortalWallBlock> portals = new ArrayList<PortalWallBlock>();
 
@@ -160,10 +160,10 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
             blockCopy = new MoveableBlock(x, y, block.getType(), ((MoveableBlock) block).getDirection());
             blockCopy.setState(block.getState());
         }
-        else if (block instanceof ObstacleBlock) {
-            ObstacleBlock blockConnectionCopy = null; 
-            if (((ObstacleBlock) block).isTransporter() && block.getState()) {
-                ObstacleBlock blockConnection = ((ObstacleBlock) block).getConnection();
+        else if (block instanceof TransferBlock) {
+            TransferBlock blockConnectionCopy = null; 
+            if (((TransferBlock) block).isTransporter() && block.getState()) {
+                TransferBlock blockConnection = ((TransferBlock) block).getConnection();
                 if (blockConnection instanceof TeleporterBlock) {
                     blockConnectionCopy = new TeleporterBlock(blockConnection.getX(), blockConnection.getY());
                 }
@@ -292,7 +292,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                 break;
         }
         //We now search for a suitable wall to place the portal on, searching in the direction the player was looking
-        ObstacleBlock wall = this.findObstacle(direction, x, y);
+        TransferBlock wall = this.findTransferInDirection(direction, x, y);
         if (wall == null) {
             throw new IllegalStateException("Portals can not be placed out of bounds. Try aiming it at a wall instead.");
         }
@@ -354,8 +354,8 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         return null;
     }
 
-    //Searches for the obstacle block in the given direction that is closest to the given coordinates
-    private ObstacleBlock findObstacle(String direction, int x, int y) {
+    //Searches for the transfer block in the given direction that is closest to the given coordinates
+    private TransferBlock findTransferInDirection(String direction, int x, int y) {
         int newX = x;
         int newY = y;
         switch (direction) {
@@ -373,17 +373,17 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                 break;
         }
         //If the search continues far enough to get out of bounds, then it means that there are no
-        //obstacles in the given direction.
+        //transfers in the given direction.
         if ((newX < 0 || newX >= this.width) || (newY > 0 || newY <= -this.height)) {
             return null;
         }
-        //If an obstacle block is found, then return that obstacle block
-        else if (getObstacleBlock(newX, newY) != null) {
-            return getObstacleBlock(newX, newY);
+        //If an transfer block is found, then return that transfer block
+        else if (getTransferBlock(newX, newY) != null) {
+            return getTransferBlock(newX, newY);
         }
         //Otherwise the search is repeated
         else {
-            return findObstacle(direction, newX, newY);
+            return findTransferInDirection(direction, newX, newY);
         }
     }
 
@@ -391,8 +391,8 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         if (this.getMoveableBlock(x, y) != null) {
             return getMoveableBlock(x, y);
         }
-        if (this.getObstacleBlock(x, y) != null) {
-            return getObstacleBlock(x, y);
+        if (this.getTransferBlock(x, y) != null) {
+            return getTransferBlock(x, y);
         }
         return null;
     }
@@ -414,11 +414,11 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         }
         return true;
     }
-    private ObstacleBlock getObstacleBlock(int x, int y) {
+    private TransferBlock getTransferBlock(int x, int y) {
         if (!isCoordinatesWithinBounds(x, y)) {
             return null;
         }
-        return obstacleBlocks[-y][x];
+        return transferBlocks[-y][x];
     }
     private TraversableBlock getTraversableBlock(int x, int y) {
         if (!isCoordinatesWithinBounds(x, y)) {
@@ -427,8 +427,8 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         return traversableBlocks[-y][x];
     }
 
-    private void addObstacleBlock(ObstacleBlock block) {
-        this.obstacleBlocks[-block.getY()][block.getX()] = block;
+    private void addTransferBlock(TransferBlock block) {
+        this.transferBlocks[-block.getY()][block.getX()] = block;
         if (block instanceof TeleporterBlock) {
             this.teleporters.add((TeleporterBlock) block);
         }
@@ -510,13 +510,13 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
             blockChain.add(blockWithTransporterFooting);
             //Then add the transporter that serves as the block's footing, unless it was previously added to some other list in 
             //fallOrderConstruction as an exit porter (placed at index 2)
-            ObstacleBlock entryTransporter = (ObstacleBlock) getFootingBlock((MoveableBlock) blockWithTransporterFooting, false);
+            TransferBlock entryTransporter = (TransferBlock) getFootingBlock((MoveableBlock) blockWithTransporterFooting, false);
             if(fallOrderConstruction.stream().filter(a -> a.get(2) == entryTransporter).count() != 0) {
                 continue; //Continues to the next loop, since the given entry transporter was already represented
             }
             blockChain.add(entryTransporter);
             //Then add that transporter's connected transporter to the end of the list
-            blockChain.add(((ObstacleBlock) blockChain.get(1)).getConnection());
+            blockChain.add(((TransferBlock) blockChain.get(1)).getConnection());
             //then place this list into the list that is to contain the complete fall order 
             fallOrderConstruction.add(blockChain);
         }
@@ -528,8 +528,8 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         //in this list as they are what binds the entry and exit chains together.
         List<List<BlockAbstract>> fallOrderComplete = new ArrayList<List<BlockAbstract>>();
         for (List<BlockAbstract> blockChain : fallOrderConstruction) {
-            ObstacleBlock entryPorter = (ObstacleBlock) blockChain.get(1);
-            ObstacleBlock exitPorter = (ObstacleBlock) blockChain.get(2);
+            TransferBlock entryPorter = (TransferBlock) blockChain.get(1);
+            TransferBlock exitPorter = (TransferBlock) blockChain.get(2);
             MoveableBlock blockAtEntry = (MoveableBlock) blockChain.get(0);
             BlockAbstract blockAtExit = this.getFootingBlock(blockAtEntry, true);
 
@@ -689,8 +689,8 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         // The first blocks that should fall down are the ones furthest down in the gravity's direction, thus
         // these blocks should be issued to move first.
         // // // // // // List<MoveableBlock> transportersAsFooting = this.moveableBlocks.stream()
-        // // // // // // .filter(a -> this.getFootingBlock(a, false) instanceof ObstacleBlock)
-        // // // // // // .filter(a -> ((ObstacleBlock) this.getFootingBlock(a, false)).isTransporter())
+        // // // // // // .filter(a -> this.getFootingBlock(a, false) instanceof TransferBlock)
+        // // // // // // .filter(a -> ((TransferBlock) this.getFootingBlock(a, false)).isTransporter())
         // // // // // // .collect(Collectors.toList());
         // // // // // // System.out.println(transportersAsFooting);
         // // // // // // List<MoveableBlock> list = this.moveableBlocks.stream()
@@ -729,9 +729,9 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         String porterDirection = "";
         List<BlockAbstract> movedBlocks = new ArrayList<BlockAbstract>();
         for (List<BlockAbstract> blockChain : fallOrder) {
-            //All blocks contained in a block-chain that does not start with an obstacle block should not be moved
+            //All blocks contained in a block-chain that does not start with an transfer block should not be moved
             //as it indicates that gravity would not move them away from their current coordinates.
-            if (!(blockChain.get(0) instanceof ObstacleBlock)) {
+            if (!(blockChain.get(0) instanceof TransferBlock)) {
                 blockChain.forEach(a -> movedBlocks.add(a));
             }
             //A block chain should form an infinite falling loop in the case that a porter connects the end 
@@ -742,11 +742,11 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
             if (blockChain.size() >= 4 && blockChain.get(1) == blockChain.get(blockChain.size()/2+1)) {
                 //We retrieve what could be the entry porter in which the block chain is falling into.
                 BlockAbstract entryPorterBlock = blockChain.get(blockChain.size()/2);
-                //if this entry porter block is an obstacle block then it must be a porter, otherwise it would
+                //if this entry porter block is an transfer block then it must be a porter, otherwise it would
                 //not have been included in the fallorder
-                if (entryPorterBlock instanceof ObstacleBlock) {
+                if (entryPorterBlock instanceof TransferBlock) {
                     //we then retrieve the direction in which this porter moves entering blocks
-                    int[] exitDirectionXY = ((ObstacleBlock) entryPorterBlock).getExitDirectionXY(blockChain.get(1));
+                    int[] exitDirectionXY = ((TransferBlock) entryPorterBlock).getExitDirectionXY(blockChain.get(1));
                     //Should this direction be equal to that of gravity, then an infinte falling loop should form.
                     if (exitDirectionXY[1] == this.getGravityDirectionY()) {
                         //To sort out the infinite loop we retrieve one of each moveable blocks in the block-chain.
@@ -778,11 +778,11 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                 if (movedBlocks.contains(block)) {
                     continue;
                 }
-                //If the first block in the current block chain is not an obstacle block, then the rest of the chain should not be moved yet
-                if (!(blockChain.get(0) instanceof ObstacleBlock)) {
+                //If the first block in the current block chain is not an transfer block, then the rest of the chain should not be moved yet
+                if (!(blockChain.get(0) instanceof TransferBlock)) {
                     break; //porterDirection null perhaps? Maybe add all these blocks to a list of non-moved blocks?
                 }
-                //Otherwise the first block in the list must be an obstacle block, and it must be a transporter, thus the next block in the list
+                //Otherwise the first block in the list must be an transfer block, and it must be a transporter, thus the next block in the list
                 //must be placed such that it is at the entry point of that transporter. We then retrieve the direction that entrance is facing 
                 //by comparing the coordinates of these two blocks.
                 if (i == 0) {
@@ -804,7 +804,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                     }
                 }
                 //There will also be one more transporter in the list, the exit transporter, and it can appear at any non-zero index;
-                else if (block instanceof ObstacleBlock) { //&& i < blockChain.size()-1 was included in the if check, but I suspect that it is redundant
+                else if (block instanceof TransferBlock) { //&& i < blockChain.size()-1 was included in the if check, but I suspect that it is redundant
                     porterDirection = this.getGravityDirection();
                 }
                 //Otherwise if the block is moveable, then attempt to move these blocks accordingly
@@ -873,17 +873,17 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         //and the now established footing y-coordinate. We thus set the footing block to be the top block at that coordinate.
         BlockAbstract footingBlock = this.getTopBlock(block.getX(), footingBlockY);
 
-        //If this footing block is an obstacle block, then it could serve as footing
-        if (footingBlock instanceof ObstacleBlock) {
+        //If this footing block is an transfer block, then it could serve as footing
+        if (footingBlock instanceof TransferBlock) {
             //Should this directed block be an active transporter, then the footing block will instead be located at the exit point of that active transporter.
             //Should the parameter "isTransportationConsidered" have been set to false, then the transporter itself will represent the footing.
-            if ( ( ((ObstacleBlock) footingBlock).isTransporter() ) && footingBlock.getState() && isTransportationConsidered) {
+            if ( ( ((TransferBlock) footingBlock).isTransporter() ) && footingBlock.getState() && isTransportationConsidered) {
                 //Since the footing block was an active transporter and as long as the given block is also placed at one of the transporter's entry points,
                 //then the footingblock should instead be set to the block placed at the exit point of that transporter. Otherwise the transporter will remain
                 //as the footing block
 
                 //We first retrieve the transporter:
-                ObstacleBlock entryTransporter = this.getObstacleBlock(footingBlock.getX(), footingBlock.getY());
+                TransferBlock entryTransporter = this.getTransferBlock(footingBlock.getX(), footingBlock.getY());
                 //If the given moveable block can enter the transporter, then that block's footing should be set
                 //to the block positioned at the transporter's exit point
                 if (entryTransporter.canBlockEnter(block)) {
@@ -927,7 +927,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         else if (footingBlock instanceof TraversableBlock) { //Case: footing is not a DirectedBlock (alternatively: block is a TraversableBlock) meaning it has no collision -> must be airborne
             return true;
         }
-        else if (footingBlock instanceof ObstacleBlock) {
+        else if (footingBlock instanceof TransferBlock) {
             return false;
         }
         //If the block is neither null nor traversable, then it follows that it must be a directed block, which could have collision to serve as footing.
@@ -952,7 +952,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                     //In the case that the block serving as footing is on the exit point of the porter, then it is confirmed that the potential transporter is an actual transporter.
                     //The block at the exit point may be standing still, falling down out from the porter, or falling down into it. To find out which is the case we will need to find 
                     //which direction the exit porter pushes out entering blocks.
-                    int[] exitDirectionXY = ((ObstacleBlock) potentialTransporter).getExitDirectionXY(block);
+                    int[] exitDirectionXY = ((TransferBlock) potentialTransporter).getExitDirectionXY(block);
                     List<BlockAbstract> blockChain = getBlockChain(block, 0, -this.getGravityDirectionY());
                     if (blockChain.contains(footingBlock)) {
                         return true;
@@ -1096,8 +1096,8 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         if (blockChain.size() <= strength+1 && blockChain.size() >= 1) {
             BlockAbstract lastBlock = blockChain.get(blockChain.size()-1);
             BlockAbstract blockFollowingLastBlock = this.getTopBlock(lastBlock.getX() + directionXY[0], lastBlock.getY() + directionXY[1]);
-            if (blockFollowingLastBlock instanceof ObstacleBlock && ((ObstacleBlock) blockFollowingLastBlock).canBlockEnter(lastBlock)) {
-                int[] exitPointXY = ((ObstacleBlock) blockFollowingLastBlock).getExitPointXY(lastBlock);
+            if (blockFollowingLastBlock instanceof TransferBlock && ((TransferBlock) blockFollowingLastBlock).canBlockEnter(lastBlock)) {
+                int[] exitPointXY = ((TransferBlock) blockFollowingLastBlock).getExitPointXY(lastBlock);
                 BlockAbstract exitPointBlock = this.getTopBlock(exitPointXY[0], exitPointXY[1]);
                 List<BlockAbstract> blockChainExit = this.getBlockChain(exitPointBlock, directionXY[0], directionXY[1]);
                 if (blockChainExit.containsAll(blockChain)) {
@@ -1165,41 +1165,41 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
             return false;
         }
         //Otherwise the movement must have been successfull. We thus check if the new coordinates for the copy block placed it at a location
-        //already occupied by another obstacle block
-        ObstacleBlock obstacleBlock = getObstacleBlock(blockNew.getX(), blockNew.getY());
-        if (obstacleBlock != null) {
-            //Since an obstacle block was found at the copy-block's new location, it could potentially be a transporter type:
+        //already occupied by another transfer block
+        TransferBlock transferBlock = getTransferBlock(blockNew.getX(), blockNew.getY());
+        if (transferBlock != null) {
+            //Since an transfer block was found at the copy-block's new location, it could potentially be a transporter type:
             //Block should be teleported if the given movement would place it at a connected teleporter
-            if (obstacleBlock.isTransporter()) {
+            if (transferBlock.isTransporter()) {
                 //To enter a transporter the block must be standing at one of the transporter's entry points and 
                 //the transporter must be active (meaning it must be connected to another transporter)
 
                 //If the block to be moved can not enter the transporter, then the transporter will instead be treated
                 //as if it was a wall, thus hindering the movement of the block.
-                if (!obstacleBlock.canBlockEnter(blockOld)) {
+                if (!transferBlock.canBlockEnter(blockOld)) {
                     System.out.println("A transporter can only be entered when connected, and must be entered from its entry point.");
                     return false;
                 }
                 //Otherwise the transporter must be connected, thus the moving block should be transported out of the connected transporter in
                 //direction of the movement if possible
                 else {
-                    int[] transportExit = obstacleBlock.getExitPointXY(blockOld);
+                    int[] transportExit = transferBlock.getExitPointXY(blockOld);
                     blockNew.setX(transportExit[0]);
                     blockNew.setY(transportExit[1]);
-                    if (obstacleBlock instanceof PortalWallBlock && ((PortalWallBlock) obstacleBlock).isPortal()) {
-                        blockNew.setDirection(obstacleBlock.getConnection().getDirection());
+                    if (transferBlock instanceof PortalWallBlock && ((PortalWallBlock) transferBlock).isPortal()) {
+                        blockNew.setDirection(transferBlock.getConnection().getDirection());
                     }
                     else {  
                         blockNew.setDirection(direction);
                     }
                 }
             }
-            //If the new coordinates for the copy-block are still empty of obstacle blocks, then do nothing
-            obstacleBlock = getObstacleBlock(blockNew.getX(), blockNew.getY());
+            //If the new coordinates for the copy-block are still empty of transfer blocks, then do nothing
+            transferBlock = getTransferBlock(blockNew.getX(), blockNew.getY());
 
-            //If there exists an obstacle block at the current coordinates of the moveable block copy, and that obstacle
+            //If there exists an transfer block at the current coordinates of the moveable block copy, and that transfer
             //block is a wall, then it would not be possible for the actual moveable block to be moved there.
-            if (obstacleBlock != null && obstacleBlock instanceof PortalWallBlock && ((PortalWallBlock) obstacleBlock).isWall()) {
+            if (transferBlock != null && transferBlock instanceof PortalWallBlock && ((PortalWallBlock) transferBlock).isWall()) {
                 System.out.println("Can not move further: you have hit a wall");
                 return false;
             } 
@@ -1278,7 +1278,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
 
     //Where gravity applies, a block stacked ontop of another block should attempt to match the movement of the block below. 
     // Thus check if the given block has "baggage", and if they do: issue them to follow the movement of the original block, unless
-    // Obstacles hinder the movement.
+    // Transfers hinder the movement.
     //Input is the instance of the block prior to being moved, and the direction is the direction it was moved in
     private void moveBaggage(MoveableBlock movedBlock, String direction) {
         //Blocks that are stacked ontop of eachother will already fall together due to gravity
@@ -1306,8 +1306,8 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                 //Otherwise the baggage block must be a directed block
                 else {
                     moveableBaggage.clear();
-                    if (blockAtNewCoordinates instanceof ObstacleBlock) {
-                        if ( ((ObstacleBlock) blockAtNewCoordinates).isTransporter() && ((ObstacleBlock) blockAtNewCoordinates).canBlockEnter(baggage) ) {
+                    if (blockAtNewCoordinates instanceof TransferBlock) {
+                        if ( ((TransferBlock) blockAtNewCoordinates).isTransporter() && ((TransferBlock) blockAtNewCoordinates).canBlockEnter(baggage) ) {
                             moveableBaggage.add(baggage);
                         }
                     }
@@ -1328,8 +1328,8 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                 if (getMoveableBlock(x, y) != null) {
                     type = this.getMoveableBlock(x, y).toString();
                 }
-                else if (getObstacleBlock(x, y) != null) {
-                    type = this.getObstacleBlock(x, y).toString();
+                else if (getTransferBlock(x, y) != null) {
+                    type = this.getTransferBlock(x, y).toString();
                 }
                 else {
                     type = this.getTraversableBlock(x, y).toString();
@@ -1586,7 +1586,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         }
         int directionsRemaining = blockDirections.length;
 
-        this.obstacleBlocks = new ObstacleBlock[height][width];
+        this.transferBlocks = new TransferBlock[height][width];
         this.traversableBlocks = new TraversableBlock[height][width];
 
         int playerCount = 0;
@@ -1667,27 +1667,27 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                     addMoveableBlock(moveableBlock);
                 }
                 else if ("wtuv".contains(tangibleType+"")) {
-                    ObstacleBlock obstacleBlock;
-                    ObstacleBlock connection = null;
+                    TransferBlock transferBlock;
+                    TransferBlock connection = null;
                     //If the type is 't' then the block to be created should be a teleporter
                     if (tangibleType == 't') {
-                        obstacleBlock = new TeleporterBlock(x, -y);
-                        ((TeleporterBlock) obstacleBlock).setConnection(connection);
+                        transferBlock = new TeleporterBlock(x, -y);
+                        ((TeleporterBlock) transferBlock).setConnection(connection);
                     }
                     //Otherwise it must be a portal, thus this portal should have a connection to the portal 
                     //opposite to itself if it exists.
                     else {
-                        obstacleBlock = new PortalWallBlock(x, -y);
+                        transferBlock = new PortalWallBlock(x, -y);
                         if (tangibleType == 'v') {
                             connection = this.getPortal(false);
-                            ((PortalWallBlock) obstacleBlock).setPortal(true, blockDirection, (PortalWallBlock) connection);
+                            ((PortalWallBlock) transferBlock).setPortal(true, blockDirection, (PortalWallBlock) connection);
                         }
                         else if (tangibleType == 'u') {
                             connection = this.getPortal(true);
-                            ((PortalWallBlock) obstacleBlock).setPortal(false, blockDirection, (PortalWallBlock) connection);
+                            ((PortalWallBlock) transferBlock).setPortal(false, blockDirection, (PortalWallBlock) connection);
                         }
                     }
-                    addObstacleBlock(obstacleBlock);
+                    addTransferBlock(transferBlock);
                 }
             }
         }

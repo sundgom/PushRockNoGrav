@@ -1,21 +1,27 @@
 package pushrock.model;
 
-public abstract class ObstacleBlock extends DirectedBlock {
+public abstract class TransferBlock extends DirectedBlock {
 
-    private ObstacleBlock connection;
+    private TransferBlock connection;
 
     //Constructor with specified direction and connection
-    public ObstacleBlock(int x, int y, char type, String direction, ObstacleBlock connection) {
+    public TransferBlock(int x, int y, char type, String direction, TransferBlock connection) {
         super(x, y, type, direction);
         this.setConnection(connection);
     }
 
+    //Sub-classes should determine wether or not a connection is considered valid for their types.
+    abstract protected String checkConnectionValid(TransferBlock connection);
     //setConnection() draws inspiration from code I made for the Partner-exercise:
     //Connects this block to another block, and makes sure that the other block is in turn connected to this block.
     //Any previous connections either of these blocks had before will be removed, this way a block can only be connected to one
     //other block at a time.
     //If the input is null, then both blocks will instead be disconnected from eachother.
-    protected void setConnection(ObstacleBlock connection) {
+    protected void setConnection(TransferBlock connection) {
+        String connectionValidityMessage = this.checkConnectionValid(connection);
+        if (connectionValidityMessage != null) {
+            throw new IllegalArgumentException(connectionValidityMessage);
+        }
         //A block can not be connected to itself, given such input set the block's connection to null.
         if (connection == this) {
             this.setConnection(null);
@@ -28,7 +34,7 @@ public abstract class ObstacleBlock extends DirectedBlock {
             return;
         }
         //Saves previous connection of the block, and sets the connection of block to the new connection input
-        ObstacleBlock connectionOld = this.connection;
+        TransferBlock connectionOld = this.connection;
         this.connection = connection;
 
         //check if the old connection had a previous connection and if this previous connection was this block, remove association if true
@@ -47,10 +53,12 @@ public abstract class ObstacleBlock extends DirectedBlock {
         this.setConnection(null);
     }
     //Returns the block that this block is connected to if it exists
-    public ObstacleBlock getConnection() {
+    public TransferBlock getConnection() {
         return this.connection;
     }
 
+    //A transfer block could be considered a transporter if it has the capabillity to offer entering blocks
+    //exit points once they have a connection.
     abstract public boolean isTransporter();
     //Returns an int[][] where every contained i[] represents the transporter's entry point coordinates where x = int[0], and y= int[1]
     abstract public int[][] getEntryPointsXY(); 
@@ -69,9 +77,9 @@ public abstract class ObstacleBlock extends DirectedBlock {
         return new int[] {exitPointXY[0] - exitPorterXY[0], exitPointXY[1] - exitPorterXY[1]};
     }
 
-    //Checks if this obstacle block can be entered by the given block
+    //Checks if this transfer block can be entered by the given block
     public boolean canBlockEnter(BlockAbstract entryBlock) {
-        //Obstacle blocks can not be entered unless they are transporters
+        //transfer blocks can not be entered unless they are transporters
         if (!this.isTransporter()) {
             return false;
         }  

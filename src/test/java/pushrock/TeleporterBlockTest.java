@@ -3,7 +3,7 @@ package pushrock;
 import org.junit.jupiter.api.Test;
 
 import pushrock.model.BlockAbstract;
-import pushrock.model.ObstacleBlock;
+import pushrock.model.TransferBlock;
 import pushrock.model.PortalWallBlock;
 import pushrock.model.TeleporterBlock;
 
@@ -35,9 +35,9 @@ public class TeleporterBlockTest {
             testConstructorCoordinates(value, 0);
         }
     }
-    //Tests of constructor and it's inherited properties from BlockAbstract, DirectedBlock, and ObstacleBlock
+    //Tests of constructor and its inherited properties from BlockAbstract, DirectedBlock, and TransferBlock
     @Test
-    @DisplayName("Check that portal wall blocks have their type set to 'w' after being constructed.")
+    @DisplayName("Check that teleporter blocks have their type set to 't' after being constructed.")
     public void testConstructorCorrectStartValues() {
         //Coordinate and type properties inherited by BlockAbstract.
         TeleporterBlock teleporter = new TeleporterBlock(0, 0);
@@ -47,7 +47,7 @@ public class TeleporterBlockTest {
         assertNull(teleporter.getDirection(), "Teleporter block direction should be null after construction.");
         assertEquals(0, teleporter.getDirectionXY()[0], "Teleporter block x-coordinate direction should be 0 after construction.");
         assertEquals(0, teleporter.getDirectionXY()[1], "Teleporter block y-coordinate direction should be 0 after construction.");
-        //Connection properties inherited by ObstacleBlock.
+        //Connection properties inherited by TransferBlock.
         assertNull(teleporter.getConnection(), "Teleporter block connection should be null after construction.");
     }
 
@@ -81,7 +81,7 @@ public class TeleporterBlockTest {
         @Test
         @DisplayName("Attempting to connect a teleporter to a non-teleporter object should throw IllegalArgumentException")
         public void testSetConnectionNonTeleporterObjects() {
-            ObstacleBlock wall = new PortalWallBlock(0, 0);
+            TransferBlock wall = new PortalWallBlock(0, 0);
             PortalWallBlock portal = new PortalWallBlock(0, 0);
             portal.setPortal(true, "right", null);
             assertThrows(IllegalArgumentException.class, 

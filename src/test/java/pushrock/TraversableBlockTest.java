@@ -10,7 +10,7 @@ import pushrock.model.TraversableBlock;
 public class TraversableBlockTest {
     //Tests of constructor and methods inherited by BlockAbstract
     @Test
-    @DisplayName("Test ")
+    @DisplayName("Check that traversable blocks have correct coordinate values after construction.")
     public void testConstructorCoordinates() {
         BlockAbstract neutralValueCoordinates = new TraversableBlock(0, 0, ' ', true);
         assertEquals(0, neutralValueCoordinates.getX());
@@ -29,6 +29,7 @@ public class TraversableBlockTest {
         assertEquals(new int[]{-11,-12}[1], negativeValueCoordinates.getCoordinatesXY()[1]);
     }
     @Test
+    @DisplayName("Check that traversable blocks have correct type values after construction.")
     public void testConstructorValidTypes() {
         BlockAbstract constructedAir = new TraversableBlock(0, 0, ' ', true);
         assertEquals(' ', constructedAir.getType());

@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import pushrock.fxui.SaveHandler;
 import pushrock.model.BlockAbstract;
 import pushrock.model.DirectedBlock;
-import pushrock.model.ObstacleBlock;
+import pushrock.model.TransferBlock;
 import pushrock.model.PushRock;
 import pushrock.model.TraversableBlock;
 
@@ -156,10 +156,10 @@ public class SaveHandlerTest {
                     if (expectedTopBlock instanceof DirectedBlock) {
                         assertTrue(actualTopBlock instanceof DirectedBlock, "When the expected top-block is a directed block, then the actual top-block should also be a directed top-block");
                         assertEquals(((DirectedBlock) expectedTopBlock).getDirection(), ((DirectedBlock) actualTopBlock).getDirection(), "For two directed top-blocks to be equal, their directions should also be equal.");
-                        if (expectedTopBlock instanceof ObstacleBlock) {
-                            assertTrue(actualTopBlock instanceof ObstacleBlock, "When the expected top-block is an obstacle block, then the actual top-block should also be an obstacle top-block");
-                            ObstacleBlock expectedConnection = ((ObstacleBlock) expectedTopBlock).getConnection();
-                            ObstacleBlock actualConnection = ((ObstacleBlock) actualTopBlock).getConnection();
+                        if (expectedTopBlock instanceof TransferBlock) {
+                            assertTrue(actualTopBlock instanceof TransferBlock, "When the expected top-block is an transfer block, then the actual top-block should also be an transfer top-block");
+                            TransferBlock expectedConnection = ((TransferBlock) expectedTopBlock).getConnection();
+                            TransferBlock actualConnection = ((TransferBlock) actualTopBlock).getConnection();
                             if (expectedConnection == null) {
                                 assertNull(actualConnection, "When the expected top-block has no connection, then so should the actual top-block.");
                             }

@@ -1,17 +1,13 @@
 package pushrock.model;
 
-public class PortalWallBlock extends ObstacleBlock {
+public class PortalWallBlock extends TransferBlock {
 
     public PortalWallBlock(int x, int y) {
         //All portal-walls are walls that can hold portals, but only when a wall has been set to hold a portal will it act as a portal,
         //thus portal-walls are constructed with their type set to 'w', direction set to null and connection set to null.
         super(x, y, 'w', null, null);
     }
-    //Valid types include: wall 'w', portal-one 'v', and portal-two 'u'.
-    @Override
-    protected String getValidTypes() {
-        return "wuv";
-    }
+
     @Override
     protected String[] getValidDirections() {
         if (this.isWall()) {
@@ -23,14 +19,21 @@ public class PortalWallBlock extends ObstacleBlock {
             return new String[]{"up", "down", "right", "left"};
         }
     }
+    //Valid types include: wall 'w', portal-one 'v', and portal-two 'u'.
+    @Override
+    protected String getValidTypes() {
+        return "wuv";
+    }
+
     //setConnection is kept protected, as portal-wall blocks should only have a connection once its made into a portal.
-    protected void setConnection(ObstacleBlock connection) {
+    @Override
+    protected String checkConnectionValid(TransferBlock connection) {
         if (connection != null) {
             if (!(connection instanceof PortalWallBlock && ((PortalWallBlock) connection).isPortal())) {
-                throw new IllegalArgumentException("A portal can only be connected to another portal.");
+                return "Connection invalid. A portal can only connect to another portal.";
             }
         }
-        super.setConnection(connection);
+        return null;
     }
 
     private void setWall() {
@@ -66,7 +69,7 @@ public class PortalWallBlock extends ObstacleBlock {
         return (this.getType() == 'u');
     }
     
-    //The portal wall has its portal cleared if it inhabits one, and then turning it into its wall form.
+    //The portal wall has its portal cleared if it inhabits one, and is then turned back into its wall form.
     public void clearPortal() {
         if (!this.isPortal()) {
             //If the block is already not a portal, then there is no need for any change.
@@ -94,6 +97,9 @@ public class PortalWallBlock extends ObstacleBlock {
     }
     @Override
     public boolean isTransporter() {
+        //A portal-wall block must be a portal to be considered a transporter, as when it is a wall-type
+        //it will not be capable of having a connection, which in turn means it could not provide an exit point
+        //to an entering block.
         return this.isPortal();
     }
 
