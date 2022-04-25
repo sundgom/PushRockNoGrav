@@ -27,17 +27,15 @@ import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import pushrock.model.BlockAbstract;
 import pushrock.model.DirectedBlock;
-import pushrock.model.IObservableIntervalNotifier;
 import pushrock.model.IObservablePushRock;
-import pushrock.model.IObserverIntervalNotifier;
 import pushrock.model.IObserverPushRock;
 import pushrock.model.PushRock;
 
-public class PushRockController implements IObserverPushRock, IObserverIntervalNotifier {
+public class PushRockController implements IObserverPushRock {
 
     private PushRock pushRock;
-    private int blockSize;
     private ISaveHandler saveHandler = new SaveHandler();
+    private int blockSize;
 
     //APP
     @FXML 
@@ -152,7 +150,7 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
         
 		pushRock = new PushRock(levelName, levelLayout1, directionLayout1);
         pushRock.addObserver(this);
-        pushRock.pause(true);
+        pushRock.pauseIntervalGravity(true);
 		createMap();
 		drawMap();
         updateLevelText();
@@ -445,8 +443,15 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
 
     @FXML
     private void handleGravityInverter() {
-        pushRock.gravityInverter();
-        updateGravityButton();
+        try {
+            pushRock.gravityInverter();
+            updateGravityButton();
+
+        }
+        catch (IllegalStateException e) {
+            this.appInformationText.setVisible(true);
+            this.appInformationText.setText(e.getMessage());
+        }
     }
 
     public void updateGravityButton() {
@@ -459,7 +464,13 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
     }
     @FXML 
     private void handleManualGravityIncrement() {
-        pushRock.gravityStep();
+        try {
+            pushRock.gravityStep();
+        }
+        catch (IllegalStateException e) {
+            this.appInformationText.setVisible(true);
+            this.appInformationText.setText(e.getMessage());
+        }
     }
     @FXML
     private void handleResetLevel() {
@@ -475,7 +486,7 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
         statusPage.setVisible(false);
         gravityManualIncrementButton.setVisible(false);
         if (this.pushRock.isGravityApplicationInterval()) {
-            this.pushRock.pause(true);
+            this.pushRock.pauseIntervalGravity(true);
         }
     }
     private void unpause() {
@@ -485,7 +496,7 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
         statusPage.setVisible(false);
         gravityManualIncrementButton.setVisible(false); 
         if (this.pushRock.isGravityApplicationInterval()) {
-            this.pushRock.pause(true);
+            this.pushRock.pauseIntervalGravity(true);
         }
     }
 
@@ -531,7 +542,7 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
             this.pushRock.setGravityApplicationInterval();
             System.out.println("gInterval" + this.pushRock.isGravityApplicationInterval());
             gravityManualIncrementButton.setVisible(false);
-            this.pushRock.pause(false);
+            this.pushRock.pauseIntervalGravity(false);
         }
         else {
             System.out.println("Gravity: manual");
@@ -560,7 +571,7 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
         }
         if (loadSuccessful) {
             pushRock.addObserver(this);
-            pushRock.pause(true);
+            pushRock.pauseIntervalGravity(true);
             appInformationText.setText(levelFileName + " was loaded successfully!");
             createMap();
             drawMap();
@@ -592,7 +603,7 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
                 this.pushRock = this.saveHandler.loadGame(filePath);
                 this.appInformationText.setText("Level-load successful.");
                 pushRock.addObserver(this);
-                pushRock.pause(true);
+                pushRock.pauseIntervalGravity(true);
                 createMap();
                 drawMap();
                 appInformationText.setText("Game-save loaded successfully!");
@@ -721,11 +732,5 @@ public class PushRockController implements IObserverPushRock, IObserverIntervalN
             this.drawMap();
         }
     }
-
-    @Override
-    public void update(IObservableIntervalNotifier observable) {
-        this.pushRock.gravityStep();
-    }
-
 }   
 

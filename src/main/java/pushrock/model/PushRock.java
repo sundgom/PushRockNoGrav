@@ -42,7 +42,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     //player movement method has been called).
     private Thread intervalNotifierThread;
     //The interval notifier is ignored rather than being issued to to remove this PushRock as an observer once the 
-    //game is paused/gravity application method is changed. This is done as to minimalize it's interference with the
+    //gravity interval is paused/gravity application method is changed. This is done as to minimalize it's interference with the
     //rest of the code, as well as avoiding any thread related issues that interacting with that class could cause.
     private boolean ignoreIntervalNotifier;   
 
@@ -298,6 +298,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                 if (!"prwtuvd ".contains(tangibleType+"")) {
                     throw new IllegalArgumentException("Can only construct blocks with the following letters: 'prwtuvd '. Character was: " + tangibleType + "which has the acii value:" + (int) tangibleType);
                 }
+   
                 else if (tangibleType == 'p') {
                     playerCount++;
                     if (playerCount > 1) {
@@ -375,7 +376,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     }
 
     public void resetLevel() {
-        this.pause(false);
+        this.pauseIntervalGravity(false);
         System.out.println("Reset level.");
         this.buildWorld(this.levelMapLayout, this.levelDirectionLayout, false);
     }
@@ -425,7 +426,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         }
         return traversableBlocks[-y][x];
     }
-    //Returns a copy of the traversable block at the given coordinate
+    //Returns a copy of the traversable block at the given coordinate.
     public TraversableBlock getTraversableBlockCopy(int x, int y) {
         TraversableBlock block = this.getTraversableBlock(x, y);
         if (block == null) {
@@ -700,11 +701,11 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     public void placePortal(boolean inputIsPortalOne) {
         //Can not place portals when the game is over.
         if (isGameOver) {
-            throw new IllegalStateException("Portals can not be placed when the game is over.");
+            throw new IllegalStateException("Portals can not be placed while the game is over.");
         }
         MoveableBlock player = this.getPlayer();
         if (player == null) {
-            throw new IllegalStateException("Portals can not be placed when no player exists to place them."); 
+            throw new IllegalStateException("Portals can not be placed while no player exists to place them."); 
         }
         int x = player.getX();
         int y = player.getY();
@@ -1084,16 +1085,15 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
 
         // Block should not be moved if the given movement would place it out of bounds
         if (blockNew.getX() < 0 || blockNew.getX() >= width) {
-            System.out.println("Out of bounds, cant move x direction");
             if (blockNew.isPlayer()) {
-                throw new IllegalArgumentException("Can not move further " + direction + " as it would be out of range for the map.");
+                throw new IllegalStateException("Can not move further " + direction + " as it would be out of bounds for the map.");
             }
             return false;
         }
         if (blockNew.getY() > 0 || blockNew.getY() <= -height) {
             System.out.println("Out of bounds, cant move y direction");
             if (blockNew.isPlayer()) {
-                throw new IllegalArgumentException("Can not move further " + direction + " as it would be out of range for the map.");
+                throw new IllegalStateException("Can not move further " + direction + " as it would be out of bounds for the map.");
             }
             return false;
         }
@@ -1209,7 +1209,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     public boolean movePlayer(String direction) {
         //Can no longer move once the game is over.
         if (this.isGameOver) {
-            return false;
+            throw new IllegalStateException("Player can not move while the game is over.");
         }
         MoveableBlock player = this.getPlayer();
         // String directionOld = player.getDirection();
@@ -1236,7 +1236,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         System.out.println(this.prettyString());
         this.notifyObservers();
         //If gravity is set to be applied on move input, then gravityStep should be called now that the move input has been processed.
-        if (this.isGravityApplicationMoveInput()) {
+        if (!this.isGameOver && this.isGravityApplicationMoveInput()) {
             this.gravityStep();
         }
         return wasMoved;
@@ -1247,9 +1247,8 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         return this.isGravityInverted;
     }
     public void gravityInverter() {
-        //Gravity direction can not be changed when the game is over
         if (this.isGameOver) {
-            return;
+            throw new IllegalStateException("Gravity direction can not be changed while the game is over.");
         }
         this.isGravityInverted = !this.isGravityInverted;
     }
@@ -1461,7 +1460,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     public void gravityStep() {
         //Gravity should not be applied when the game is over
         if (this.isGameOver) {
-            return; 
+            throw new IllegalStateException("Gravity can not be applied while the game is over.");
         }
         boolean anyBlockMoved = false;
         // The first blocks that should fall down are the ones furthest down in the gravity's direction, thus
@@ -1676,8 +1675,8 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
             this.gravityStep();
         }
     }
-    public void pause(boolean pauseGame) {
-        if (pauseGame) {
+    public void pauseIntervalGravity(boolean pauseIntervalGravity) {
+        if (pauseIntervalGravity) {
             if (this.isGravityApplicationInterval()) {
                 this.ignoreIntervalNotifier = true;
             }
