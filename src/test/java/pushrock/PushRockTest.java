@@ -10,7 +10,6 @@ import pushrock.model.BlockAbstract;
 import pushrock.model.MoveableBlock;
 import pushrock.model.PortalWallBlock;
 import pushrock.model.PushRock;
-import pushrock.model.TraversableBlock;
 
 public class PushRockTest {
     @Test
@@ -76,52 +75,26 @@ public class PushRockTest {
         assertEquals(moveDirection, ((MoveableBlock) movedBlockCopy).getDirection());
     }
 
-    // private void testPlacingPortalAtOppositePortal(boolean isPortalOne) {
-    //     String portalType;
-    //     if (isPortalOne) {
-    //         portalType = "v";
-    //     } else {
-    //         portalType = "u";
-    //     }
-    //     String expected = "pr dw@";
-    //     PushRock pushRock = new PushRock("Test", expected, "rrg");
-    //     assertEqualsNoLineSeparator(expected, pushRock.toString());
-    //     pushRock.placePortal(isPortalOne);
-    //     expected = expected.replaceAll("w", portalType);
-    //     assertEqualsNoLineSeparator(expected, pushRock.toString());
-    // }
-
     @Test
     @DisplayName("Check that the player can place portal one at a wall.")
-    public void testPlacingPortalOneAtWall() {
-        String expected = "pr dw@";
-        PushRock pushRock = new PushRock("Test", expected, "rrg");
-        assertEqualsNoLineSeparator(expected, pushRock.toString());
-        pushRock.placePortal(true);
-        expected = "pr dv@";
-        assertEqualsNoLineSeparator(expected, pushRock.toString());
-        BlockAbstract portal = pushRock.getTopBlockCopy(4, 0);
-        assertTrue(portal instanceof PortalWallBlock);
-        assertEquals("left", ((PortalWallBlock) portal).getDirection());
-        // testPlacingPortalAtOppositePortal(true);
-        // testPlacingPortalAtOppositePortal(false);
+    public void testPlacingPortalsWall() {
+        String[] portalTypes = new String[] {"v", "u"};
+        for (String portalType : portalTypes) {
+            String expected = "pr dw@";
+            PushRock pushRock = new PushRock("Test", expected, "rrg");
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+            pushRock.placePortal(portalType.equals("v"));
+            expected = "pr dw@".replaceAll("w", portalType);
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+            BlockAbstract portal = pushRock.getTopBlockCopy(4, 0);
+            assertTrue(portal instanceof PortalWallBlock);
+            assertEquals("left", ((PortalWallBlock) portal).getDirection());
+        }
     }
+
     @Test
-    @DisplayName("Check that the player can place portal two at a wall.")
-    public void testPlacingPortalTwoAtWall() {
-        String expected = "pr dw@";
-        PushRock pushRock = new PushRock("Test", expected, "rrg");
-        assertEqualsNoLineSeparator(expected, pushRock.toString());
-        pushRock.placePortal(false);
-        expected = "pr du@";
-        assertEqualsNoLineSeparator(expected, pushRock.toString());
-        BlockAbstract portal = pushRock.getTopBlockCopy(4, 0);
-        assertTrue(portal instanceof PortalWallBlock);
-        assertEquals("left", ((PortalWallBlock) portal).getDirection());
-    }
-    @Test
-    @DisplayName("Check that both portals are placed at correct coordinates and with correct directions when placed at a wall.")
-    public void testPortalDirections() {
+    @DisplayName("Check that both portal types get placed at correct coordinates and with correct directions when placed at walls.")
+    public void testPortalPlacementAndDirection() {
         String map = """
                 www@
                 wpw@
@@ -164,27 +137,31 @@ public class PushRockTest {
         }
     }
 
+    @Test
+    @DisplayName("Check that placing a portal of one type at wall already inhabited by a portal of the same type but different direction replaces that old portal with the new one.")
+    public void testPlacingPortalAtPortalOfSameTypeButDifferentDirection() {
+        String[] portalTypes = new String[] {"v", "u"};
+        for (int i = 0; i < portalTypes.length; i++) {
+            //The map starts out with a portal of a given type placed at coordinate (3,0)
+            String expected = "p dx@".replaceAll("x", portalTypes[i]);
+            PushRock pushRock = new PushRock("Test", expected, "rug");
+            //Ensure that the pre-placed portal has the coordinate (3,0) and the direction "up" after construction
+            BlockAbstract portal = pushRock.getTopBlockCopy(3, 0);
+            assertTrue(portal instanceof PortalWallBlock && ((PortalWallBlock) portal).isPortal());
+            assertEquals("up", ((PortalWallBlock) portal).getDirection());
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+            //A portal the same type is then placed at the old pre-placed portal, but as the player is facing right, the new portal should have the direction set to "left",
+            //wheras the old portal has the direction "up"
+            pushRock.placePortal(portalTypes[i].equals("v"));
+            expected = "p dx@".replaceAll("x", portalTypes[i]);
+            //The new portal of the same type should now be placed where the old one was originally placed, but the direction should now be "left" rather than "up"
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+            portal = pushRock.getTopBlockCopy(3, 0);
+            assertTrue(portal instanceof PortalWallBlock && ((PortalWallBlock) portal).isPortal());
+            assertEquals("left", ((PortalWallBlock) portal).getDirection());
+        }
+    }
 
-    @Test
-    @DisplayName("Check that placing a portal one ontop of a wall already inhabited by portal two replaces the portal two with the new portal one.")
-    public void testPlacingPortalOneAtPortalTwo() {
-        String expected = "pr du@";
-        PushRock pushRock = new PushRock("Test", expected, "rrlg");
-        assertEqualsNoLineSeparator(expected, pushRock.toString());
-        pushRock.placePortal(true);
-        expected = "pr dv@";
-        assertEqualsNoLineSeparator(expected, pushRock.toString());
-    }
-    @Test
-    @DisplayName("Check that placing a portal two ontop of a wall already inhabited by portal one replaces the portal one with the new portal two.")
-    public void testPlacingPortalTwoAtPortalOne() {
-        String expected = "pr dv@";
-        PushRock pushRock = new PushRock("Test", expected, "rrlg");
-        assertEqualsNoLineSeparator(expected, pushRock.toString());
-        pushRock.placePortal(false);
-        expected = "pr du@";
-        assertEqualsNoLineSeparator(expected, pushRock.toString());
-    }
     @Test
     @DisplayName("Check that placing a new portal while an old portal of the same type exists removes the old portal and then places the new one correctly.")
     public void testPlacingPortalWhilePortalOfTheSameTypeExists() {
@@ -200,7 +177,6 @@ public class PushRockTest {
             //The old portal of the given type should now have been removed, and the new portal of that same type should be placed at the new location.
             assertEqualsNoLineSeparator(expected, pushRock.toString());
         }
-        
     }
     @Test
     @DisplayName("Check that placing a new portal ontop of an old portal of the opposing type replaces that old portal with the new one.")
@@ -220,7 +196,7 @@ public class PushRockTest {
     }
 
     @Test
-    @DisplayName("Check that placing a portal while a portal of the opposing type connects the two portals together, which should change their character representation to reflect their state changing to true.")
+    @DisplayName("Check that placing a portal while a portal of the opposing type connects the two portals together, which should alter their character representation to one that reflects a connected state.")
     public void testPlacingPortalWhilePortalOfOpposingTypeExists() {
         String[] portalTypes = new String[] {"v", "u"};
         String[] portalTypesConnected = new String[] {"ṿ", "ụ"};
@@ -258,6 +234,24 @@ public class PushRockTest {
             //and thus their character representation should have been changed to reflect their connected state.
             assertEqualsNoLineSeparator(expected, pushRock.toString());
         }
+    }
+
+    @Test
+    @DisplayName("Check that placing a portal when there are rocks that intercept the line of sight between the player and a wall still results in a correctly placed portal at that wall.")
+    public void testPlacingPortalThroughRocks() {
+
+    }
+
+    @Test
+    @DisplayName("Check that attempting to place a portal out of bounds throws IllegalStateException.")
+    public void testPlacingPortalOutOfBounds() {
+        
+    }
+
+    @Test
+    @DisplayName("Check that attempting to place a portal at a teleporter throws IllegalStateException.")
+    public void testPlacingPortalAtTeleporter() {
+        
     }
 
 

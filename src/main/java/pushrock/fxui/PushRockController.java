@@ -556,6 +556,11 @@ public class PushRockController implements IObserverPushRock {
         System.out.println("Level button");
         boolean loadSuccessful = false;
         String levelFileName = menuLevelChoiceBox.getValue();
+        if (levelFileName.equals("Select a level")) {
+            this.appInformationText.setVisible(true);
+            this.appInformationText.setText("No level was selected. Choose a level from the drop down menu and then confirm the choice by clicking the level button.");
+            return;
+        }
         try {
             this.pushRock = this.saveHandler.loadGame(levelFileName, false);
             loadSuccessful = true;

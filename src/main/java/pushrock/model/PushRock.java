@@ -54,21 +54,14 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     //Constructors
     public PushRock(String levelName, String levelMapLayout, String levelDirectionLayout) {
         System.out.println("Constructor: build from level information");
-        levelName = levelName.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
         levelMapLayout = levelMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
-        levelDirectionLayout = levelDirectionLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
-
         this.buildWorld(levelMapLayout, levelDirectionLayout, false);
         this.setLevelValues(levelName, levelMapLayout, levelDirectionLayout);
     }
     public PushRock(String levelName, String levelMapLayout, String levelDirectionLayout, String saveMapLayout, String saveDirectionLayout, int saveMoveCount) {
         System.out.println("Constructor: build from save information");
-        levelName = levelName.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
         levelMapLayout = levelMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
-        levelDirectionLayout = levelDirectionLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
         saveMapLayout = saveMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
-        saveDirectionLayout = saveDirectionLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator").stripTrailing());
-
         this.buildWorld(levelMapLayout, levelDirectionLayout, false);
         this.setLevelValues(levelName, levelMapLayout, levelDirectionLayout);
         this.checkLayoutCompabillityWithLevel(saveMapLayout, saveDirectionLayout);
