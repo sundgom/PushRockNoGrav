@@ -76,25 +76,70 @@ public class PushRockTest {
     }
 
     @Test
-    @DisplayName("Check that the player can place portal one at a wall.")
-    public void testPlacingPortalsWall() {
+    @DisplayName("Check that placing a portal results in accurate outcomes depending on the given scenario.")
+    public void testPlacingPortal() {
         String[] portalTypes = new String[] {"v", "u"};
         for (String portalType : portalTypes) {
-            String expected = "pr dw@";
-            PushRock pushRock = new PushRock("Test", expected, "rrg");
-            assertEqualsNoLineSeparator(expected, pushRock.toString());
-            pushRock.placePortal(portalType.equals("v"));
-            expected = "pr dw@".replaceAll("w", portalType);
-            assertEqualsNoLineSeparator(expected, pushRock.toString());
-            BlockAbstract portal = pushRock.getTopBlockCopy(4, 0);
-            assertTrue(portal instanceof PortalWallBlock);
-            assertEquals("left", ((PortalWallBlock) portal).getDirection());
+            testPlacingPortalsAtWall(portalType);
+            testPlacingPortalThroughRocks(portalType);
+            testPlacingPortalOutOfBounds(portalType);
+            testPlacingPortalThroughTeleporter(portalType);
+            testPortalPlacementAndDirection(portalType);
+            testPlacingPortalWhilePortalOfTheSameTypeExists(portalType);
         }
+        testPlacingPortalAtPortalOfSameTypeButDifferentDirection(portalTypes);
+        testPlacingPortalAtPortalOfOpposingType(portalTypes);
+        testPlacingPortalWhilePortalOfOpposingTypeExists(portalTypes);
+        testPlacingPortalAtAConnectedPortalOfOpposingType(portalTypes);
     }
 
-    @Test
+    @DisplayName("Check that the player can place a portal at a wall.")
+    private void testPlacingPortalsAtWall(String portalType) {
+        String expected = "p wd@";
+        PushRock pushRock = new PushRock("Test", expected, "rg");
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.placePortal(portalType.equals("v"));
+        expected = "p wd@".replaceAll("w", portalType);
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        BlockAbstract portal = pushRock.getTopBlockCopy(2, 0);
+        assertTrue(portal instanceof PortalWallBlock);
+        assertEquals("left", ((PortalWallBlock) portal).getDirection());
+    }
+
+    @DisplayName("Check that placing a portal when there are rocks that intercept the line of sight between the player and a wall still results in a correctly placed portal at that wall.")
+    private void testPlacingPortalThroughRocks(String portalType) {
+        String expected = "p rwd@";
+        PushRock pushRock = new PushRock("Test", expected, "rrg");
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.placePortal(portalType.equals("v"));
+        expected = "p rwd@".replaceAll("w", portalType);
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+
+    @DisplayName("Check that attempting to place a portal out of bounds throws IllegalStateException.")
+    private void testPlacingPortalOutOfBounds(String portalType) {
+        String expected = "p d@";
+        PushRock pushRock = new PushRock("Test", expected, "rg");
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        assertThrows(
+            IllegalStateException.class,
+            () -> pushRock.placePortal(portalType.equals("v")),
+                "Attempting to place a portal out of bounds should throw IllegalStateException.");
+    }
+
+    @DisplayName("Check that attempting to place a portal when there is a teleporter that intercept the line of sight between the player and a wall results in an IllegalStateException beeing thrown.")
+    private void testPlacingPortalThroughTeleporter(String portalType) {
+        String expected = "p twd@";
+        PushRock pushRock = new PushRock("Test", expected, "rg");
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        assertThrows(
+            IllegalStateException.class,
+            () -> pushRock.placePortal(portalType.equals("v")),
+                "Attempting to place a portal through a teleporter should throw IllegalStateException.");
+    }
+
     @DisplayName("Check that both portal types get placed at correct coordinates and with correct directions when placed at walls.")
-    public void testPortalPlacementAndDirection() {
+    private void testPortalPlacementAndDirection(String portalType) {
         String map = """
                 www@
                 wpw@
@@ -102,45 +147,53 @@ public class PushRockTest {
                 """;
         String directionLayout = "pg";
         String[] playerDirections = new String[] {"u","r","l","d"};
-        Boolean[] portalTypes = new Boolean[] {true, false};
-        for (Boolean isPortalOne : portalTypes) {
-            for (String playerDirection : playerDirections) {
-                PushRock pushRock = new PushRock("test", map, directionLayout.replaceAll("p", playerDirection));
-                assertEqualsNoLineSeparator(map, pushRock.toString());
-                pushRock.placePortal(isPortalOne);
-                String portalDirection = null;
-                int x = 1;
-                int y = -1;
-                switch(playerDirection) {
-                    //the portal's direction should be placed in the direction the player is facing, and have it's direction set to the opposite of the player's direction.
-                    case "u":
-                        portalDirection = "down";
-                        y++;
-                        break;
-                    case "d":
-                        portalDirection = "up";
-                        y--;
-                        break;
-                    case "r":
-                        portalDirection = "left";
-                        x++;
-                        break;
-                    case "l":
-                        portalDirection = "right";
-                        x--;
-                        break;
-                }
-                BlockAbstract portal = pushRock.getTopBlockCopy(x, y);
-                assertTrue(portal instanceof PortalWallBlock && ((PortalWallBlock) portal).isPortal(), "portal is not placed at the correct coordinates.");
-                assertEquals(portalDirection, ((PortalWallBlock) portal).getDirection(), "portal direction should be opposite to the direction of the player that placed it.");
+        for (String playerDirection : playerDirections) {
+            PushRock pushRock = new PushRock("test", map, directionLayout.replaceAll("p", playerDirection));
+            assertEqualsNoLineSeparator(map, pushRock.toString());
+            pushRock.placePortal(portalType.equals("v"));
+            String portalDirection = null;
+            int x = 1;
+            int y = -1;
+            switch(playerDirection) {
+                //the portal's direction should be placed in the direction the player is facing, and have it's direction set to the opposite of the player's direction.
+                case "u":
+                    portalDirection = "down";
+                    y++;
+                    break;
+                case "d":
+                    portalDirection = "up";
+                    y--;
+                    break;
+                case "r":
+                    portalDirection = "left";
+                    x++;
+                    break;
+                case "l":
+                    portalDirection = "right";
+                    x--;
+                    break;
             }
+            BlockAbstract portal = pushRock.getTopBlockCopy(x, y);
+            assertTrue(portal instanceof PortalWallBlock && ((PortalWallBlock) portal).isPortal(), "portal is not placed at the correct coordinates.");
+            assertEquals(portalDirection, ((PortalWallBlock) portal).getDirection(), "portal direction should be opposite to the direction of the player that placed it.");
         }
     }
 
-    @Test
+    @DisplayName("Check that placing a new portal while an old portal of the same type exists removes the old portal and then places the new one correctly.")
+    private void testPlacingPortalWhilePortalOfTheSameTypeExists(String portalType) {
+        //The map starts out with one portal of a given type already on the map.
+        String expected = "wp dx@".replaceAll("x", portalType);
+        PushRock pushRock = new PushRock("Test", expected, "lrg");
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        //A portal of the same type is then placed at a spot other than the already-placed portal of the same type.
+        pushRock.placePortal(portalType.equals("v"));
+        expected = "xp dw@".replaceAll("x", portalType);
+        //The old portal of the given type should now have been removed, and the new portal of that same type should be placed at the new location.
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+
     @DisplayName("Check that placing a portal of one type at wall already inhabited by a portal of the same type but different direction replaces that old portal with the new one.")
-    public void testPlacingPortalAtPortalOfSameTypeButDifferentDirection() {
-        String[] portalTypes = new String[] {"v", "u"};
+    private void testPlacingPortalAtPortalOfSameTypeButDifferentDirection(String[] portalTypes) {
         for (int i = 0; i < portalTypes.length; i++) {
             //The map starts out with a portal of a given type placed at coordinate (3,0)
             String expected = "p dx@".replaceAll("x", portalTypes[i]);
@@ -162,26 +215,8 @@ public class PushRockTest {
         }
     }
 
-    @Test
-    @DisplayName("Check that placing a new portal while an old portal of the same type exists removes the old portal and then places the new one correctly.")
-    public void testPlacingPortalWhilePortalOfTheSameTypeExists() {
-        String[] portalTypes = new String[] {"v", "u"};
-        for (String portalType : portalTypes) {
-            //The map starts out with one portal of a given type already on the map.
-            String expected = "wp dx@".replaceAll("x", portalType);
-            PushRock pushRock = new PushRock("Test", expected, "lrg");
-            assertEqualsNoLineSeparator(expected, pushRock.toString());
-            //A portal of the same type is then placed at a spot other than the already-placed portal of the same type.
-            pushRock.placePortal(portalType.equals("v"));
-            expected = "xp dw@".replaceAll("x", portalType);
-            //The old portal of the given type should now have been removed, and the new portal of that same type should be placed at the new location.
-            assertEqualsNoLineSeparator(expected, pushRock.toString());
-        }
-    }
-    @Test
     @DisplayName("Check that placing a new portal ontop of an old portal of the opposing type replaces that old portal with the new one.")
-    public void testPlacingPortalAtPortalOfOpposingType() {
-        String[] portalTypes = new String[] {"v", "u"};
+    private void testPlacingPortalAtPortalOfOpposingType(String[] portalTypes) {
         for (int i = 0; i < portalTypes.length; i++) {
             //The map starts out with one of the two portal types already on the map.
             String expected = "p dx@".replaceAll("x", portalTypes[1-i]);
@@ -195,10 +230,8 @@ public class PushRockTest {
         }
     }
 
-    @Test
     @DisplayName("Check that placing a portal while a portal of the opposing type connects the two portals together, which should alter their character representation to one that reflects a connected state.")
-    public void testPlacingPortalWhilePortalOfOpposingTypeExists() {
-        String[] portalTypes = new String[] {"v", "u"};
+    private void testPlacingPortalWhilePortalOfOpposingTypeExists(String[] portalTypes) {
         String[] portalTypesConnected = new String[] {"ṿ", "ụ"};
         for (int i = 0; i < portalTypes.length; i++) {
             //The map starts out with one of the two portal types already on the map.
@@ -216,10 +249,9 @@ public class PushRockTest {
             assertEqualsNoLineSeparator(expected, pushRock.toString());
         }
     }
-    @Test
+
     @DisplayName("Check that placing a portal at a portal of opposing type, while that old portal is connected to another portal, removes both that old portal and its connection and then correctly places the new portal.")
-    public void testPlacingPortalAtAConnectedPortalOfOpposingType() {
-        String[] portalTypes = new String[] {"v", "u"};
+    private void testPlacingPortalAtAConnectedPortalOfOpposingType(String[] portalTypes) {
         String[] portalTypesConnected = new String[] {"ṿ", "ụ"};
         for (int i = 0; i < portalTypes.length; i++) {
             //The map starts out with one of the two portal types already on the map.
@@ -234,24 +266,6 @@ public class PushRockTest {
             //and thus their character representation should have been changed to reflect their connected state.
             assertEqualsNoLineSeparator(expected, pushRock.toString());
         }
-    }
-
-    @Test
-    @DisplayName("Check that placing a portal when there are rocks that intercept the line of sight between the player and a wall still results in a correctly placed portal at that wall.")
-    public void testPlacingPortalThroughRocks() {
-
-    }
-
-    @Test
-    @DisplayName("Check that attempting to place a portal out of bounds throws IllegalStateException.")
-    public void testPlacingPortalOutOfBounds() {
-        
-    }
-
-    @Test
-    @DisplayName("Check that attempting to place a portal at a teleporter throws IllegalStateException.")
-    public void testPlacingPortalAtTeleporter() {
-        
     }
 
 

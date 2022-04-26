@@ -1,6 +1,0 @@
-
-
-
-
-Attempting to place a portal out of bounds should throw an exception
-Attempting to place a portal at a teleporter should throw an exception
