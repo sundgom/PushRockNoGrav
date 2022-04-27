@@ -1,0 +1,19 @@
+#File type:
+Level
+
+#Level name:
+PortalTest
+
+#Level map layout:
+o---R----D@
+----R----P@
+----------@
+----T-----@
+---------T@
+
+#Level direction layout:
+rrrrg
+
+
+
+

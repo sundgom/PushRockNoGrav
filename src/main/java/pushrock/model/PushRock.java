@@ -445,6 +445,12 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         }
         return null;
     }
+    public MoveableBlock getPlayerCopy() {
+        MoveableBlock player = this.getPlayer();
+        MoveableBlock playerCopy = new MoveableBlock(player.getX(), player.getY(), player.getType(), player.getDirection());
+        playerCopy.setState(player.getState());
+        return playerCopy;
+    }
 
     private TransferBlock getTransferBlock(int x, int y) {
         if (!isCoordinateWithinBounds(x, y)) {
@@ -971,6 +977,9 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
             if (blockFollowingLastBlock instanceof TransferBlock && ((TransferBlock) blockFollowingLastBlock).canBlockEnter(lastBlock)) {
                 int[] exitPointXY = ((TransferBlock) blockFollowingLastBlock).getExitPointXY(lastBlock);
                 BlockAbstract exitPointBlock = this.getTopBlock(exitPointXY[0], exitPointXY[1]);
+                if (exitPointBlock == null) {
+                    throw new IllegalStateException("Can not push as pushing through this transporter would result in blocks out of bounds.");
+                }
                 List<BlockAbstract> blockChainExit = this.getBlockChain(exitPointBlock, directionXY[0], directionXY[1]);
                 if (blockChainExit.containsAll(blockChain)) {
                     List<Integer> coordinatesX = blockChainExit.stream()
