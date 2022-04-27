@@ -2,6 +2,8 @@ package pushrock;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.text.Normalizer;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,17 +32,39 @@ public class PushRockTest {
     @DisplayName("Check that interacting with a block retrieved from the getTopBlockCopy(..) method does not alter the state of the game.")
     public void testGetTopBlockCopy() {
         PushRock pushRock = new PushRock("Test", "prdwt@", "rrg"); 
+        assertEqualsNoLineSeparator("prdwt@", pushRock.toString());
+        //Obtain a copy of the block at coordinate (0,0), which should be the player block 'p'
         BlockAbstract playerCopy1 = pushRock.getTopBlockCopy(0, 0);
         assertTrue(playerCopy1 instanceof MoveableBlock && ((MoveableBlock) playerCopy1).isPlayer());
+        //Attempt to change the state of the copy by calling various methods that are available.
         ((MoveableBlock) playerCopy1).setState(true);
         ((MoveableBlock) playerCopy1).moveInDirection("right");
+        //Check that yet another copy can be aquired, and that this copy does not have the same state as the previous copy that had its attributes changed through method calls.
         BlockAbstract playerCopy2 = pushRock.getTopBlockCopy(0, 0);
         assertTrue(playerCopy2 instanceof MoveableBlock && ((MoveableBlock) playerCopy1).isPlayer());
-
         assertNotEquals(playerCopy1.getX(), playerCopy2.getX());
         assertNotEquals(playerCopy1.getState(), playerCopy2.getState());
-        
+        //The game's state should be unchanged from what it was in the beginning, as the top block copy, which in this case would be the player block, should not be the actual player block that is in the game.
         this.assertEqualsNoLineSeparator("prdwt@", pushRock.toString());
+    }
+    @Test
+    @DisplayName("Check that interacting with a block retrieved from the getPlayerCopy(..) method does not alter the state of the game.")
+    public void testGetPlayerCopy() {
+        PushRock pushRock = new PushRock("Test", "prdwt@", "rrg"); 
+        assertEqualsNoLineSeparator("prdwt@", pushRock.toString());
+        //Obtain a copy of the player block 'p'
+        MoveableBlock playerCopy1 = pushRock.getPlayerCopy();
+        assertTrue(playerCopy1.isPlayer());
+        //Attempt to change the state of the copy by calling various methods that are available.
+        playerCopy1.setState(true);
+        playerCopy1.moveInDirection("right");
+        //Check that yet another copy can be aquired, and that this copy does not have the same state as the previous copy that had its attributes changed through method calls.
+        MoveableBlock playerCopy2 = pushRock.getPlayerCopy();
+        assertTrue(playerCopy2.isPlayer());
+        assertNotEquals(playerCopy1.getX(), playerCopy2.getX());
+        assertNotEquals(playerCopy1.getState(), playerCopy2.getState());
+        //The game's state should be unchanged from what it was in the beginning, as the player copies should not be the actual player block that is in the game.
+        assertEqualsNoLineSeparator("prdwt@", pushRock.toString());
     }
 
     //Replaces all line separators with the line separator of the current system and removes excess trailings before
@@ -282,9 +306,8 @@ public class PushRockTest {
         for (String direction : moveDirections) {
             PushRock pushRock = new PushRock("Test", expected, "rg");
             assertEquals(expected, pushRock.toString());
-            BlockAbstract playerCopy = pushRock.getTopBlockCopy(1, -1);
-            assertTrue(playerCopy instanceof MoveableBlock && ((MoveableBlock) playerCopy).isPlayer());
-            assertEquals("right", ((MoveableBlock) playerCopy).getDirection());
+            MoveableBlock playerCopy = pushRock.getPlayerCopy();
+            assertEquals("right", playerCopy.getDirection());
 
             assertDirectionAfterMovement(direction, pushRock, 1, -1, true);
         }
@@ -294,17 +317,18 @@ public class PushRockTest {
     public void testMovePlayerIntoWall() {
         String expected = "wpd@";
         PushRock pushRock = new PushRock("Test", expected, "rg");
-        //the player should be placed at coordinates (1,0) initially.
-        BlockAbstract playerCopy = pushRock.getTopBlockCopy(1, 0);
-        assertTrue(playerCopy instanceof MoveableBlock && ((MoveableBlock) playerCopy).isPlayer());
-        //and should have "right" as their direction
-        assertEquals("right", ((MoveableBlock) playerCopy).getDirection());
-        //Now we attempt to move the player to the left, which would place it at the wall
+        //Check that all blocks are placed correctly after game construction
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        //Obtain a copy of the player and check that they were initiallized with "right" as their direction.
+        MoveableBlock playerCopyBeforeMove = pushRock.getPlayerCopy();
+        assertEquals("right", playerCopyBeforeMove.getDirection());
+        //Now we attempt to move the player to the left, which would move them into the wall
         pushRock.movePlayer("left");
-        //The wall should have prevented the coordinate change from the movement, and thus the player should remain at the original coordinates
-        playerCopy = pushRock.getTopBlockCopy(1, 0);
-        assertTrue(playerCopy instanceof MoveableBlock && ((MoveableBlock) playerCopy).isPlayer(), "The player should have remained at their original coordinate (1,0).");
-        assertEquals("left", ((MoveableBlock) playerCopy).getDirection(), "The player's direction should have been set to match the direction of the movement, even though the wall prevented a coordinate change.");
+        //The wall should have prevented the coordinate change from the movement, and thus the player should remain at the original coordinates..
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        MoveableBlock playerCopyAfterMove = pushRock.getPlayerCopy();
+        //..but their direction should have changed to match that of the movement direction.
+        assertEquals("left", playerCopyAfterMove.getDirection(), "The player's direction should have been set to match the direction of the movement, even though the wall prevented a coordinate change.");
     }
 
     @Test
@@ -348,6 +372,276 @@ public class PushRockTest {
         //It should not be possible for a player to push a rock into a wall, thus the expected map remains the same.
         assertEqualsNoLineSeparator(expected, pushRock.toString());
     }
+    @Test
+    @DisplayName("Check that the player can not move into a disconnected transporter, even if standing at its entry point.")
+    public void testMovePlayerIntoDisconnectedTransporter() {
+        String[] transporterTypes = new String[] {"t", "v", "u"};
+        for (String transporterType : transporterTypes) {
+            String expected = " px d@".replaceAll("x", transporterType);
+            String directionLayout = "lxg";
+            if (transporterType.equals("t")) {
+                directionLayout = directionLayout.replaceAll("x", "");
+            } else {
+                directionLayout = directionLayout.replaceAll("x", "l");
+            }
+            PushRock pushRock = new PushRock("Test", expected, directionLayout);
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+            //attempt to move the player to the right, into the disconnected transporter
+            pushRock.movePlayer("right");
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+        }
+    }
+    @Test
+    @DisplayName("Check that the player can not move into a connected portal when they are not standing at the portal's entry point.")
+    public void testMovePlayerIntoConnecteddPortalWhileNotAtEntryPoint() {
+        String map = """
+                     d@
+                 pv u @
+                      @
+                """;
+        String[] portalDirections = new String[] {"u", "d","r"}; 
+        //The portal's entry point is placed one step from where they are placed in the direction they are facing, thus test every portal direction that 
+        //results in the player not being placed at its entry point
+        for (String direction : portalDirections) {
+            PushRock pushRock = new PushRock("Test", map, "lxrg".replaceAll("x", direction));
+            String expected = map.replaceAll("v", "ṿ").replaceAll("u", "ụ");
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+            //Attempt to move the player into the connected portal from a point that is not its entry point.
+            pushRock.movePlayer("right");
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+        }
+    }
+
+    private void checkGameStateIsAsExpectedAfterMovingPlayerInDirection(String mapBefore, String directionLayout, String moveDirection, String expectedMapResult, String expectedPlayerDirection) {
+        String mapLayout = mapBefore;
+        //remove accents from the before-map, as the constructor does not accept the accented characters that are used in the toString() representation for activated transporters
+        mapLayout = Normalizer.normalize(mapLayout, Normalizer.Form.NFD);
+        mapLayout = mapLayout.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        PushRock pushRock = new PushRock("test", mapLayout, directionLayout);
+        assertEqualsNoLineSeparator(mapBefore, pushRock.toString());
+        pushRock.movePlayer(moveDirection);
+        //check that the game's map state is as expected after the move was made
+        assertEqualsNoLineSeparator(expectedMapResult, pushRock.toString());
+        //check that the player ended up with correct direction after the movement
+        assertEquals(expectedPlayerDirection, pushRock.getPlayerCopy().getDirection());
+    }
+    @Test
+    @DisplayName("Check that the player is placed at correct coordinates and with the correct direction after they entered a connected teleporter.")
+    public void testMovePlayerIntoConnectedTeleporterWhileAtEntryPoint() {
+        String entryLeft = """
+            d        o@
+                pṭ  ṭ @
+                      @
+            """;
+        String exitRight = """
+            d        o@
+                 ṭ  ṭp@
+                      @
+            """;
+        checkGameStateIsAsExpectedAfterMovingPlayerInDirection(entryLeft, "rug", "right", exitRight, "right");
+
+        String entryRight = """
+            d        o@
+                 ṭp ṭ @
+                      @
+            """;
+        String exitLeft = """
+            d        o@
+                 ṭ pṭ @
+                      @
+            """;
+        checkGameStateIsAsExpectedAfterMovingPlayerInDirection(entryRight, "rug", "left", exitLeft, "left");
+        
+        String entryBelow = """
+            d        o@
+                 ṭ  ṭ @
+                 p    @
+            """;
+        String exitAbove = """
+            d       po@
+                 ṭ  ṭ @
+                      @
+            """;
+        checkGameStateIsAsExpectedAfterMovingPlayerInDirection(entryBelow, "rdg", "up", exitAbove, "up");
+        
+        String entryAbove = """
+            d    p   o@
+                 ṭ  ṭ @
+                      @
+            """;
+        String exitBelow = """
+            d        o@
+                 ṭ  ṭ @
+                    p @
+            """;
+        checkGameStateIsAsExpectedAfterMovingPlayerInDirection(entryAbove, "rug", "down", exitBelow, "down");
+    }
+    @Test
+    @DisplayName("Check that the player is placed at correct coordinates and with the correct direction after they have entered a connected portal.")
+    public void testMovePlayerIntoConnectedPortalWhileAtEntryPoint() {
+        String entryLeft = """
+            o        d@
+                px  y @
+                      @
+            """;
+        String exitRight = """
+            o        d@
+                 x  yp@
+                      @
+            """;
+
+        String entryRight = """
+            o        d@
+                 xp y @
+                      @
+            """;
+        String exitLeft = """
+            o        d@
+                 x py @
+                      @
+            """;
+        
+        String entryBelow = """
+            o        d@
+                 x  y @
+                 p    @
+            """;
+        String exitAbove = """
+            o       pd@
+                 x  y @
+                      @
+            """;
+        
+        String entryAbove = """
+            o    p   d@
+                 x  y @
+                      @
+            """;
+        String exitBelow = """
+            o        d@
+                 x  y @
+                    p @
+            """;
+        String[] connectedPortalTypes = new String[] {"ṿ", "ụ"};
+        String[] portalDirections = new String[] {"u", "d", "l", "r"};
+        for (int i = 0; i < connectedPortalTypes.length; i++) {
+            for (String entryPortalDirection : portalDirections) {
+                String mapStart = "";
+                String playerMoveDirection = "";
+                String directionLayoutFormat = "";
+                switch (entryPortalDirection) {
+                    case "u":
+                        mapStart = entryAbove;
+                        playerMoveDirection = "down";
+                        directionLayoutFormat = "rl" + entryPortalDirection + "yg";
+                        break;
+                    case "d":
+                        mapStart = entryBelow;
+                        playerMoveDirection = "up";
+                        directionLayoutFormat = "r" + entryPortalDirection + "ylg";
+                        break;
+                    case "r":
+                        mapStart = entryRight;
+                        playerMoveDirection = "left";
+                        directionLayoutFormat = "r" + entryPortalDirection + "lyg";
+                        break;
+                    case "l":
+                        mapStart = entryLeft;
+                        playerMoveDirection = "right";
+                        directionLayoutFormat = "rl" + entryPortalDirection + "yg";
+                        break;
+                }
+                mapStart = mapStart.replaceAll("x", connectedPortalTypes[i]);
+                mapStart = mapStart.replaceAll("y", connectedPortalTypes[1-i]);
+                for (String exitPortalDirection : portalDirections) {
+                    String mapAfter = "";
+                    String playerDirectionAfter = "";
+                    switch(exitPortalDirection) {
+                        case "u":
+                            mapAfter = exitAbove;
+                            playerDirectionAfter = "up";
+                            break;
+                        case "d":
+                            mapAfter = exitBelow;
+                            playerDirectionAfter = "down";
+                            break;
+                        case "r":
+                            mapAfter = exitRight;
+                            playerDirectionAfter = "right";
+                            break;
+                        case "l":
+                            mapAfter = exitLeft;
+                            playerDirectionAfter = "left";
+                            break;
+                    }
+                    mapAfter = mapAfter.replaceAll("x", connectedPortalTypes[i]);
+                    mapAfter = mapAfter.replaceAll("y", connectedPortalTypes[1-i]);
+                    String directionLayout = directionLayoutFormat.replaceAll("y", exitPortalDirection);
+                    checkGameStateIsAsExpectedAfterMovingPlayerInDirection(mapStart, directionLayout, playerMoveDirection, mapAfter, playerDirectionAfter);
+                }
+            }
+        }
+    }
+    @Test
+    @DisplayName("Check that a player attempting to enter a teleporter that would place them out of bounds leads to IllegalStateException being thrown.") 
+    public void testMovePlayerThroughConnectedTeleporterLeadingOutOfBounds() {
+        String map = "od pt t@";
+        PushRock pushRock = new PushRock("test", map, "rlg");
+        String expected = "od pṭ ṭ@";
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        assertThrows(
+            IllegalStateException.class,
+            () -> pushRock.movePlayer("right"),
+            "Attempting to take a teleporter that would lead out of bounds should throw IllegalStateException.");
+    }
+    @Test
+    @DisplayName("Check that a player attempting to enter a portal that would place them out of bounds leads to IllegalStateException being thrown.") 
+    public void testMovePlayerThroughConnectedPortalrLeadingOutOfBounds() {
+        String map = "od pu v@";
+        PushRock pushRock = new PushRock("test", map, "rllrg");
+        String expected = "od pụ ṿ@";
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        assertThrows(
+            IllegalStateException.class,
+            () -> pushRock.movePlayer("right"),
+            "Attempting to take a teleporter that would lead out of bounds should throw IllegalStateException.");
+    }
+
+    @Test
+    @DisplayName("Check that a player can not push a rock into a teleporter whose exit point is out of bounds.") 
+    public void testPushRockThroughAConnectedTeleporterOutOfBounds() {
+        String map = "od prt t@";
+        PushRock pushRock = new PushRock("test", map, "rllg");
+        String expected = "od prṭ ṭ@";
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        assertThrows(
+            IllegalStateException.class,
+            () -> pushRock.movePlayer("right"),
+            "Attempting to push a rock through a teleporter leading out of bounds should throw IllegalStateException.");
+    }
+
+    @Test
+    @DisplayName("Check that a rock can be pushed through a connected teleporter.") 
+    public void testPushRockThroughAConnectedTeleporter() {
+        String map = "o prt   t  d@";
+        PushRock pushRock = new PushRock("test", map, "rllg");
+        String expected = "o prṭ   ṭ  d@";
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.movePlayer("right");
+        expected = "o  pṭ   ṭr d@";
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+    @Test
+    @DisplayName("Check that a rock can be pushed through a connected teleporter.") 
+    public void testPushRockThroughAConnectedPortal() {
+        String map = "o pru   v  d@";
+        PushRock pushRock = new PushRock("test", map, "rllllg");
+        String expected = "o prụ   ṿ  d@";
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.movePlayer("right");
+        expected = "o  pụ  rṿ  d@";
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
 
 
     @Test 
@@ -383,6 +677,25 @@ public class PushRockTest {
         assertEqualsNoLineSeparator(expected, pushRock.toString());
     }
     @Test
+    @DisplayName("Check that placing weight at pressure plates connects the correct teleporters.")
+    public void testPressurePlateActivationTeleporters() {
+        String expected = "ttttprdd   d@";
+        PushRock pushRock = new PushRock("Test", expected, "rrg");
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.movePlayer("right");
+        //Once one pressure plate is weighed down, then the first two teleporters should get connected.
+        assertEqualsNoLineSeparator("ṭṭtt pod   d@", pushRock.toString());
+        pushRock.movePlayer("right");
+        //Once two pressure plates are weighed down, then the first and second teleporter should get connected.
+        assertEqualsNoLineSeparator("ṭtṭt  qo   d@", pushRock.toString());
+        //Then make sure that removing weight from the pressure plates updates the teleporter connections accordingly.
+        pushRock.movePlayer("right");
+        assertEqualsNoLineSeparator("ṭṭtt  dqr  d@", pushRock.toString());
+        pushRock.movePlayer("right");
+        assertEqualsNoLineSeparator("tttt  ddpr d@", pushRock.toString());
+    }
+
+    @Test
     @DisplayName("Check that placing weight at all pressure plates results in ending the game by completion.") 
     public void testEndingGame() {
         PushRock pushRock = new PushRock("Test", "dprd@", "rrg");
@@ -398,11 +711,12 @@ public class PushRockTest {
     }
 
     @Test
-    @DisplayName("Check that calling methods that could change the game state throw IllegalStateException while game is over.")
+    @DisplayName("Check that calling methods that could change the game state throw IllegalStateException while the game is over.")
     public void testGameIsOverInputs() {
         PushRock pushRock = new PushRock("Test", "pd@", "rg");
         pushRock.movePlayer("right");
         assertTrue(pushRock.isGameOver(), "Game should be over once the only pressure plate in the game is weighed down by the player.");
+        assertEqualsNoLineSeparator(" q@", pushRock.toString());
 
         assertThrows(
             IllegalStateException.class, 
@@ -424,6 +738,20 @@ public class PushRockTest {
             () -> pushRock.gravityStep(),
             "Attempting to apply gravity while the game is over should throw IllegalStateException"
         );
+    }
+    @Test
+    @DisplayName("Check that the game can be correctly reset while the game is over.")
+    public void testResetWhileGameIsOver() {
+        String mapLevelLayout = "pd@";
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "rg");
+        //Move the player to end the game.
+        pushRock.movePlayer("right");
+        assertTrue(pushRock.isGameOver(), "Game should be over once the only pressure plate in the game is weighed down by the player.");
+        assertEqualsNoLineSeparator(" q@", pushRock.toString());
+        //reset the level
+        pushRock.resetLevel();
+        //the game's state should now be reset to what it was at the beginning.
+        assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
     }
     
 }
