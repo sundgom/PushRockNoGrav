@@ -582,6 +582,20 @@ public class PushRockTest {
             }
         }
     }
+
+    @Test
+    @DisplayName("Check that a player can not enter a transporter whose entry point is at a wall.") 
+    public void testEnterConnectedTransporterWithWallAtExitPoint() {
+        String map = "od pt tw@";
+        PushRock pushRock = new PushRock("test", map, "rlg");
+        String expected = "od pṭ ṭw@";
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.movePlayer("right");
+        //The player's coordinate should remain the same, but direction should have changed to that of the movement.
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        assertEquals("right", pushRock.getPlayerCopy().getDirection());
+    }
+
     @Test
     @DisplayName("Check that a player attempting to enter a teleporter that would place them out of bounds leads to IllegalStateException being thrown.") 
     public void testMovePlayerThroughConnectedTeleporterLeadingOutOfBounds() {
@@ -608,8 +622,8 @@ public class PushRockTest {
     }
 
     @Test
-    @DisplayName("Check that a player can not push a rock into a teleporter whose exit point is out of bounds.") 
-    public void testPushRockThroughAConnectedTeleporterOutOfBounds() {
+    @DisplayName("Check that a player can not push a rock into a transporter whose exit point is out of bounds.") 
+    public void testPushRockThroughAConnectedTransporterOutOfBounds() {
         String map = "od prt t@";
         PushRock pushRock = new PushRock("test", map, "rllg");
         String expected = "od prṭ ṭ@";
@@ -632,7 +646,7 @@ public class PushRockTest {
         assertEqualsNoLineSeparator(expected, pushRock.toString());
     }
     @Test
-    @DisplayName("Check that a rock can be pushed through a connected teleporter.") 
+    @DisplayName("Check that a rock can be pushed through a connected portal.") 
     public void testPushRockThroughAConnectedPortal() {
         String map = "o pru   v  d@";
         PushRock pushRock = new PushRock("test", map, "rllllg");
@@ -642,6 +656,7 @@ public class PushRockTest {
         expected = "o  pụ  rṿ  d@";
         assertEqualsNoLineSeparator(expected, pushRock.toString());
     }
+
 
 
     @Test 
@@ -754,4 +769,657 @@ public class PushRockTest {
         assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
     }
     
+    
+    @Test
+    @DisplayName("Check that gravity direction can be inverted.")
+    public void testGravityInverter() {
+        String mapLevelLayout = "pd@";
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "rg");
+        assertFalse(pushRock.isGravityInverted(), "Gravity should not be inverted after construction when the direction layout specifies a non-inverted direction by lower case 'g'");
+        pushRock.gravityInverter();
+        assertTrue(pushRock.isGravityInverted(), "Gravity should be inverted after gravityInverter() was called when the game's gravity direction was not inverted already.");
+        pushRock.gravityInverter();
+        assertFalse(pushRock.isGravityInverted(), "Gravity should no longer be inverted after another gravityInverter() method call.");
+        }
+
+    @Test
+    @DisplayName("Check that gravity is only applied to airborne moveable blocks according to the current gravity direction.")
+    public void testGravityAppliedToAllMoveableBlocks() {
+        String mapLevelLayout = """
+            R-----D@
+            -R-----@
+            --P----@
+                r  @
+                 r @
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "rrrrrg");
+        assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
+        pushRock.gravityStep();
+        String expected = """
+            ------D@
+            R------@
+            -R-----@
+              p r  @
+                 r @
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            ------D@
+            -------@
+            R------@
+             rp r  @
+                 r @
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+    @Test
+    @DisplayName("Check that gravity is only applied to airborne moveable blocks according to the current gravity direction before and after gravity has been inverted.")
+    public void testGravityAppliedToAllMoveableBlocksGravityInversion() {
+        String mapLevelLayout = """
+            R-----D@
+            -R-----@
+            --P----@
+                r  @
+                 r @
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "rrrrrg");
+        assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
+        pushRock.gravityStep();
+        String expected = """
+            ------D@
+            R------@
+            -R-----@
+              p r  @
+                 r @
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        //Invert gravity right before applying gravity
+        pushRock.gravityInverter();
+        pushRock.gravityStep();
+        expected = """
+            R-----D@
+            -R-----@
+            -------@
+              p r  @
+                 r @
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+
+    @Test
+    @DisplayName("Check that gravity application can be set to manual.")
+    public void testSetGravityApplicationManual() {
+        PushRock pushRock = new PushRock("test", "pd@", "rg");
+        pushRock.setGravityApplicationManual();
+        assertTrue(pushRock.isGravityApplicationManual());
+        assertFalse(pushRock.isGravityApplicationMoveInput());
+        assertFalse(pushRock.isGravityApplicationInterval());
+    }
+    @Test
+    @DisplayName("Check that gravity application can be set to move input.")
+    public void testSetGravityApplicationMoveInput() {
+        PushRock pushRock = new PushRock("test", "pd@", "rg");
+        pushRock.setGravityApplicationMoveInput();
+        assertFalse(pushRock.isGravityApplicationManual());
+        assertTrue(pushRock.isGravityApplicationMoveInput());
+        assertFalse(pushRock.isGravityApplicationInterval());
+    }
+    @Test
+    @DisplayName("Check that gravity application can be set to interval.")
+    public void testSetGravityApplicationInterval() {
+        PushRock pushRock = new PushRock("test", "pd@", "rg");
+        pushRock.setGravityApplicationInterval();
+        assertFalse(pushRock.isGravityApplicationManual());
+        assertFalse(pushRock.isGravityApplicationMoveInput());
+        assertTrue(pushRock.isGravityApplicationInterval());
+    }
+
+
+    @Test
+    @DisplayName("Check that while gravity application is set to manual, an airborne player attempting to move will remain in place, and is then only moved in direction of gravity by manual gravityStep() calls.")
+    public void testMoveAirbornePlayerWhileGravityApplicationIsManual() {
+        String mapLevelLayout = """
+            ----R-D@
+            --P----@
+            -------@
+            -------@
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "rrg");
+        pushRock.setGravityApplicationManual();
+        assertTrue(pushRock.isGravityApplicationManual());
+        assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
+        //Attempt to move the player
+        pushRock.movePlayer("left");
+        //Player coordinates should remain unchanged.
+        assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
+        //Apply gravity once with gravityStep()
+        pushRock.gravityStep();
+        String expected = """
+            ------D@
+            ----R--@
+            --P----@
+            -------@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+
+    }
+    @Test
+    @DisplayName("Check that while gravity application is set to move input, a grounded player attempting to move will correctly change coordinates and will then also automatically apply gravity making all airborne moveable blocks fall one step in gravity's direction.")
+    public void testMoveGroundedPlayerGravityApplicationIsMoveInput() {
+        String mapLevelLayout = """
+            ----R-D@
+            -------@
+            -P-----@
+            wwwwwww@
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "rrg");
+        pushRock.setGravityApplicationMoveInput();
+        assertTrue(pushRock.isGravityApplicationMoveInput());
+        assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
+        //Attempt to move the player
+        pushRock.movePlayer("left");
+        //Player coordinates should not be changed according to the input movement
+        String expected = """
+            ------D@
+            ----R--@
+            P------@
+            wwwwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+    @Test
+    @DisplayName("Check that while gravity application is set to move input, an airborne player attempting to move will fail to change coordinates, but will then automatically apply gravity making all airborne moveable blocks fall one step in gravity's direction.")
+    public void testMoveAirbornePlayerWhileGravityApplicationIsMoveInput() {
+        String mapLevelLayout = """
+            ----R-D@
+            --P----@
+            -------@
+            -------@
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "rrg");
+        pushRock.setGravityApplicationMoveInput();
+        assertTrue(pushRock.isGravityApplicationMoveInput());
+        assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
+        //Attempt to move the player
+        pushRock.movePlayer("left");
+        //Player coordinates should change according to the movement, and then gravity should be applied to all other moveable blocks currently airborne.
+        String expected = """
+            ------D@
+            ----R--@
+            --P----@
+            -------@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+
+    @Test
+    @DisplayName("Check that although a player can not move while airborne, they can still change their direction to reorient themselves.")
+    public void testAirbornePlayerReorientDirection() {
+        String mapLevelLayout = """
+            ------D@
+            --P----@
+            -------@
+            -------@
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "rg");
+        pushRock.setGravityApplicationManual();
+        assertTrue(pushRock.isGravityApplicationManual());
+        assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
+        assertEquals(pushRock.getPlayerCopy().getDirection(), "right", "The player should have been initialized with direction 'right'");
+        //Attempt to move the player as to reorient them
+        pushRock.movePlayer("left");
+        //Coordinates should remain the same, but the player should now be directed to the left
+        assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
+        assertEquals(pushRock.getPlayerCopy().getDirection(), "left", "The player direction should match that of the issued movement 'left'");
+    }
+
+    @Test
+    @DisplayName("Check that a player can carry around a block that is stacked ontop of them.") 
+    public void testPlayerCanCarryABlock() {
+        String mapLevelLayout = """
+            ------D@
+            -R-----@
+            -P-----@
+            wwwwwww@
+            """;
+            PushRock pushRock = new PushRock("Test", mapLevelLayout, "rrg");
+            assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
+            pushRock.movePlayer("right");
+        String expected = """
+            ------D@
+            --R----@
+            --P----@
+            wwwwwww@
+            """;
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+    @Test
+    @DisplayName("Check that a player can jump one step up while carrying a block that is stacked ontop of them.") 
+    public void testPlayerCanJumpWhileCarryingABlock() {
+        String mapLevelLayout = """
+            ------D@
+            -R-----@
+            -P-----@
+            wwwwwww@
+            """;
+            PushRock pushRock = new PushRock("Test", mapLevelLayout, "rrg");
+            pushRock.setGravityApplicationManual();
+            assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
+            pushRock.movePlayer("up");
+        String expected = """
+            -R----D@
+            -P-----@
+            -------@
+            wwwwwww@
+            """;
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+    @Test
+    @DisplayName("Check that a player can carry around multiple blocks that are stacked ontop of them.") 
+    public void testPlayerCanCarryMultipleBlocks() {
+        String mapLevelLayout = """
+            ------D@
+            -R-----@
+            -R-----@
+            -P-----@
+            wwwwwww@
+            """;
+            PushRock pushRock = new PushRock("Test", mapLevelLayout, "rlrg");
+            assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
+            pushRock.movePlayer("right");
+        String expected = """
+            ------D@
+            --R----@
+            --R----@
+            --P----@
+            wwwwwww@
+            """;
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+    @Test
+    @DisplayName("Check that a player can not jump one step up while carrying more than one block that is stacked ontop of them.") 
+    public void testPlayerCanJumpWhileCarryingMoreThanOneBlock() {
+        String mapLevelLayout = """
+            ------D@
+            -R-----@
+            -R-----@
+            -P-----@
+            wwwwwww@
+            """;
+            PushRock pushRock = new PushRock("Test", mapLevelLayout, "rlrg");
+            pushRock.setGravityApplicationManual();
+            assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
+            pushRock.movePlayer("up");
+        String expected = """
+            ------D@
+            -R-----@
+            -R-----@
+            -P-----@
+            wwwwwww@
+            """;
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+
+    @Test
+    @DisplayName("Check that a player's carried block stack gets it's top split off when colliding with a wall, right at the position of that wall.") 
+    public void testPlayerCarriedBlockCollidingWithWall() {
+        String mapLevelLayout = """
+            ------D@
+            -R-----@
+            -R-----@
+            -RW----@
+            -R-----@
+            -P-----@
+            wwwwwww@
+            """;
+            PushRock pushRock = new PushRock("Test", mapLevelLayout, "rrrrrg");
+            pushRock.setGravityApplicationManual();
+            assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
+            pushRock.movePlayer("right");
+        String expected = """
+            ------D@
+            -R-----@
+            -R-----@
+            -RW----@
+            --R----@
+            --P----@
+            wwwwwww@
+            """;
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+    @Test
+    @DisplayName("Check that a player's carried block stack gets it's top split off when hitting a connected transporter, right at the position of said transporter, with the block that collided with the transporter getting moved to its exit point.") 
+    public void testPlayerCarriedBlockCollidingWithConnectedTransporter() {
+        String mapLevelLayout = """
+            T-----oD@
+            ---R----@
+            ---R----@
+            ---RT---@
+            ---R----@
+            ---P----@
+            wwwwwwww@
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "rrrrrrg");
+        pushRock.setGravityApplicationManual();
+        String expected = """
+            Ṭ-----oD@
+            ---R----@
+            ---R----@
+            ---RṬ---@
+            ---R----@
+            ---P----@
+            wwwwwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.movePlayer("right");
+        expected = """
+            ṬR----oD@
+            ---R----@
+            ---R----@
+            ----Ṭ---@
+            ----R---@
+            ----P---@
+            wwwwwwww@
+            """;
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+
+    @Test
+    @DisplayName("Check that moveable blocks stacked ontop of eachother fall together while gravity is not inverted.")
+    public void testMoveableBlocksFallTogetherGravityNotInverted() {
+        String mapLevelLayout = """
+            -------D@
+            ---R----@
+            ---P----@
+            ---R----@
+            --------@
+            --------@
+            wwwwwwww@
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "rrrg");
+        assertFalse(pushRock.isGravityInverted());
+        assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
+        pushRock.gravityStep();
+        String expected = """
+            -------D@
+            --------@
+            ---R----@
+            ---P----@
+            ---R----@
+            --------@
+            wwwwwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+    @Test
+    @DisplayName("Check that moveable blocks stacked ontop of eachother fall together while gravity IS inverted.")
+    public void testMoveableBlocksFallTogetherGravityInverted() {
+        String mapLevelLayout = """
+            -------D@
+            --------@
+            ---R----@
+            ---P----@
+            ---R----@
+            --------@
+            wwwwwwww@
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "rrrg");
+        pushRock.gravityInverter();
+        assertTrue(pushRock.isGravityInverted());
+        assertEqualsNoLineSeparator(mapLevelLayout, pushRock.toString());
+        pushRock.gravityStep();
+        String expected = """
+            -------D@
+            ---R----@
+            ---P----@
+            ---R----@
+            --------@
+            --------@
+            wwwwwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+
+    
+    @Test
+    @DisplayName("Check that moveable blocks stacked ontop of eachother fall together into a transporter while gravity is not inverted.")
+    public void testMoveableBlocksFallTogetherIntoTransporterGravityNotInverted() {
+        String mapLevelLayout = """
+            ---U---D@
+            --------@
+            --------@
+            ---R----@
+            ---P----@
+            ---R----@
+            wwwVwwww@
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "drrrug");
+        assertFalse(pushRock.isGravityInverted());
+        String expected = """
+            ---Ụ---D@
+            --------@
+            --------@
+            ---R----@
+            ---P----@
+            ---R----@
+            wwwṾwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            ---Ụ---D@
+            ---R----@
+            --------@
+            --------@
+            ---R----@
+            ---P----@
+            wwwṾwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            ---Ụ---D@
+            ---P----@
+            ---R----@
+            --------@
+            --------@
+            ---R----@
+            wwwṾwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+    @Test
+    @DisplayName("Check that moveable blocks stacked ontop of eachother fall together into a transporter while gravity IS inverted.")
+    public void testMoveableBlocksFallTogetherIntoTransporterGravityInverted() {
+        String mapLevelLayout = """
+            ---U---D@
+            ---R----@
+            ---P----@
+            ---R----@
+            --------@
+            --------@
+            wwwVwwww@
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "drrrug");
+        pushRock.gravityInverter();
+        assertTrue(pushRock.isGravityInverted());
+        String expected = """
+            ---Ụ---D@
+            ---R----@
+            ---P----@
+            ---R----@
+            --------@
+            --------@
+            wwwṾwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            ---Ụ---D@
+            ---P----@
+            ---R----@
+            --------@
+            --------@
+            ---R----@
+            wwwṾwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            ---Ụ---D@
+            ---R----@
+            --------@
+            --------@
+            ---R----@
+            ---P----@
+            wwwṾwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+
+    @Test
+    @DisplayName("Check that moveable blocks stacked ontop of eachother fall together in an infinte loop when the block chain is uninterrupted between exit and entry transporter and gravity is not inverted.")
+    public void testMoveableBlocksFallingInInfinteLoopGravityNotInverted() {
+        String mapLevelLayout = """
+            ---U---D@
+            ---R----@
+            ---R----@
+            ---P----@
+            ---R----@
+            wwwVwwww@
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "drrrrug");
+        assertFalse(pushRock.isGravityInverted());
+        String expected = """
+            ---Ụ---D@
+            ---R----@
+            ---R----@
+            ---P----@
+            ---R----@
+            wwwṾwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            ---Ụ---D@
+            ---R----@
+            ---R----@
+            ---R----@
+            ---P----@
+            wwwṾwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            ---Ụ---D@
+            ---P----@
+            ---R----@
+            ---R----@
+            ---R----@
+            wwwṾwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+
+    @Test
+    @DisplayName("Check that moveable blocks stacked ontop of eachother fall together in an infinte loop when the block chain is uninterrupted between exit and entry transporter and gravity is inverted.")
+    public void testMoveableBlocksFallingInInfinteLoopGravityInverted() {
+        String mapLevelLayout = """
+            ---U---D@
+            ---R----@
+            ---P----@
+            ---R----@
+            ---R----@
+            wwwVwwww@
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "drrrrug");
+        pushRock.gravityInverter();
+        assertTrue(pushRock.isGravityInverted());
+        String expected = """
+            ---Ụ---D@
+            ---R----@
+            ---P----@
+            ---R----@
+            ---R----@
+            wwwṾwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            ---Ụ---D@
+            ---P----@
+            ---R----@
+            ---R----@
+            ---R----@
+            wwwṾwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            ---Ụ---D@
+            ---R----@
+            ---R----@
+            ---R----@
+            ---P----@
+            wwwṾwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+
+    @Test
+    @DisplayName("Check that moveable block chains stacked ontop of portals facing the ")
+    public void testMoveableStackPortalBalance() {
+        String mapLevelLayout = """
+            -------D@
+            --R-----@
+            --R-----@
+            --R-----@
+            --P--R--@
+            wwUwwVww@
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "drrrruug");
+        assertFalse(pushRock.isGravityInverted());
+        String expected = """
+            -------D@
+            --R-----@
+            --R-----@
+            --R-----@
+            --P--R--@
+            wwỤwwṾww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            -------D@
+            --------@
+            --R-----@
+            --R--R--@
+            --R--P--@
+            wwỤwwṾww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            -------D@
+            --------@
+            -----R--@
+            --R--P--@
+            --R--R--@
+            wwỤwwṾww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            -------D@
+            --------@
+            --R-----@
+            --R--R--@
+            --R--P--@
+            wwỤwwṾww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+
+
 }

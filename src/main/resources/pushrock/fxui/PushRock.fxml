@@ -294,7 +294,7 @@
                            <children>
                               <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="76.0" prefWidth="83.0" spacing="3.0">
                                  <children>
-                                    <RadioButton fx:id="menuGravityMoveInputButton" mnemonicParsing="false" prefHeight="17.0" prefWidth="0.0" toggleGroup="$menuGravityApplicationChoice" />
+                                    <RadioButton fx:id="menuGravityMoveInputButton" mnemonicParsing="false" prefHeight="17.0" prefWidth="0.0" selected="true" toggleGroup="$menuGravityApplicationChoice" />
                                     <Text fx:id="scoreMenuText11" strokeType="OUTSIDE" strokeWidth="0.0" text="Move input" textAlignment="CENTER" wrappingWidth="82.892578125" />
                                  </children>
                               </VBox>
