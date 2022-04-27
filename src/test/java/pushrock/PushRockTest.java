@@ -19,6 +19,8 @@ public class PushRockTest {
     public void testConstructor() {
 
     }
+    //Documentation: diagram association fix!
+    //TESTS TO MAKE: Constructor/toString, Observer/Observable, push-rock-corner-situation, 
     
     PushRock pushRock;
 

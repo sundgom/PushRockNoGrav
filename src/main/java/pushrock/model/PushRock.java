@@ -974,11 +974,14 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         if (blockChain.size() <= strength+1 && blockChain.size() >= 1) {
             BlockAbstract lastBlock = blockChain.get(blockChain.size()-1);
             BlockAbstract blockFollowingLastBlock = this.getTopBlock(lastBlock.getX() + directionXY[0], lastBlock.getY() + directionXY[1]);
+            if (blockFollowingLastBlock == null) {
+                throw new IllegalStateException("Can not push blocks out of bounds.");
+            }
             if (blockFollowingLastBlock instanceof TransferBlock && ((TransferBlock) blockFollowingLastBlock).canBlockEnter(lastBlock)) {
                 int[] exitPointXY = ((TransferBlock) blockFollowingLastBlock).getExitPointXY(lastBlock);
                 BlockAbstract exitPointBlock = this.getTopBlock(exitPointXY[0], exitPointXY[1]);
                 if (exitPointBlock == null) {
-                    throw new IllegalStateException("Can not push as pushing through this transporter would result in blocks out of bounds.");
+                    throw new IllegalStateException("Can not push blocks out of bounds.");
                 }
                 List<BlockAbstract> blockChainExit = this.getBlockChain(exitPointBlock, directionXY[0], directionXY[1]);
                 if (blockChainExit.containsAll(blockChain)) {
