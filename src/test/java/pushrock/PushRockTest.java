@@ -3,23 +3,22 @@ package pushrock;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.text.Normalizer;
-import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import pushrock.model.AbstractObservablePushRock;
 import pushrock.model.BlockAbstract;
+import pushrock.model.IObserverPushRock;
 import pushrock.model.MoveableBlock;
 import pushrock.model.PortalWallBlock;
 import pushrock.model.PushRock;
+import pushrock.model.TraversableBlock;
 
 public class PushRockTest {
-    @Test
-    @DisplayName("Help me.")
-    public void testConstructor() {
-
-    }
     //Documentation: diagram association fix! getPlayerCopy should be added to diagram
-    //TESTS TO MAKE: Constructor/toString, Observer/Observable, push-rock-corner-situation, 
+    //TESTS TO MAKE: Constructor/toString, Observer/Observable, push-rock-corner-situation, toString?!?
     
     // PushRock pushRock;
 
@@ -27,6 +26,495 @@ public class PushRockTest {
     // public void setup() {
     //     this.pushRock = new PushRock("Test", " dprd@ ", "rrg");
     // }
+
+    //Replaces all line separators with the line separator of the current system and removes excess trailings before
+    //asserting wether the expected and actual strings are equal.
+    private void assertEqualsNoLineSeparator(String expected, String actual) {
+        expected = expected.replaceAll("\\n|\\r\\n", System.lineSeparator()).stripTrailing();
+        actual = actual.replaceAll("\\n|\\r\\n", System.lineSeparator()).stripTrailing();
+        assertEquals(expected, actual);
+    }
+
+    private void checkConstructorExpectedStartValues(PushRock pushRock, String levelName, String levelMapLayout, String levelDirectionLayout, int width, int height, boolean isGravityInverted, int moveCount) {
+        assertEquals(levelName, pushRock.getLevelName());
+        assertEqualsNoLineSeparator(levelMapLayout, pushRock.getLevelMapLayout());
+        assertEquals(levelDirectionLayout, pushRock.getLevelDirectionLayout());
+        assertEquals(width, pushRock.getWidth());
+        assertEquals(height, pushRock.getHeight());
+        assertEquals(moveCount, pushRock.getMoveCount(), "");
+        assertFalse(pushRock.isGameOver(), "The game should not be over right after the game has been constructed.");
+        assertSame(isGravityInverted, pushRock.isGravityInverted(), "Gravity should only be inverted if the direction layout ends with an upper case 'G', and not inverted when it ends with lower case 'g';");
+    }
+
+    private void checkConstructorMapResult(PushRock pushRock, String expectedMapLayout, String expectedDirectionLayout, int expectedWidth, int expectedHeight) {
+        int width = expectedMapLayout.indexOf('@');
+        String typeSequence = expectedMapLayout.replaceAll("\\n|\\r\\n|@", "").stripTrailing();
+        for (int y = 0; y < expectedHeight; y++) {
+            for (int x = 0; x < expectedWidth; x++) {
+                //Check that a given coordinate holds matching traversable blocks.
+                char expectedType = typeSequence.charAt(y * expectedWidth + x);
+                char expectedTraversableType = ' ';
+                BlockAbstract actualTopBlock = pushRock.getTopBlockCopy(x, -y);
+                TraversableBlock actualTraversableBlock = pushRock.getTraversableBlockCopy(x, -y);
+                assertEquals(x, actualTopBlock.getX());
+                assertEquals(-y, actualTopBlock.getY());
+                assertEquals(x, actualTraversableBlock.getX());
+                assertEquals(-y, actualTraversableBlock.getY());
+
+                if (Character.isUpperCase(expectedType)) {
+                    assertFalse(actualTraversableBlock.isBirdView());
+                    expectedType = Character.toLowerCase(expectedType);
+                } else if (expectedType == '-') {
+                    assertFalse(actualTraversableBlock.isBirdView());
+                    expectedType = ' ';
+                } else {
+                    assertTrue(actualTraversableBlock.isBirdView());
+                }
+                boolean expectedState = false;
+                if (expectedType == 'o') {
+                    expectedType = 'r';
+                    expectedTraversableType = 'd';
+                    expectedState = true;
+                } else if (expectedType == 'q') {
+                    expectedType = 'p';
+                    expectedTraversableType = 'd';
+                    expectedState = true;
+                } else if (expectedType == 'd') {
+                    expectedTraversableType = 'd';
+                }
+                assertEquals(expectedType, actualTopBlock.getType());
+                assertEquals(expectedTraversableType, actualTraversableBlock.getType());
+            }
+        }
+    }
+
+    private void checkStringRepresentation(PushRock pushRock, String expectedMap, String directionLayout, int expectedWidth, int expectedHeight) {
+        String actualMap = "";
+        for (int y = 0; y < expectedHeight; y++) {
+            for (int x = 0; x < expectedWidth; x++) {   
+                String blockToString = pushRock.getTopBlockCopy(x, -y).toString();
+                if (!pushRock.getTraversableBlockCopy(x, -y).isBirdView()) {
+                    blockToString = blockToString.toUpperCase();
+                }
+                actualMap += blockToString;
+            }
+            actualMap += "@\n";
+        }
+        assertEqualsNoLineSeparator(expectedMap, actualMap);
+    }   
+
+    @Test
+    @DisplayName("Check that the constructor ")
+    public void testLevelConstructorValidInput() {
+        String levelName = "Test";
+        String levelMapLayout = """
+                 protwud@
+                --ROTWVD@
+                """;
+        String levelDirectionLayout = "lurdddlg";
+        int expectedWidth = 8;
+        int expectedHeight = 2;
+        PushRock pushRock = new PushRock(levelName, levelMapLayout, levelDirectionLayout);
+        checkConstructorExpectedStartValues(pushRock, levelName, levelMapLayout, levelDirectionLayout, expectedWidth, expectedHeight, false, 0);
+        checkConstructorMapResult(pushRock, levelMapLayout, levelDirectionLayout, expectedWidth, expectedHeight);
+        String expectedMap = """
+                 proṭwụd@
+                --ROṬWṾD@
+                """;
+
+        checkStringRepresentation(pushRock, expectedMap, levelDirectionLayout, expectedWidth, expectedHeight); 
+    }
+    @Test
+    @DisplayName("Check....")
+    public void testSaveConstructorValidInput() {
+        String levelName = "Test";
+        String levelMapLayout = """
+                 protwud@
+                --ROTWVD@
+                """;
+        String levelDirectionLayout = "lurdddlg";
+        String saveMapLayout = """
+                  rotwud@
+                -PROTWVD@
+                """;
+        String saveDirectionLayout = "lurdddlg";
+        int saveMoveCount = 17;
+        int expectedWidth = 8;
+        int expectedHeight = 2;
+        PushRock pushRock = new PushRock(levelName, levelMapLayout, levelDirectionLayout, saveMapLayout, saveDirectionLayout, saveMoveCount);
+        checkConstructorExpectedStartValues(pushRock, levelName, levelMapLayout, levelDirectionLayout, expectedWidth, expectedHeight, false, saveMoveCount);
+        checkConstructorMapResult(pushRock, saveMapLayout, saveDirectionLayout, expectedWidth, expectedHeight);
+
+    }
+    @Test
+    @DisplayName("Check that using null for String parameters throws IllegalArgumentException.")
+    public void testConstructorNullParameters() {
+        String levelName = "Test";
+        String levelMapLayout = """
+                 protwud@
+                --ROTWVD@
+                """;
+        String levelDirectionLayout = "lurdddlg";
+        String saveMapLayout = """
+                  rotwud@
+                -PROTWVD@
+                """;
+        String saveDirectionLayout = "lurdddlg";
+        Assertions.assertDoesNotThrow(
+            () -> new PushRock(levelName, levelMapLayout, levelDirectionLayout, saveMapLayout, saveDirectionLayout, 0));
+        assertThrows(
+            IllegalArgumentException.class, 
+            () -> new PushRock(null, levelMapLayout, levelDirectionLayout));
+        assertThrows(
+            IllegalArgumentException.class, 
+            () -> new PushRock(levelName, null, levelDirectionLayout));
+        assertThrows(
+            IllegalArgumentException.class, 
+            () -> new PushRock(levelName, levelDirectionLayout, null));
+        assertThrows(
+            IllegalArgumentException.class, 
+            () -> new PushRock(levelName, levelMapLayout, levelDirectionLayout, null, saveDirectionLayout, 0));
+        assertThrows(
+            IllegalArgumentException.class, 
+            () -> new PushRock(levelName, levelMapLayout, levelDirectionLayout, saveMapLayout, null, 0));
+    }
+    @Test
+    @DisplayName("Check that using negative values for saveMoveCount parameter throws IllegalArgumentException.")
+    public void testConstructorSaveMoveCountNegative() {
+        String levelName = "Test";
+        String levelMapLayout = """
+                 protwud@
+                --ROTWVD@
+                """;
+        String levelDirectionLayout = "lurdddlg";
+        String saveMapLayout = """
+                  rotwud@
+                -PROTWVD@
+                """;
+        String saveDirectionLayout = "lurdddlg";
+        assertThrows(
+            IllegalArgumentException.class, 
+            () -> new PushRock(levelName, levelMapLayout, levelDirectionLayout, saveMapLayout, saveDirectionLayout, -1));
+    }
+
+    @Test
+    @DisplayName("Check that attempting to construct with map layout that has inconistent width results in IllegalArgumentExpcetion to be thrown.")
+    public void testConstructorMapLayoutInconsistentMapWidth() {
+        String middleWidthGain = """
+                pdwwww@
+                wwwwwww@
+                wwwwww@
+                """;
+        String  middleWidthLoss = """
+                pdwwww@
+                wwwww@
+                wwwwww@
+                """;
+        String  endWidthGain = """
+                pdwwww@
+                wwwwww@
+                wwwwwww@
+                """;
+        String  endWidthLoss = """
+                pdwwww@
+                wwwwww@
+                wwwww@
+                """;
+        String[] layoutsWithInconsistentWidth = new String[] {middleWidthGain, middleWidthLoss, endWidthGain, endWidthLoss};
+        for (String mapLayout : layoutsWithInconsistentWidth) {
+            assertThrows(
+                IllegalArgumentException.class,
+                () -> new PushRock("Test", mapLayout, "rg"), 
+                "Should not be able to construct PushRock with inconsistent width");
+        }
+    }
+
+    @Test
+    @DisplayName("Check that a too short map layout results in IllegalArgumentException being thrown.")
+    public void testConstructorMapLayoutTooShort() {
+        String tooShort = "p@";
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new PushRock("Test", tooShort, "rg"), 
+            "IllegalArgumentException should be thrown when the map layout is too short.");
+    }
+    @Test
+    @DisplayName("Check that a map layout without a player results in IllegalArgumentException being thrown.")
+    public void testConstructorMapLayoutNoPlayer() {
+        String noPlayer = "wd@";
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new PushRock("Test", noPlayer, "g"), 
+            "IllegalArgumentException should be thrown when the map layout has no player.");
+    }
+    @Test
+    @DisplayName("Check that a map layout with too many players results in IllegalArgumentException being thrown.")
+    public void testConstructorMapLayoutTooManyPlayers() {
+        String tooManyPlayers = "ppd@";
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new PushRock("Test", tooManyPlayers, "rrg"), 
+            "IllegalArgumentException should be thrown when the map layout has too many players.");
+    }
+
+    @Test
+    @DisplayName("Check that a map layout with too many of any portal type results in IllegalArgumentException being thrown.")
+    public void testConstructorMapLayoutTooManyPortals() {
+        String tooManyPortalOne = "puud@";
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new PushRock("Test", tooManyPortalOne, "rrrg"), 
+            "IllegalArgumentException should be thrown when the map layout has too many portal one.");
+        String tooManyPortalTwo = "pvvd@";
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new PushRock("Test", tooManyPortalTwo, "rrrg"), 
+            "IllegalArgumentException should be thrown when the map layout has too many portal two.");
+    }
+
+    @Test
+    @DisplayName("Check that a map layout without an unoccupied pressure plate results in IllegalArgumentException being thrown.")
+    public void testConstructorMapLayoutNoUnoccupiedPressurePlate() {
+        String noUnoccupiedPressurePlate = "-q@";
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new PushRock("Test", noUnoccupiedPressurePlate, "rg"), 
+            "IllegalArgumentException should be thrown when the map layout has no unoccupied pressure plate.");
+    }
+    @Test
+    @DisplayName("Check that a map layout without a width marker '@' results in IllegalArgumentException being thrown.")
+    public void testConstructorMapLayoutNoWidthMarker() {
+        String noWidthMarker = "pd";
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new PushRock("Test", noWidthMarker, "rg"), 
+            "IllegalArgumentException should be thrown when the map layout has no unoccupied pressure plate.");
+    }
+
+    @Test
+    @DisplayName("Check that invalid characters in the map layout results in IllegalArgumentException being thrown.")
+    public void testConstructorMapLayoutInvalidCharacters() {
+        String mapLayout = "pdX@";
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new PushRock("Test", mapLayout, "rg"), 
+            "IllegalArgumentException should be thrown when the map layout contains invalid characters.");
+    }
+    @Test
+    @DisplayName("Check that a too short direction layout results in IllegalArgumentException being thrown.")
+    public void testTooShortDirectionLayout() {
+        String directionLayout = "g";
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new PushRock("Test", "pd@", directionLayout), 
+            "IllegalArgumentException should be thrown when the direction layout contains too few characters.");
+    }
+    @Test
+    @DisplayName("Check that a direction layout without a gravity direction 'g'/'G' results in IllegalArgumentException being thrown.")
+    public void testConstructorDirectionLayoutNoGravityDirection() {
+        String directionLayout = "rr";
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new PushRock("Test", "prd@", directionLayout), 
+            "IllegalArgumentException should be thrown when the direction layout has no gravity direction.");
+    }
+    @Test
+    @DisplayName("Check that invalid characters in the direction layout results in IllegalArgumentException being thrown.")
+    public void testConstructorDirectionLayoutInvalidCharacters() {
+        String directionLayout = "rXg";
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new PushRock("Test", "pd@", directionLayout), 
+            "IllegalArgumentException should be thrown when the direction layout contains invalid characters.");
+    }
+    @Test
+    @DisplayName("Check that a direction layout containing too few or too many directions compared to the map layout results in IllegalArgumentException being thrown.")
+    public void testConstructorWrongDirectionCount() {
+        String mapLayout = "prd@";
+        String tooMany = "rrrg";
+        String tooFew =  "rg";
+        String correct = "rrg";
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new PushRock("Test", mapLayout, tooMany), 
+            "IllegalArgumentException should be thrown when the direction layout contains invalid characters.");
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new PushRock("Test", mapLayout, tooFew), 
+            "IllegalArgumentException should be thrown when the direction layout contains invalid characters.");
+        Assertions.assertDoesNotThrow(
+            () -> new PushRock("Test", mapLayout,  correct),
+            "No exceptions should be thrown when the map and direction layouts are compatible.");
+    }
+
+    @Test
+    @DisplayName("Check that no exceptions are thrown when constructing with level and save layouts that are equal.")
+    public void testLevelAndSaveLayoutsAreEqual() {
+        String levelMapLayout = "pd@";
+        String levelDirectionLayout = "rg";
+        Assertions.assertDoesNotThrow(
+            () -> new PushRock("Test", levelMapLayout,  levelDirectionLayout, levelMapLayout, levelDirectionLayout, 0),
+            "No exceptions should be thrown when the level and save layouts are equal .");
+    }
+    @Test
+    @DisplayName("Check that constructing with level and save map layouts of inequal length results in illegal argument exception being thrown.")
+    public void testLevelAndSaveMapLayoutsAreOfInequalLength() {
+        String levelMapLayout = "pd@";
+        String saveMapLayout = "pdw@";
+        String levelDirectionLayout = "rg";
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new PushRock("Test", levelMapLayout,  levelDirectionLayout, saveMapLayout, levelDirectionLayout, 0),
+            "IllegalArgumentException should be thrown when level and map layouts are of inequal length.");
+    }
+    @Test
+    @DisplayName("Check that constructing with level and save map layouts of inequal width results in illegal argument exception being thrown.")
+    public void testLevelAndSaveMapLayoutsAreOfInequalWidth() {
+        String levelMapLayout = """
+                pd@ww@
+                """;
+        String saveMapLayout = """
+                pdww@
+                """;
+        String levelDirectionLayout = "rg";
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new PushRock("Test", levelMapLayout,  levelDirectionLayout, saveMapLayout, levelDirectionLayout, 0),
+            "IllegalArgumentException should be thrown when level and map layouts are of inequal width.");
+    }
+    @Test
+    @DisplayName("Check that constructing with level and save map layouts that have bird-view enabled at differentl positions from one another results in IllegalArgumentException being thrown.")
+    public void testLevelAndSaveMapLayoutHaveDifferentBirdViewPositions() {
+    String levelMapLayoutWall = """
+            pdwW@
+            """;
+    String saveMapLayoutWall = """
+            pdWw@
+            """;
+    String levelDirectionLayout = "rg";
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new PushRock("Test", levelMapLayoutWall,  levelDirectionLayout, saveMapLayoutWall, levelDirectionLayout, 0),
+        "IllegalArgumentException should be thrown when level and map layouts have bird-view enabled at different positions.");
+    String levelMapLayoutAir = """
+            pd- @
+            """;
+    String saveMapLayoutAir = """
+            pd -@
+            """;
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new PushRock("Test", levelMapLayoutAir,  levelDirectionLayout, saveMapLayoutAir, levelDirectionLayout, 0),
+        "IllegalArgumentException should be thrown when level and map layouts have bird-view enabled at different positions.");
+    }
+    @Test
+    @DisplayName("Check that constructing with level and save map layouts that have walls placed differently from one another results in IllegalArgumentException being thrown.")
+    public void testLevelAndSaveMapLayoutHaveDifferentWallPositions() {
+    String levelMapLayout = """
+            pd ww@
+            """;
+    String saveMapLayout = """
+            pdw w@
+            """;
+    String levelDirectionLayout = "rg";
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new PushRock("Test", levelMapLayout,  levelDirectionLayout, saveMapLayout, levelDirectionLayout, 0),
+        "IllegalArgumentException should be thrown when level and save map layouts have walls placed differently.");
+    }
+    @Test
+    @DisplayName("Check that constructing with level and save map layouts that have teleporters placed differently from one another results in IllegalArgumentException being thrown.")
+    public void testLevelAndSaveMapLayoutHaveDifferentTeleporterPositions() {
+        String levelMapLayout = """
+            pd T@
+            """;
+    String saveMapLayout = """
+            pdT @
+            """;
+    String levelDirectionLayout = "rg";
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new PushRock("Test", levelMapLayout,  levelDirectionLayout, saveMapLayout, levelDirectionLayout, 0),
+        "IllegalArgumentException should be thrown when level and save map layouts have teleporters placed differently.");
+    }
+    @Test
+    @DisplayName("Check that constructing with level and save map layouts that do not have pressure plates at the same spots results in IllegalArgumentException being thrown, regardless of wether or not players/rocks are standing on top of them.")
+    public void testLevelAndSaveMapLayoutHaveDifferentPressurePlatePositions() {
+    String levelDirectionLayout = "rrg";
+    String levelNothingOnTop = "pr d@";
+    String saveNothingOnTop =  "prd @";
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new PushRock("Test", levelNothingOnTop,  levelDirectionLayout, saveNothingOnTop, levelDirectionLayout, 0),
+        "IllegalArgumentException should be thrown when pressure plates are placed differently between the level and save map layouts.");
+    String levelNotSameSpotRockOnTop = "pd  o@";
+    String saveNotSameSpotRockOnTop =  "pd o @";
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new PushRock("Test", levelNotSameSpotRockOnTop,  levelDirectionLayout, saveNotSameSpotRockOnTop, levelDirectionLayout, 0),
+        "IllegalArgumentException should be thrown when pressure plates are placed differently between the level and save map layouts.");
+    String levelNotSameSpotRockNotOnTop =  "pd rd@";
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new PushRock("Test", levelNotSameSpotRockNotOnTop,  levelDirectionLayout, saveNotSameSpotRockOnTop, levelDirectionLayout, 0),
+        "IllegalArgumentException should be thrown when pressure plates are placed differently between the level and save map layouts.");
+    String levelNotSameSpotPlayerNotOnTop = "rd pd@";
+    String saveNotSameSpotPlayerOnTop =     "rd q @";
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new PushRock("Test", levelNotSameSpotPlayerNotOnTop,  levelDirectionLayout, saveNotSameSpotPlayerOnTop, levelDirectionLayout, 0),
+        "IllegalArgumentException should be thrown when pressure plates are placed differently between the level and save map layouts.");
+    }
+    @Test
+    @DisplayName("Check that level and save map layouts with pressure plates at the same spots do not throw exceptions, even if there are players/rocks standing on top of them.")
+    public void testLevelAndSaveMapLayoutHaveIdenticalPressurePlatePositions() {
+        String levelDirectionLayout = "rrg";
+        String levelSameSpotPlayerNotOntop = "dr pd@";
+        String saveSameSpotPlayerOntop =     "dr  q@";
+
+        Assertions.assertDoesNotThrow(
+            () -> new PushRock("Test", levelSameSpotPlayerNotOntop,  levelDirectionLayout, saveSameSpotPlayerOntop, levelDirectionLayout, 0),
+            "No exceptions should be thrown when the pressure plates are placed at the same spots between the level and save map layouts.");
+        String levelSameSpotRockNotOntop = "dp rd@";
+        String saveSameSpotRockOntop =     "dp  o@";
+        Assertions.assertDoesNotThrow(
+            () -> new PushRock("Test", levelSameSpotRockNotOntop,  levelDirectionLayout, saveSameSpotRockOntop, levelDirectionLayout, 0),
+            "No exceptions should be thrown when the pressure plates are placed at the same spots between the level and save map layouts.");
+    }
+    @Test
+    @DisplayName("Check that level and save map layouts with differing counts of rocks results in IllegalArgumentException being thrown.")
+    public void testLevelAndSaveMapLayoutsWithDifferentRockCounts() {
+        String levelDirectionLayout = "rrg";
+        String saveDirectionLayout = "rrrg";
+        String levelOneRock =  "pd r @";
+        String saveTwoRocks  = "pd rr@";
+        assertThrows(
+        IllegalArgumentException.class,
+        () -> new PushRock("Test", levelOneRock,  levelDirectionLayout, saveTwoRocks, saveDirectionLayout, 0),
+        "IllegalArgumentException should be thrown when pressure plates are placed differently between the level and save map layouts.");
+        String levelOneRockWithNoneAtAPressurePlate =  "pd rd@";
+        String saveTwoRocksWithOneAtAPressurePlate  =  "pd ro@";
+        assertThrows(
+        IllegalArgumentException.class,
+        () -> new PushRock("Test", levelOneRockWithNoneAtAPressurePlate,  levelDirectionLayout, saveTwoRocksWithOneAtAPressurePlate, saveDirectionLayout, 0),
+        "IllegalArgumentException should be thrown when pressure plates are placed differently between the level and save map layouts.");
+    }
+
+
+    // @Test
+    // @DisplayName("Check that the constructor ")
+    // public void testSaveConstructorValidInput() {
+    //     PushRock pushRock = new PushRock(levelName, levelMapLayout, levelDirectionLayout), jump while standing at falling rocks
+    // }
+
+
+
+    // @Test
+    // @DisplayName("Help me.")
+    // public void testToString() {
+        
+    // }
+
 
 
     @Test
@@ -66,14 +554,6 @@ public class PushRockTest {
         assertNotEquals(playerCopy1.getState(), playerCopy2.getState());
         //The game's state should be unchanged from what it was in the beginning, as the player copies should not be the actual player block that is in the game.
         assertEqualsNoLineSeparator("prdwt@", pushRock.toString());
-    }
-
-    //Replaces all line separators with the line separator of the current system and removes excess trailings before
-    //asserting wether the expected and actual strings are equal.
-    private void assertEqualsNoLineSeparator(String expected, String actual) {
-        expected = expected.replaceAll("\\n|\\r\\n", System.lineSeparator()).stripTrailing();
-        actual = actual.replaceAll("\\n|\\r\\n", System.lineSeparator()).stripTrailing();
-        assertEquals(expected, actual);
     }
 
     private void assertDirectionAfterMovement(String moveDirection, PushRock pushRock, int startX, int startY, boolean expectedToMove) {
@@ -1562,5 +2042,197 @@ public class PushRockTest {
         assertEqualsNoLineSeparator(expected, pushRock.toString());
     }
 
+    @Test
+    @DisplayName("Check that a moveable block can fall into a transporter even if it places it at the entrance of transporter of another transporter-pairing.")
+    public void testFallIntoTransporterAndLandAtAnotherTransporterPairingEntrance() {
+        String mapLevelLayout = """
+            -V--@
+            -P--@
+            -T--@
+            ----@
+            -T--@
+            ---d@
+            -U-o@
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "drurg");
+        assertFalse(pushRock.isGravityInverted());
+        String expected = """
+            -Ṿ--@
+            -P--@
+            -Ṭ--@
+            ----@
+            -Ṭ--@
+            ---d@
+            -Ụ-o@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            -Ṿ--@
+            ----@
+            -Ṭ--@
+            ----@
+            -Ṭ--@
+            -P-d@
+            -Ụ-o@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            -Ṿ--@
+            -P--@
+            -Ṭ--@
+            ----@
+            -Ṭ--@
+            ---d@
+            -Ụ-o@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
 
+
+
+    class TestObserverPushRock implements IObserverPushRock {
+        private int updateCount;
+        public TestObserverPushRock() {
+            this.updateCount = 0;
+        }
+        public int getUpdateCount() {
+            return this.updateCount;
+        }
+        @Override
+        public void update(AbstractObservablePushRock observable) {
+            this.updateCount++;
+        }
+    }
+
+    @Test
+    @DisplayName("Check that observerers that have been added get notified.")
+    public void testAddObservers() {
+        PushRock pushRock = new PushRock("test", "dp   @", "rg");
+        TestObserverPushRock testObserverPushRock = new TestObserverPushRock();
+        assertEquals(0, testObserverPushRock.getUpdateCount());
+        pushRock.notifyObservers();
+        assertEquals(0, testObserverPushRock.getUpdateCount());
+        pushRock.addObserver(testObserverPushRock);
+        pushRock.notifyObservers();
+        assertEquals(1, testObserverPushRock.getUpdateCount());
+        pushRock.notifyObservers();
+        assertEquals(2, testObserverPushRock.getUpdateCount());
+    }
+    @Test
+    @DisplayName("Check that observerers that have been removed no longer get notified.")
+    public void testRemoveObservers() {
+        PushRock pushRock = new PushRock("test", "dp   @", "rg");
+        TestObserverPushRock testObserverPushRock = new TestObserverPushRock();
+        assertEquals(0, testObserverPushRock.getUpdateCount());
+        pushRock.notifyObservers();
+        assertEquals(0, testObserverPushRock.getUpdateCount());
+        pushRock.addObserver(testObserverPushRock);
+        pushRock.notifyObservers();
+        assertEquals(1, testObserverPushRock.getUpdateCount());
+        pushRock.removeObserver(testObserverPushRock);
+        pushRock.notifyObservers();
+        assertEquals(1, testObserverPushRock.getUpdateCount());
+    }
+    @Test
+    @DisplayName("Check that observers are notified after the player was moved successfully through move input.")
+    public void testObserversMoveInputCoordinateChange() {
+        PushRock pushRock = new PushRock("test", "dp   @", "rg");
+        assertEqualsNoLineSeparator("dp   @", pushRock.toString());
+        TestObserverPushRock testObserverPushRock = new TestObserverPushRock();
+        assertEquals(0, testObserverPushRock.getUpdateCount());
+        pushRock.movePlayer("right");
+        assertEqualsNoLineSeparator("d p  @", pushRock.toString());
+        assertEquals(0, testObserverPushRock.getUpdateCount());
+        pushRock.addObserver(testObserverPushRock);
+        pushRock.movePlayer("right");
+        assertEqualsNoLineSeparator("d  p @", pushRock.toString());
+        assertEquals(1, testObserverPushRock.getUpdateCount());
+    }
+    @Test
+    @DisplayName("Check that observers are notified if the player's direction was changed after move input.")
+    public void testObserversMoveInputPlayerDirectionChange() {
+        PushRock pushRock = new PushRock("test", "dpw@", "lg");
+        assertEqualsNoLineSeparator("dpw@", pushRock.toString());
+        TestObserverPushRock testObserverPushRock = new TestObserverPushRock();
+        pushRock.addObserver(testObserverPushRock);
+        pushRock.movePlayer("right");
+        assertEqualsNoLineSeparator("dpw@", pushRock.toString());
+        assertEquals(1, testObserverPushRock.getUpdateCount());
+    }
+    @Test
+    @DisplayName("Check that observers are not notified if the player did not move or change direction after move input.")
+    public void testObserversMoveInputPlayerNoChange() {
+        PushRock pushRock = new PushRock("test", "dpw@", "rg");
+        assertEqualsNoLineSeparator("dpw@", pushRock.toString());
+        TestObserverPushRock testObserverPushRock = new TestObserverPushRock();
+        pushRock.addObserver(testObserverPushRock);
+        pushRock.movePlayer("right");
+        assertEqualsNoLineSeparator("dpw@", pushRock.toString());
+        assertEquals(0, testObserverPushRock.getUpdateCount());
+    }
+    @Test
+    @DisplayName("Check that observers are notified if gravityStep moved any moveable block.") 
+    public void testObserversGravityStepWithChange() {
+        String map = """
+                oRd@
+                --P@
+                ---@
+                """;
+        PushRock pushRock = new PushRock("test", map, "rrrg");
+        assertEqualsNoLineSeparator(map, pushRock.toString());
+        TestObserverPushRock testObserverPushRock = new TestObserverPushRock();
+        pushRock.addObserver(testObserverPushRock);
+        pushRock.gravityStep();
+        String expected = """
+                o-d@
+                -R-@
+                --P@
+                """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        assertEquals(1, testObserverPushRock.getUpdateCount());
+        pushRock.gravityStep();
+        expected = """
+                o-d@
+                ---@
+                -RP@
+                """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        assertEquals(2, testObserverPushRock.getUpdateCount());
+    }
+    @Test
+    @DisplayName("Check that observers are notified if gravityStep moved any moveable block.") 
+    public void testObserversGravityStepWithNoChange() {
+        String map = """
+                o-d@
+                -RP@
+                """;
+        PushRock pushRock = new PushRock("test", map, "rrrg");
+        assertEqualsNoLineSeparator(map, pushRock.toString());
+        TestObserverPushRock testObserverPushRock = new TestObserverPushRock();
+        pushRock.addObserver(testObserverPushRock);
+        pushRock.gravityStep();
+        String expected = """
+                o-d@
+                -RP@
+                """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        assertEquals(0, testObserverPushRock.getUpdateCount());
+    }
+    @Test
+    @DisplayName("Check that observers are notified once a new portal is placed.")
+    public void testObserversMoveInputPlayerPortalPlacement() {
+        PushRock pushRock = new PushRock("test", "dpw@", "rg");
+        assertEqualsNoLineSeparator("dpw@", pushRock.toString());
+        TestObserverPushRock testObserverPushRock = new TestObserverPushRock();
+        pushRock.addObserver(testObserverPushRock);
+        pushRock.placePortal(true);
+        assertEqualsNoLineSeparator("dpv@", pushRock.toString());
+        assertEquals(1, testObserverPushRock.getUpdateCount());
+        //If the portal is the same as before, then observers should not be notified.
+        pushRock.placePortal(true);
+        assertEqualsNoLineSeparator("dpv@", pushRock.toString());
+        assertEquals(1, testObserverPushRock.getUpdateCount());
+    }
 }
