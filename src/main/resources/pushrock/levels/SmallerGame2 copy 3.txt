@@ -1,0 +1,29 @@
+#File type:
+Level
+
+#Level name:
+PushRock
+
+#Level map layout:
+WWWWWWWWWWWWWWWWWWW@
+WWWWWWWWWWWWWWWWWWW@
+WWWWWWWWWWWWWWWWWWW@
+WWWWWWWWWWWWWDWWWWW@
+WWWWW----------WWWW@
+WWWWW----------WWWW@
+WWWWW-R--------WWWW@
+WWWWW----------WWWW@
+WWWWW-R--------WWWW@
+wwwwW-R--------wwww@
+WWWWW-R--------WWWW@
+WWWWW-R------WWWWWW@
+WWWWW--------WWWWWW@
+WWWWW----------WWWW@
+WWWWWTP----T---WWWW@
+WWWWWWWWWWWWWWWWWWW@
+WWWWWWWWWWWWWOWWWWW@
+WWWWWWWWWWWWWWWWWWW@
+WWWWWWWWWWWWWWWWWWW@
+
+#Level direction layout:
+dddddddg

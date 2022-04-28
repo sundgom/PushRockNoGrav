@@ -3,7 +3,6 @@ package pushrock;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.text.Normalizer;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,15 +18,15 @@ public class PushRockTest {
     public void testConstructor() {
 
     }
-    //Documentation: diagram association fix!
+    //Documentation: diagram association fix! getPlayerCopy should be added to diagram
     //TESTS TO MAKE: Constructor/toString, Observer/Observable, push-rock-corner-situation, 
     
-    PushRock pushRock;
+    // PushRock pushRock;
 
-    @BeforeEach
-    public void setup() {
-        this.pushRock = new PushRock("Test", " dprd@ ", "rrg");
-    }
+    // @BeforeEach
+    // public void setup() {
+    //     this.pushRock = new PushRock("Test", " dprd@ ", "rrg");
+    // }
 
 
     @Test
@@ -1126,6 +1125,42 @@ public class PushRockTest {
             """;
             assertEqualsNoLineSeparator(expected, pushRock.toString());
     }
+    @Test
+    @DisplayName("Check that a player's carried block stack gets left behind the player enters a connected transporter.") 
+    public void testPlayerCollidingWithConnectedTransporterWhileCarryingBlocks() {
+        String mapLevelLayout = """
+            T-----oD@
+            ---R----@
+            ---R----@
+            ---R----@
+            ---R----@
+            ---PT---@
+            wwwwwwww@
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "rrrrrrg");
+        pushRock.setGravityApplicationManual();
+        String expected = """
+            Ṭ-----oD@
+            ---R----@
+            ---R----@
+            ---R----@
+            ---R----@
+            ---PṬ---@
+            wwwwwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.movePlayer("right");
+        expected = """
+            ṬP----oD@
+            ---R----@
+            ---R----@
+            ---R----@
+            ---R----@
+            ----Ṭ---@
+            wwwwwwww@
+            """;
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
 
     @Test
     @DisplayName("Check that moveable blocks stacked ontop of eachother fall together while gravity is not inverted.")
@@ -1370,8 +1405,8 @@ public class PushRockTest {
     }
 
     @Test
-    @DisplayName("Check that moveable block chains stacked ontop of portals facing the ")
-    public void testMoveableStackPortalBalance() {
+    @DisplayName("Check that moveable block chains stacked ontop of portals both facing the opposite direction of gravity results in the falling blocks attempting to equal out the weight balance of both sides.")
+    public void testMoveableStackBalancePortalDirectionsOpposingGravity() {
         String mapLevelLayout = """
             -------D@
             --R-----@
@@ -1420,6 +1455,110 @@ public class PushRockTest {
             --R--P--@
             wwỤwwṾww@
             """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+
+    @Test
+    @DisplayName("Check that a block chain falling into a portal whose exit is horizontal falls only for as long as the block chain at the exit porter is not longer than the falling block chain's weight, and that the movement and collision that might occur is resolved in the expected pattern.")
+    public void testMoveableStackBalancePortalOneHorizontalOtherOpposingGravity() {
+        String mapLevelLayout = """
+            w-R-----D@
+            w-R------@
+            w-R------@
+            w-R------@
+            w-R------@
+            U-R------@
+            w-P------@
+            wwVwwwwww@
+            """;
+        PushRock pushRock = new PushRock("Test", mapLevelLayout, "dddddrddug");
+        assertFalse(pushRock.isGravityInverted());
+        String expected = """
+            w-R-----D@
+            w-R------@
+            w-R------@
+            w-R------@
+            w-R------@
+            Ụ-R------@
+            w-P------@
+            wwṾwwwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            w-------D@
+            w-R------@
+            w-R------@
+            w-R------@
+            w-R------@
+            ỤPR------@
+            w-R------@
+            wwṾwwwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            w-------D@
+            w-R------@
+            w-R------@
+            w-R------@
+            w-R------@
+            ỤRP------@
+            w--R-----@
+            wwṾwwwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            w-------D@
+            w--------@
+            w-R------@
+            w-R------@
+            w-R------@
+            Ụ-R------@
+            wRPR-----@
+            wwṾwwwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            w-------D@
+            w--------@
+            w--------@
+            w-R------@
+            w-R------@
+            ỤPR------@
+            wRRR-----@
+            wwṾwwwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            w-------D@
+            w--------@
+            w--------@
+            w-R------@
+            w-R------@
+            ỤRPR-----@
+            wR-R-----@
+            wwṾwwwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.gravityStep();
+        expected = """
+            w-------D@
+            w--------@
+            w--------@
+            w--------@
+            w-R------@
+            ỤRRR-----@
+            wRPR-----@
+            wwṾwwwwww@
+            """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        //Now that horizontal chain's length is equal to the falling chains weight, the falling chain should no longer be heavy enough to move the horizontal chain, 
+        //applying gravity should result in no change from the previous expected map outcome.
+        pushRock.gravityStep();
         assertEqualsNoLineSeparator(expected, pushRock.toString());
     }
 
