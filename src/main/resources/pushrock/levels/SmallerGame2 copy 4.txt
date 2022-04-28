@@ -12,18 +12,18 @@ WWWWWWWWWWWWWDWWWWW@
 WWWWW----------WWWW@
 WWWWW----------WWWW@
 WWWWW-R--------WWWW@
-WWWWW----------WWWW@
+WWWWW----V-----WWWW@
+WWWWW-R--P-----WWWW@
+wwwwW-R--T-----wwww@
 WWWWW-R--------WWWW@
-wwwwW-R--------wwww@
-WWWWW-R--------WWWW@
-WWWWW-R------WWWWWW@
-WWWWW--------WWWWWW@
+WWWWW----T---WWWWWW@
+WWWWW----R---WWWWWW@
+WWWWW----U-----WWWW@
 WWWWW----------WWWW@
-WWWWWP-T--TUV--WWWW@
 WWWWWWWWWWWWWWWWWWW@
 WWWWWWWWWWWWWOWWWWW@
 WWWWWWWWWWWWWWWWWWW@
 WWWWWWWWWWWWWWWWWWW@
 
 #Level direction layout:
-ddddddlrdg
+ddddddludg

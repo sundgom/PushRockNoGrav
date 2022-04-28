@@ -7,15 +7,16 @@ public class IntervalNotifier implements Runnable, IObservableIntervalNotifier{
     private List<IObserverIntervalNotifier> observers = new ArrayList<IObserverIntervalNotifier>();
     private int interval;
     private boolean isActive;
-    
-    public IntervalNotifier(IObserverIntervalNotifier observer, int interval, boolean isActive) {
-        this.observers.add(observer);
-        this.interval = interval;
-        this.isActive = isActive;
-    }
 
     public IntervalNotifier(int interval) {
+        if (interval < 100) {
+            throw new IllegalArgumentException("Interval must be at least 100 milliseconds.");
+        }
+        if (interval > 10000) {
+            throw new IllegalArgumentException("Interval must be at most 10,000 milliseconds.");
+        }
         this.interval = interval;
+        this.isActive = true;
     }
 
     @Override
@@ -33,6 +34,9 @@ public class IntervalNotifier implements Runnable, IObservableIntervalNotifier{
 
     @Override
     public void addObserver(IObserverIntervalNotifier observer) {
+        if (observer == null) {
+            return;
+        }
         if (!this.observers.contains(observer)) {
             this.observers.add(observer);
         }

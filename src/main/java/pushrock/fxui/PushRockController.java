@@ -27,7 +27,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import pushrock.model.BlockAbstract;
 import pushrock.model.DirectedBlock;
-import pushrock.model.IObservablePushRock;
+import pushrock.model.AbstractObservablePushRock;
 import pushrock.model.IObserverPushRock;
 import pushrock.model.PushRock;
 
@@ -454,7 +454,7 @@ public class PushRockController implements IObserverPushRock {
         }
     }
 
-    public void updateGravityButton() {
+    private void updateGravityButton() {
         if (!pushRock.isGravityInverted()) {
             gravityButton.setText("Gravity ▼");
         }
@@ -732,7 +732,7 @@ public class PushRockController implements IObserverPushRock {
 	}
 
     @Override
-    public void update(IObservablePushRock observable) {
+    public void update(AbstractObservablePushRock observable) {
         if (observable == this.pushRock) {
             this.drawMap();
         }

@@ -1,5 +1,5 @@
 package pushrock.model;
 
 public interface IObserverPushRock {
-    public void update(IObservablePushRock observable);
+    public void update(AbstractObservablePushRock observable);
 }

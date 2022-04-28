@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PushRock implements IObservablePushRock, IObserverIntervalNotifier {
+public class PushRock extends AbstractObservablePushRock implements IObserverIntervalNotifier {
 
     private String levelName;
     private String levelMapLayout;
@@ -46,13 +46,12 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     //rest of the code, as well as avoiding any thread related issues that interacting with that class could cause.
     private boolean ignoreIntervalNotifier;   
 
-    //PushRock implements an observable interface, and will as such keep a list of observers who should be alerted
-    //every time the game's state changes.
-    private List<IObserverPushRock> observers = new ArrayList<>();
-
 
     //Constructors
     public PushRock(String levelName, String levelMapLayout, String levelDirectionLayout) {
+        if (levelName == null || levelMapLayout == null || levelDirectionLayout == null) {
+            throw new IllegalArgumentException("Null is invalid for all constructor parameters.");
+        }
         System.out.println("Constructor: build from level information");
         levelMapLayout = levelMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
         this.buildWorld(levelMapLayout, levelDirectionLayout, false);
@@ -60,6 +59,12 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     }
     public PushRock(String levelName, String levelMapLayout, String levelDirectionLayout, String saveMapLayout, String saveDirectionLayout, int saveMoveCount) {
         System.out.println("Constructor: build from save information");
+        if (levelName == null || levelMapLayout == null || levelDirectionLayout == null || saveMapLayout == null || saveDirectionLayout == null) {
+            throw new IllegalArgumentException("Null is invalid for all constructor parameters.");
+        }
+        if (saveMoveCount < 0) {
+            throw new IllegalArgumentException("Negative values are invalid for saved move count.");
+        }
         levelMapLayout = levelMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
         saveMapLayout = saveMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
         this.buildWorld(levelMapLayout, levelDirectionLayout, false);
@@ -97,6 +102,19 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         if (!(mapLayout.contains("@"))) {
             return ("Map layout must contain at least one '@' as to mark the map's width.");
         }
+        int width = mapLayout.indexOf("@");
+        String mapLayoutNoLineSeparators = mapLayout.replaceAll("\\n|\\r\\n", "");
+        for (int i = width; i < mapLayoutNoLineSeparators.length(); i+=width+1) {
+            if (mapLayoutNoLineSeparators.charAt(i) != '@') {
+                throw new IllegalArgumentException("The map layout must have a consistent width for all its rows.");
+            }
+        }
+        if (mapLayoutNoLineSeparators.charAt(mapLayoutNoLineSeparators.length() - 1) != '@') {
+            throw new IllegalArgumentException("The map layout must end with '@' to mark the end of the map.");
+        }
+        if (mapLayoutNoLineSeparators.length() % (width+1) != 0) {
+            throw new IllegalArgumentException("The map's last row must be of equal width as the rest of the map.");
+        }
         if (directionLayout.length() < 2) {
             return ("Direction layout must contain at least 2 characters, one for the direction of the player and another for the direction of gravity.");
         }
@@ -127,6 +145,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         if (mapLayout.length() != levelMapLayout.length()) {
             return "Save map layout and level map layout must be of equal length to be compatible. Save map layout length was: " + mapLayout.length() + " and level map layout length was: " + this.levelMapLayout.length();
         }
+        //The map layouts must be of equal width
         if (mapLayout.indexOf("@") != levelMapLayout.indexOf("@")) {
             return "Map layout and level layout must be of equal width to be compatible. Map layout width was: " + mapLayout.indexOf("@") + " and level layout width was: " + this.levelMapLayout.indexOf("@");
         }
@@ -134,12 +153,9 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         if (directionLayout.length() - mapLayout.toLowerCase().chars().filter(ch -> ch == 'u' || ch == 'v').count()  != this.levelDirectionLayout.length() - this.levelMapLayout.toLowerCase().chars().filter(ch -> ch == 'u' || ch == 'v').count()) {
             return "Save direction layout must contain the same amount character representations for non-portal directions.";
         }
-        //The map layouts must be of equal width
 
         //The layouts must have matching counts of players and rocks, thus we keep track of how many of each the layouts have.
-        int inputPlayerCount = 0;
         int inputRockCount = 0;
-        int levelPlayerCount = 0;
         int levelRockCount = 0;
 
         //For each index, there is a character representing a block's attributes in terms of type and bird-view-state.
@@ -147,7 +163,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         for (int i = 0; i < mapLayout.length(); i++) {
             //Obtain the character represeting the block's type at index i in each map-layout.
             char inputTypeChar = mapLayout.charAt(i);
-            char levelTypeChar = mapLayout.charAt(i);
+            char levelTypeChar = levelMapLayout.charAt(i);
             //Upper case characters and "-" indicates that bird view should be enabled, wheras lower case characters and " " indicates that it is disabled.
             //Bird-view can not be changed, and thus for any one coordinate's bird-view state in one layout, the other layout must have a matching bird-view state for their coordinate.
             if ( ((Character.isUpperCase(inputTypeChar) || inputTypeChar == '-') & !(Character.isUpperCase(levelTypeChar) || levelTypeChar == '-')) 
@@ -167,26 +183,16 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                 return "Map layouts must have matching teleporters. Input type was: " + inputTypeChar + " and level type was: " + levelTypeChar;
             }
             //If one map layout has a coordinate with a pressure plate, then the other one must also have a pressure plate at that coordinate.
-            if ("d".contains(inputType) != "d".contains(levelType)) {
+            if ( ("d".contains(inputType) || "q".contains(inputType) || "o".contains(inputType) ) != ("d".contains(levelType) || "q".contains(levelType) || "o".contains(levelType))) {
                 return "Map layouts must have matching pressure plate. Input type was: " + inputTypeChar + " and level type was: " + levelTypeChar;
             }
-            //Increment player/rock counts if needed
-            if ("p".contains(inputType)) {
-                inputPlayerCount++;
-            }
-            if ("p".contains(levelType)) {
-                levelPlayerCount++;
-            }
-            if ("r".contains(inputType)) {
+            //Increment rock count accordingly
+            if ("r".contains(inputType) || "o".contains(inputType)) {
                 inputRockCount++;
             }
-            if ("r".contains(levelType)) {
+            if ("r".contains(levelType) || "o".contains(levelType)) {
                 levelRockCount++;
             }
-        }
-        //The layouts must have matching counts of players.
-        if (inputPlayerCount != levelPlayerCount) {
-            return "Map layouts must have matching counts of players. Count for input was: " + inputPlayerCount + " count for level was: " + levelPlayerCount;
         }
         //The layouts must have matching counts of rocks.
         if (inputRockCount != levelRockCount) {
@@ -572,13 +578,16 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     //make out an uninterrupted chain in the given direction. The given block is placed first in the list, and the remainder
     //are placed in sequence from that position
     private List<BlockAbstract> getBlockChain(BlockAbstract startBlock, int directionX, int directionY) {
+
         int x = startBlock.getX();
         int y = startBlock.getY();
         //The chain will be represented by a list containing all blocks that are a part of the chain
         List<BlockAbstract> chain = new ArrayList<BlockAbstract>();
         //The start block makes out the first entry
         chain.add(startBlock);
-
+        if (directionX == 0 && directionY == 0) {
+            return chain;
+        }
         //The search for blocks will continue until the next found block does not meet the criteria, which would end the chain.
         boolean isSearchDone = false;
         while (!isSearchDone) {
@@ -589,6 +598,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
             BlockAbstract nextBlock = this.getTopBlock(x, y);
             //If  be of the same type as the start block, then it will be part of the block chain
             if (nextBlock != null && nextBlock.getClass() == startBlock.getClass()) {
+                //a block chain should be cut off once it reaches a transporter
                 chain.add(nextBlock);
             }
             //Otherwise it must not be of the same type, which means the chain has ended, and thus the search for more blocks ends
@@ -860,10 +870,11 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         else if (footingBlock instanceof TraversableBlock) { //Case: footing is not a DirectedBlock (alternatively: block is a TraversableBlock) meaning it has no collision -> must be airborne
             return true;
         }
+        //Should the block be a transfer block, then it must be either a wall or a disconnected transporter, and as such the block is not airborne.
         else if (footingBlock instanceof TransferBlock) {
             return false;
         }
-        //If the block is neither null nor traversable, then it follows that it must be a directed block, which could have collision to serve as footing.
+        //If the block is not null, traversable, wall or disconnected transporter then it follows that it must be a moveable block or an active transporter, which could have collision to serve as footing.
         else { 
             //A moveable block can not be its own footing. This could happen in cases where the original footing block was moveable 
             //and stood ontop of an active portal with an exit point above itself (in relation to current gravity direction).
@@ -879,9 +890,6 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                 if (footingBlock != potentialTransporter) {
                     //It is now confirmed that the potential transporter was in fact a transporter. However before we proceed we should check for potential infinite loops.
                     
-                    
-
-
                     //In the case that the block serving as footing is on the exit point of the porter, then it is confirmed that the potential transporter is an actual transporter.
                     //The block at the exit point may be standing still, falling down out from the porter, or falling down into it. To find out which is the case we will need to find 
                     //which direction the exit porter pushes out entering blocks.
@@ -891,9 +899,14 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                         return true;
                     }
 
-                    //Case1: If the exit direction matches the gravity direction, then the footing block will fall away from the block standing ontop of it unless it is itself not airborne
-                    //and will thus carry that block instead. Thus this block airborne if it's footing block is airborne.
+                    //Case 1: If the exit direction matches the gravity direction, then the footing block will fall away from the block standing ontop of it unless it is itself not airborne
+                    //and will thus carry that block instead. Thus this block is airborne if its footing block is airborne.
                     if (exitDirectionXY[1] == this.getGravityDirectionY()) {
+                        //in the case that the footing block's footing block is the given block, then return true, as the block is then considered airborne.
+                        BlockAbstract footingBlocksFooting = getFootingBlock((MoveableBlock) footingBlock, true);
+                        if (footingBlocksFooting == block) {
+                            return true;
+                        }
                         return isBlockAirborne((MoveableBlock) footingBlock);
                     }
                     //If the exit direction is opposite to gravity, then the footing block will be falling towards the given block, thus they will both serve as the other's footing. 
@@ -901,8 +914,6 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                     else if (exitDirectionXY[1] == -this.getGravityDirectionY()) {
                         List<BlockAbstract> blockSide = this.getBlockChain(block, 0, -this.getGravityDirectionY());
                         List<BlockAbstract> footingSide = this.getBlockChain(footingBlock, 0, -this.getGravityDirectionY());
-                        // // // Collections.reverse(blockSide);
-                        // // // Collections.reverse(footingSide);
                         int blockSideWeight = getBlockChainWeight(blockSide, 0, -this.getGravityDirectionY());
                         int footingSideWeight = getBlockChainWeight(footingSide, 0, -this.getGravityDirectionY());
                         if (blockSideWeight >= footingSideWeight) {
@@ -920,8 +931,6 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                         else {
                             List<BlockAbstract> blockSide = this.getBlockChain(block, 0, -this.getGravityDirectionY());
                             List<BlockAbstract> footingSide = this.getBlockChain(footingBlock, exitDirectionXY[0], 0);
-                            // // // Collections.reverse(blockSide);
-                            // // // Collections.reverse(footingSide);
                             int blockSideWeight = getBlockChainWeight(blockSide, 0, -this.getGravityDirectionY());
                             int footingSideWeight = getBlockChainWeight(footingSide, exitDirectionXY[0], 0);
                             if (blockSideWeight > footingSideWeight) {
@@ -1219,7 +1228,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         }
         MoveableBlock player = this.getPlayer();
         // String directionOld = player.getDirection();
-
+        String oldPlayerDirection = player.getDirection();
         player.setDirection(direction);
         boolean wasMoved = false;
 
@@ -1240,7 +1249,9 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         this.updateActivePressurePlatesCount();
         this.checkGameOver();
         System.out.println(this.coordinateString());
-        this.notifyObservers();
+        if (wasMoved || !oldPlayerDirection.equals(player.getDirection())) {
+            this.notifyObservers();
+        }
         //If gravity is set to be applied on move input, then gravityStep should be called now that the move input has been processed.
         if (!this.isGameOver && this.isGravityApplicationMoveInput()) {
             this.gravityStep();
@@ -1449,7 +1460,26 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         List<List<BlockAbstract>> fallOrder = this.getGravityFallOrder();
         String porterDirection = "";
         List<BlockAbstract> movedBlocks = new ArrayList<BlockAbstract>();
+        if (fallOrder.size() > 1) {
+
+            if (fallOrder.get(0).get(0).getClass() != fallOrder.get(1).get(0).getClass() && fallOrder.get(0).get(1) == fallOrder.get(1).get(1)) {
+                for (BlockAbstract block : fallOrder.get(0)) { 
+                    movedBlocks.add(block);
+                }
+            }
+        }
         for (List<BlockAbstract> blockChain : fallOrder) {
+            BlockAbstract blockCheck = blockChain.get(1);
+            if (blockCheck instanceof MoveableBlock) {
+                BlockAbstract footing = getFootingBlock((MoveableBlock) blockCheck, true);
+                if (footing instanceof MoveableBlock) {
+                    BlockAbstract footingFooting = getFootingBlock((MoveableBlock) footing, true);
+                    if (blockCheck == footingFooting ) {
+                        continue;
+                    }
+                }
+            }
+
             //All blocks contained in a block-chain that does not start with a transfer block should not be moved
             //as it indicates that gravity would not move them away from their current coordinates.
             if (!(blockChain.get(0) instanceof TransferBlock)) {
@@ -1493,6 +1523,24 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                     }
                 }
             }
+            //Evaluate the exit length and entry weight, as to determine if the chain should be moved
+            int exitLength = 0;
+            int entryWeight = 0;
+            List<TransferBlock> transporters = blockChain.stream()
+                .filter(a -> a.getType() == 't' || a.getType() == 'v' || a.getType() == 'u') 
+                .map(a -> (TransferBlock) a)
+                .collect(Collectors.toList());
+            if (transporters.size() > 1) {
+                int entryPorterIndex = blockChain.indexOf(transporters.get(1));
+                int[] exitPorterDirection = transporters.get(0).getDirectionXY();
+                int[] entryPorterDirection = transporters.get(1).getDirectionXY();
+                exitLength = getBlockChain(blockChain.get(entryPorterIndex - 1), exitPorterDirection[0], exitPorterDirection[1]).size();
+                List<BlockAbstract> exitChain = getBlockChain(blockChain.get(entryPorterIndex + 1), entryPorterDirection[0], entryPorterDirection[1]);
+                entryWeight = getBlockChainWeight(exitChain, entryPorterDirection[0], entryPorterDirection[1]);
+
+            }
+   
+
             for (int i = 0; i < blockChain.size(); i++) {
                 BlockAbstract block = blockChain.get(i);
                 //No blocks should be moved twice by gravity.
@@ -1508,7 +1556,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                 //by comparing the coordinates of these two blocks.
                 if (i == 0) {
                     BlockAbstract block2 = blockChain.get(i+1);
-                    int directionY = block.getY() -block2.getY();
+                    int directionY = block.getY() - block2.getY();
                     int directionX = block.getX() - block2.getX();
                     
                     if (directionY < 0) {
@@ -1532,20 +1580,23 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
                 else if (block instanceof MoveableBlock) {
                     //In the case that the porterdirection is horizontal and the block is airborne
                     if ((porterDirection == "right" || porterDirection == "left")) {
-                        //First attempt to move the block in the direction of the porter
                         int porterCount = blockChain.stream().filter(a -> a instanceof TransferBlock).mapToInt(a->1).sum();
-                        if (porterCount == 2){
+                        if (porterCount == 2) {
+                            //Then first attempt to move the block in the direction of the porter
                             if (moveBlock((MoveableBlock) block, porterDirection, 1, "gravity")) {
                                 anyBlockMoved = true;
                             }
                         }
-                        //Then attempt to move the block in the direction of gravity
-                        if (moveBlock((MoveableBlock) block, this.getGravityDirection(), 1, "gravity")) {
-                            anyBlockMoved = true;
+                        //Then, if the block is still airborne, attempt to move the block in the direction of gravity
+                        if (isBlockAirborne((MoveableBlock) block)) {
+                            if (moveBlock((MoveableBlock) block, this.getGravityDirection(), 1, "gravity")) {
+                                anyBlockMoved = true;
+                            }
                         }
                     }
-                    //Otherwise if the porterdirection is vertical and the block is airborne, then move that block in the direction of that porter
-                    else if (isBlockAirborne((MoveableBlock) block)) {
+                    //Otherwise if the porterdirection is vertical and the block is airborne, 
+                    //or if entry chain's weight is great enough to move the exit chain then move that block in the direction of the porter
+                    else if (isBlockAirborne((MoveableBlock) block) || entryWeight > exitLength) {
                         if (moveBlock((MoveableBlock) block, porterDirection, 1, "gravity")) {
                             anyBlockMoved = true;
                         }
@@ -1599,7 +1650,8 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
         this.gravityApplicationChoice = -1;
         int interval = 1000; //Interval set to 1s
         if (this.intervalNotifierThread == null) { 
-            IntervalNotifier intervalNotifier = new IntervalNotifier(this, interval, true);
+            IntervalNotifier intervalNotifier = new IntervalNotifier(interval);
+            intervalNotifier.addObserver(this);
             Thread intervalNotifierThread = new Thread(intervalNotifier);
             //The thread is set to Daemon as to make sure to close the thread once the application window is closed.
             intervalNotifierThread.setDaemon(true);
@@ -1633,26 +1685,6 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
             }
         }
     }
-
-    //The following methods were implemented through the IObservablePushRock interface, and allows this PushRock to notify
-    //any interested observers whenever the state of the game has changed. These were primarily added as a way to notify
-    //the controller only when the game's state has changed, as to let it know that the view should be updated.
-    @Override
-    public void addObserver(IObserverPushRock observer) {
-        if (!this.observers.contains(observer)) {
-            this.observers.add(observer);
-        }
-    }
-    @Override
-    public void removeObserver(IObserverPushRock observer) {
-        if (this.observers.contains(observer)) {
-            this.observers.remove(observer);
-        }
-    }
-    @Override
-    public void notifyObservers() {
-        this.observers.forEach(observer -> observer.update(this));
-    } 
     
     
     public String toString() {
@@ -1680,7 +1712,7 @@ public class PushRock implements IObservablePushRock, IObserverIntervalNotifier 
     }
 
     //An alternate String format that includes coordinate values along with some other useful game-state information.
-    public String coordinateString() {
+    private String coordinateString() {
         String coordinateString = new String();
         coordinateString += "Score:" + this.getMoveCount() + " isGravityInverted:" + this.isGravityInverted + " isGameOver:" + this.isGameOver() + "\n";
         String originalString = this.toString().replaceAll("@", "");
