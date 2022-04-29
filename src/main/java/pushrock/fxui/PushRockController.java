@@ -121,7 +121,7 @@ public class PushRockController implements IObserverPushRock {
     public void initialize() {
         String levelName = "Start-up level";
         String levelLayout1 = """
-            dwwwwwwwwwwwwwwwwwT@
+            twwwwwwwwwwwwwwwwwd@
                                @
                                @
             rrr  r  r  rrr r  r@
