@@ -1455,14 +1455,18 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
         String porterDirection = "";
         List<BlockAbstract> movedBlocks = new ArrayList<BlockAbstract>();
         if (fallOrder.size() > 1) {
-
-            if (fallOrder.get(0).get(0).getClass() != fallOrder.get(1).get(0).getClass() && fallOrder.get(0).get(1) == fallOrder.get(1).get(1)) {
-                for (BlockAbstract block : fallOrder.get(0)) { 
-                    movedBlocks.add(block);
+            if (fallOrder.get(0).size() > 1 && fallOrder.get(1).size() > 1) {
+                if (fallOrder.get(0).get(0).getClass() != fallOrder.get(1).get(0).getClass() && fallOrder.get(0).get(1) == fallOrder.get(1).get(1)) {
+                    for (BlockAbstract block : fallOrder.get(0)) { 
+                        movedBlocks.add(block);
+                    }
                 }
             }
         }
         for (List<BlockAbstract> blockChain : fallOrder) {
+            if (blockChain.size() < 2) {
+                continue;
+            }
             BlockAbstract blockCheck = blockChain.get(1);
             if (blockCheck instanceof MoveableBlock) {
                 BlockAbstract footing = getFootingBlock((MoveableBlock) blockCheck, true);

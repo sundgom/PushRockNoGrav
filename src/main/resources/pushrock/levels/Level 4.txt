@@ -1,0 +1,29 @@
+#File type:
+Level
+
+#Level name:
+Level 4
+
+#Level map layout:
+wwwwwwwwwwwwwwwwwww@
+w--------------D--w@
+wT---O---Oww------w@
+w----wwwwww-------w@
+w----w------------w@
+w----wD--R--------w@
+ww----wwwww----wwww@
+www-----------wd--w@
+wwww---------ww--tw@
+wwwwwwwwwwwwwwwwwww@
+W-----------------W@
+W--------------RUWW@
+W--R-------R---R--W@
+W--R----WWWW---R--W@
+W--R---T----------W@
+W--R------WWW--R--W@
+W--R----R---------W@
+W--P----R---------T@
+WWWWWWWWWWWWWWWVWWW@
+
+#Level direction layout:
+rrrrlrrrrrrrrrrruug
