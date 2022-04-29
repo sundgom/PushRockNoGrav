@@ -12,8 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 
 public class PortalWallBlockTest {
-    // private char[] validTypes = new char[] {'w', 'v', 'u'};
-    // private String[] validDirectionsWall = new String[] {null};
     private String[] validDirectionsPortal = new String[] {"up", "down", "right", "left"};
 
     //Tests for constructor and methods inherited from BlockAbstract

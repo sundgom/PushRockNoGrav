@@ -433,8 +433,6 @@ public class SaveHandlerTest {
             } catch (IOException e) {
                 fail("The game could not be saved.");
             }
-
-            
         }
 
         @AfterAll 
@@ -444,21 +442,4 @@ public class SaveHandlerTest {
             temporarySaveTest.delete();
         }
     }
-    
-
-    
-
-
-
-
-
-
-
-// public List<String> getLevelNames();
-// + Path getResourceFoldersPath(String folder)                                        @O.r
-// + PushRock loadGame(InputStream inputStream)                                  @O.r
-// + PushRock loadGame(String fileName, boolean isSave)                       @O.r
-// + PushRock loadGame(Path filePath)                                       @O.r
-// + void saveGame(PushRock pushRock, OutputStream outputStream)            @O.r
-// + void saveGame(PushRock pushRock, Path savePath)                         @O.r
 }

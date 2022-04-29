@@ -511,7 +511,13 @@ public class PushRockController implements IObserverPushRock {
         this.pause();
         mapPage.setVisible(true);
         statusTitleRightText.setText("Pushing...");
-        statusMessageText.setText("Those rocks aren't going to push themselves! \n.. \n or maybe they are?");
+        if (statusMessageText.getText().equals("Those rocks aren't going to push themselves! \n \n or maybe they are?")) {
+            statusMessageText.setText("Stuck between a rock and a hard place? \n \n Just portal yourself out!");
+        } else if (statusMessageText.getText().equals("Stuck between a rock and a hard place? \n \n Just portal yourself out!")) {
+            statusMessageText.setText("They're not rocks.. \n \n THEY'RE MINERALS, MARIE!!");
+        } else {
+            statusMessageText.setText("Those rocks aren't going to push themselves! \n \n or maybe they are?");
+        }
         statusPage.setVisible(true);
         mapPage.setOpacity(1);
     }
@@ -537,15 +543,13 @@ public class PushRockController implements IObserverPushRock {
         this.unpause();
 
         if (menuGravityMoveInputButton.isSelected()) {
-            System.out.println("Gravity: moveInput");
+            System.out.println("Gravity application: move input");
             this.pushRock.setGravityApplicationMoveInput();
-            System.out.println("gMoveInput:" + this.pushRock.isGravityApplicationMoveInput());
             gravityManualIncrementButton.setVisible(false);
         }
         else if (menuGravityIntervalButton.isSelected()) {
-            System.out.println("Gravity: interval");
             int interval = (int) Math.round(menuGravityIntervalSlider.getValue()* 1000);
-            System.out.println("Interval set to: "+ interval + "milliseconds.");
+            System.out.println("Gravity application: interval (" + interval + "ms)");
             try {
                 pushRock.setGravityInterval(interval);  
             } catch (IllegalArgumentException e) {
@@ -558,7 +562,7 @@ public class PushRockController implements IObserverPushRock {
             this.pushRock.pauseIntervalGravity(false);
         }
         else {
-            System.out.println("Gravity: manual");
+            System.out.println("Gravity application: manual");
             this.pushRock.setGravityApplicationManual();
             System.out.println("gManual" + this.pushRock.isGravityApplicationManual());
             gravityManualIncrementButton.setVisible(true);

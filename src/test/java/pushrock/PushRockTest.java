@@ -20,15 +20,6 @@ import pushrock.model.PushRock;
 import pushrock.model.TraversableBlock;
 
 public class PushRockTest {
-    //Documentation: diagram association fix! getPlayerCopy should be added to diagram
-    //TESTS TO MAKE: Constructor/toString, Observer/Observable, push-rock-corner-situation, toString?!?
-    
-    // PushRock pushRock;
-
-    // @BeforeEach
-    // public void setup() {
-    //     this.pushRock = new PushRock("Test", " dprd@ ", "rrg");
-    // }
 
     //Replaces all line separators with the line separator of the current system and removes excess trailings before
     //asserting wether the expected and actual strings are equal.
@@ -39,6 +30,7 @@ public class PushRockTest {
     }
 
     private void checkConstructorExpectedStartValues(PushRock pushRock, String levelName, String levelMapLayout, String levelDirectionLayout, int width, int height, boolean isGravityInverted, int moveCount) {
+        //Check that pushRock's attributes are set correctly according to the input contructor parameters after construction
         assertEquals(levelName, pushRock.getLevelName());
         assertEqualsNoLineSeparator(levelMapLayout, pushRock.getLevelMapLayout());
         assertEquals(levelDirectionLayout, pushRock.getLevelDirectionLayout());
@@ -50,15 +42,17 @@ public class PushRockTest {
     }
 
     private void checkConstructorMapResult(PushRock pushRock, String expectedMapLayout, String expectedDirectionLayout, int expectedWidth, int expectedHeight) {
-        int width = expectedMapLayout.indexOf('@');
+        //Check that every type character in the mapLayout constructed an object of correct class and attribute values
         String typeSequence = expectedMapLayout.replaceAll("\\n|\\r\\n|@", "").stripTrailing();
         for (int y = 0; y < expectedHeight; y++) {
             for (int x = 0; x < expectedWidth; x++) {
-                //Check that a given coordinate holds matching traversable blocks.
                 char expectedType = typeSequence.charAt(y * expectedWidth + x);
                 char expectedTraversableType = ' ';
                 BlockAbstract actualTopBlock = pushRock.getTopBlockCopy(x, -y);
                 TraversableBlock actualTraversableBlock = pushRock.getTraversableBlockCopy(x, -y);
+                //Check that a given coordinate holds a traversable blocks.
+                assertNotNull(actualTraversableBlock, "Every coordinate should hold a traversable block.");
+                //check that the block objects were initialized with coordinates matching their type-representation's position in the mapLayout
                 assertEquals(x, actualTopBlock.getX());
                 assertEquals(-y, actualTopBlock.getY());
                 assertEquals(x, actualTraversableBlock.getX());
@@ -73,15 +67,12 @@ public class PushRockTest {
                 } else {
                     assertTrue(actualTraversableBlock.isBirdView());
                 }
-                boolean expectedState = false;
                 if (expectedType == 'o') {
                     expectedType = 'r';
                     expectedTraversableType = 'd';
-                    expectedState = true;
                 } else if (expectedType == 'q') {
                     expectedType = 'p';
                     expectedTraversableType = 'd';
-                    expectedState = true;
                 } else if (expectedType == 'd') {
                     expectedTraversableType = 'd';
                 }
@@ -103,11 +94,14 @@ public class PushRockTest {
             }
             actualMap += "@\n";
         }
+        //Check that the actual map formed from the blocks' string toString() representations matches the actual map
         assertEqualsNoLineSeparator(expectedMap, actualMap);
+        //Check that pushRock's own toString() matches the expected map 
+        assertEqualsNoLineSeparator(expectedMap, pushRock.toString());
     }   
 
     @Test
-    @DisplayName("Check that the constructor ")
+    @DisplayName("Check that the level contructor initializeses objects with correct values according to the input layouts.")
     public void testLevelConstructorValidInput() {
         String levelName = "Test";
         String levelMapLayout = """
@@ -128,7 +122,7 @@ public class PushRockTest {
         checkStringRepresentation(pushRock, expectedMap, levelDirectionLayout, expectedWidth, expectedHeight); 
     }
     @Test
-    @DisplayName("Check....")
+    @DisplayName("Check that the save contructor initializeses objects with correct values according to the input layouts.")
     public void testSaveConstructorValidInput() {
         String levelName = "Test";
         String levelMapLayout = """
@@ -147,7 +141,6 @@ public class PushRockTest {
         PushRock pushRock = new PushRock(levelName, levelMapLayout, levelDirectionLayout, saveMapLayout, saveDirectionLayout, saveMoveCount);
         checkConstructorExpectedStartValues(pushRock, levelName, levelMapLayout, levelDirectionLayout, expectedWidth, expectedHeight, false, saveMoveCount);
         checkConstructorMapResult(pushRock, saveMapLayout, saveDirectionLayout, expectedWidth, expectedHeight);
-
     }
     @Test
     @DisplayName("Check that using null for String parameters throws IllegalArgumentException.")
@@ -761,8 +754,6 @@ public class PushRockTest {
         }
     }
 
-
-
     @Test
     @DisplayName("Check that moving the player correctly changes their coordinate and direction after moving.")
     public void testMovePlayer() {
@@ -962,7 +953,7 @@ public class PushRockTest {
         checkGameStateIsAsExpectedAfterMovingPlayerInDirection(entryAbove, "rug", "down", exitBelow, "down");
     }
     @Test
-    @DisplayName("Check that the player is placed at correct coordinates and with the correct direction after they have entered a connected portal.")
+    @DisplayName("Check that the player is placed at correct coordinates and with the correct direction after they have entered a connected portal for any possible entry and exit direction.")
     public void testMovePlayerIntoConnectedPortalWhileAtEntryPoint() {
         String entryLeft = """
             o        d@
@@ -1141,7 +1132,40 @@ public class PushRockTest {
         expected = "o  pụ  rṿ  d@";
         assertEqualsNoLineSeparator(expected, pushRock.toString());
     }
-
+    @Test
+    @DisplayName("Check that a rock can be pushed through a connected portal while player pushing it is placed at its exit point in a straight loop.")
+    public void testPushRockThroughAConnectedPortalStraightLoop() {
+        String map = " vpru d@";
+        PushRock pushRock = new PushRock("test", map, "ruulg");
+        String expected = " ṿprụ d@";
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.movePlayer("right");
+        expected = " ṿrpụ d@";
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.movePlayer("right");
+        expected = " ṿprụ d@";
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
+    @Test
+    @DisplayName("Check that a rock can be pushed through a connected portal while player pushing it is placed at its exit point in a corner.")
+    public void testPushRockThroughAConnectedPortalCorner() {
+        String map = """
+                 prv@
+                duww@
+                """;
+        PushRock pushRock = new PushRock("test", map, "rrlug");
+        String expected = """
+                 prṿ@
+                dụww@
+                """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+        pushRock.movePlayer("right");
+        expected = """
+                 rpṿ@
+                dụww@
+                """;
+        assertEqualsNoLineSeparator(expected, pushRock.toString());
+    }
 
 
     @Test 
@@ -2310,9 +2334,6 @@ public class PushRockTest {
         assertEqualsNoLineSeparator("dpv@", pushRock.toString());
         assertEquals(0, testObserverPushRock.getUpdateCount());
     }
-
-
-
 
 
     @Nested
