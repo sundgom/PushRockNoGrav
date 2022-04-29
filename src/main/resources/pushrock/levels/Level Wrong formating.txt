@@ -2,9 +2,9 @@
 Level
 
 #Level name:
-PushRock
+Level with wrong format
 
-#Level map layout:
+#Wrong Level map layout:
 WWWWWWWWWWWWWWWWWWW@
 WWWWWWWWWWWWWWWWWWW@
 WWWWWWWWWWWWWWWWWWW@
@@ -14,13 +14,13 @@ WWWWW----------WWWW@
 WWWWW-R--------WWWW@
 WWWWW----------WWWW@
 WWWWW-R--------WWWW@
-WWWWW-R--------wwww@
-WWWWW-R-----W--WWWW@
-WWWWW-R-----TWWWWWW@
-WWWWW----------WWWW@
+wwwwT-R--------wwww@
+WWWWW-R--------WWWW@
+WWWWW-R------WWWWWW@
+WWWWW-------TWWWWWW@
 WWWWW----------WWWW@
 WWWWW-P--------WWWW@
-WWWWWWWWWWWWTWWWWWW@
+WWWWWWWWWWWWWWWWWWW@
 WWWWWWWWWWWWWOWWWWW@
 WWWWWWWWWWWWWWWWWWW@
 WWWWWWWWWWWWWWWWWWW@

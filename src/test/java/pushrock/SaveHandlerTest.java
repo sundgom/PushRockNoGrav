@@ -384,32 +384,32 @@ public class SaveHandlerTest {
             "A path that does not lead to an existing file should throw FileNotFoundException.");
     }
     
-    @Test //This test assumes that the file "Level test.txt" exists in the levels resource folder, and that it is of a valid format.
+    @Test //This test assumes that the file "TestLevel-DoNotDelete.txt" exists in the levels resource folder, and that it is of a valid format.
     @DisplayName("Check that attempting to load a valid and existent level file does not throw any exceptions.")
     public void testLoadFromFileNameLevel() {
         assertDoesNotThrow(
-            () -> saveHandler.loadGame("Level test", false),
+            () -> saveHandler.loadGame("TestLevel-DoNotDelete", false),
             "No exceptions should be thrown when a valid level with the given name to be loaded exists.");
     }
-    @Test //This test assumes that the file "Save test.txt" exists in the saves resource folder, and that it is of a valid format.
+    @Test //This test assumes that the file "TestSave-DoNotDelete.txt" exists in the saves resource folder, and that it is of a valid format.
     @DisplayName("Check that attempting to load a valid and existent save file does not throw any exceptions.")
     public void testLoadFromFileNameSave() {
         assertDoesNotThrow(
-            () -> saveHandler.loadGame("Save test", true),
+            () -> saveHandler.loadGame("TestSave-DoNotDelete", true),
             "No exceptions should be thrown when a valid save with the given name to be loaded exists.");
     }
-    @Test //This test assumes that the file "Level test.txt" exists in the levels resource folder, and that it is of a valid format.
+    @Test //This test assumes that the file "TestLevel-DoNotDelete.txt" exists in the levels resource folder, and that it is of a valid format.
     @DisplayName("Check that attempting to load a valid and existent level file does not throw any exceptions.")
     public void testLoadFromFilePathLevel() {
         assertDoesNotThrow(
-            () -> saveHandler.loadGame("Level test", false),
+            () -> saveHandler.loadGame("TestLevel-DoNotDelete", false),
             "No exceptions should be thrown when a valid level with the given name to be loaded exists.");
     }
-    @Test //This test assumes that the file "Save test.txt" exists in the saves resource folder, and that it is of a valid format.
+    @Test //This test assumes that the file "TestSave-DoNotDelete.txt" exists in the saves resource folder, and that it is of a valid format.
     @DisplayName("Check that attempting to load a valid and existent save file does not throw any exceptions.")
     public void testLoadFromFilePathSave() {
         assertDoesNotThrow(
-            () -> saveHandler.loadGame("Save test", true),
+            () -> saveHandler.loadGame("TestSave-DoNotDelete", true),
             "No exceptions should be thrown when a valid save with the given name to be loaded exists.");
     }
     @Test

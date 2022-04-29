@@ -2,7 +2,7 @@
 Level
 
 #Level name:
-Small level 1
+Level size large
 
 #Level map layout:
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww@

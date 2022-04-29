@@ -2,16 +2,10 @@
 Level
 
 #Level name:
-PortalTest
+Level 9001 Extra challenging 
 
 #Level map layout:
-o        d@
-   r u  v @
-     pt  t@
+pd@
 
 #Level direction layout:
-rrddug
-
-
-
-
+ug

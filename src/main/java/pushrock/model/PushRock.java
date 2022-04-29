@@ -638,7 +638,6 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
     //Updates the teleporter connections according to the current activePressurePlatesCount, and thus activates/deactivates them depending on wether they are connected or not
     private void updateTeleporters() {
         if (this.teleporters.size() < 2) {
-            System.out.println("There are not enough teleporters, thus there is nothing to update.");
             return;
         }
         //Connects two teleporters together based on the game's current activePressurePlatesCount. A previous connection is removed once a new one is made.
@@ -969,7 +968,7 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
         directionXY[1] = directionY;
         return directionXY;
     }
-    private boolean pushMoveable(MoveableBlock pushingBlock, MoveableBlock block, String direction, int strength, boolean hasTakenPortal, String movementSource) { //CHECK THIS !!!!!!!!!!!!!! may work against intent
+    private boolean pushMoveable(MoveableBlock pushingBlock, MoveableBlock block, String direction, int strength, boolean hasTakenPortal, String movementSource) { 
         //A block can not push another block in the same direction as the gravity affecting it, unless it moved through a portal
         if( (direction == "up" || direction == "down") && (direction == this.getGravityDirection()) && !isInBirdView(block) ) {
             if (!hasTakenPortal) {
@@ -1036,7 +1035,6 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
 
         //If the block to be pushed is able to be moved in the given direction, then the push has been successful, thus return true
         if (moveBlock(block, direction, strength, movementSource)) {
-            // System.out.println(this.coordinateString());
             return true;
         }
         //Otherwise the block could not be pushed, thus false is returned
@@ -1068,7 +1066,6 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
                 //If the block to be moved can not enter the transporter, then the transporter will instead be treated
                 //as if it was a wall, thus hindering the movement of the block.
                 if (!transferBlock.canBlockEnter(blockOld)) {
-                    System.out.println("A transporter can only be entered when connected, and must be entered from its entry point.");
                     return false;
                 }
                 //Otherwise the transporter must be connected, thus the moving block should be transported out of the connected transporter in
@@ -1092,7 +1089,6 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
             //If there exists a transfer block at the current coordinates of the moveable block copy, and that transfer
             //block is a wall, then it would not be possible for the actual moveable block to be moved there.
             if (transferBlock != null && transferBlock instanceof PortalWallBlock && ((PortalWallBlock) transferBlock).isWall()) {
-                System.out.println("Can not move further: you have hit a wall");
                 return false;
             } 
         }
@@ -1105,7 +1101,6 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
             return false;
         }
         if (blockNew.getY() > 0 || blockNew.getY() <= -height) {
-            System.out.println("Out of bounds, cant move y direction");
             if (blockNew.isPlayer()) {
                 throw new IllegalStateException("Can not move further " + direction + " as it would be out of bounds for the map.");
             }

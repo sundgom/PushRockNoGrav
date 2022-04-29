@@ -2,7 +2,7 @@
 Save
 
 #Level name:
-Level test
+LevelTest-DoNotDelete
 
 #Level map layout:
 twwwwwwwwwwwwwwwwwd@

@@ -557,14 +557,12 @@ public class PushRockController implements IObserverPushRock {
                 appInformationText.setText(e.getMessage());
             }
             this.pushRock.setGravityApplicationInterval();
-            System.out.println("gInterval" + this.pushRock.isGravityApplicationInterval());
             gravityManualIncrementButton.setVisible(false);
             this.pushRock.pauseIntervalGravity(false);
         }
         else {
             System.out.println("Gravity application: manual");
             this.pushRock.setGravityApplicationManual();
-            System.out.println("gManual" + this.pushRock.isGravityApplicationManual());
             gravityManualIncrementButton.setVisible(true);
         }
     }
@@ -576,6 +574,8 @@ public class PushRockController implements IObserverPushRock {
         if (levelFileName.equals("Select a level")) {
             this.appInformationText.setVisible(true);
             this.appInformationText.setText("No level was selected. Choose a level from the drop down menu and then confirm the choice by clicking the level button.");
+            updateLevelText();
+            updateLevelList();
             return;
         }
         try {

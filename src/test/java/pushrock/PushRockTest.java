@@ -2118,7 +2118,7 @@ public class PushRockTest {
 
     @Test
     @DisplayName("Check that a moveable block can fall into a transporter even if it places it at the entrance of transporter of another transporter-pairing.")
-    public void testFallIntoTransporterAndLandAtAnotherTransporterPairingEntrance() {
+    public void testFallIntoTransporterAndLandAtAnotherTransporterPairingEntranceLoop() {
         String mapLevelLayout = """
             -V--@
             -P--@
@@ -2163,6 +2163,62 @@ public class PushRockTest {
             """;
         assertEqualsNoLineSeparator(expected, pushRock.toString());
     }
+
+    //About 'testFallIntoTransporterAndLandAtAnotherTransporterPairingEntranceChainLoop()'
+    //The following test revealed an edge-case that initially caused a stack overflow error because of an infinte loop one of the methods entered
+    //when tackling two chained transporter pairs. While I have made necessary changes to prevent that error from occuring, I have not yet achieved
+    //the behaviour that I would have liked for this particular scenario. 
+
+    //As illustrated in the test by the expected map: I would have wanted the rock and player to continuously swap positions as to simulate a continuous fall through the transporters.
+    //For now however they will instead stand still until one of them makes room for the other to fall.
+
+    // @Test
+    // @DisplayName("Check that two moveable blocks loops/swaps positions when stuck in a falling loop between two transporter pairs.")
+    // public void testFallIntoTransporterAndLandAtAnotherTransporterPairingEntranceChainLoop() {
+    //     String mapLevelLayout = """
+    //         -V--@
+    //         -P--@
+    //         -T--@
+    //         ----@
+    //         -T--@
+    //         -R-d@
+    //         -U-o@
+    //         """;
+    //     PushRock pushRock = new PushRock("Test", mapLevelLayout, "drrurg");
+    //     assertFalse(pushRock.isGravityInverted());
+    //     String expected = """
+    //         -Ṿ--@
+    //         -P--@
+    //         -Ṭ--@
+    //         ----@
+    //         -Ṭ--@
+    //         -R-d@
+    //         -Ụ-o@
+    //         """;
+    //     assertEqualsNoLineSeparator(expected, pushRock.toString());
+    //     pushRock.gravityStep();
+    //     expected = """
+    //         -Ṿ--@
+    //         -R--@
+    //         -Ṭ--@
+    //         ----@
+    //         -Ṭ--@
+    //         -P-d@
+    //         -Ụ-o@
+    //         """;
+    //     assertEqualsNoLineSeparator(expected, pushRock.toString());
+    //     pushRock.gravityStep();
+    //     expected = """
+    //         -Ṿ--@
+    //         -P--@
+    //         -Ṭ--@
+    //         ----@
+    //         -Ṭ--@
+    //         -R-d@
+    //         -Ụ-o@
+    //         """;
+    //     assertEqualsNoLineSeparator(expected, pushRock.toString());
+    // }
 
 
     //TestObserverPushRock is a simple class implementing IObserverPushRock only as a tool to test that the methods PushRock

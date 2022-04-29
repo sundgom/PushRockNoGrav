@@ -2,7 +2,7 @@
 Level
 
 #Level name:
-SizeTest small
+Level size small
 
 #Level map layout:
 wwwwwwwwww@

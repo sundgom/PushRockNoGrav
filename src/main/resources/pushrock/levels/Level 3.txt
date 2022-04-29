@@ -5,25 +5,25 @@ Level
 Level 3
 
 #Level map layout:
-wwwwwwwwwwwwwwwwwww@
-w  w     w        w@
-w  w r   w  r     w@
-w  wwww ww        w@
-w   r    w        w@
-w      d www      w@
+WWWWWWWWWWWWWWWWWWW@
+W-D--------------TW@
+W-----------------W@
+WWWW-----------D--W@
+W-------------WWWWW@
+W-r---------------W@
+W-------------r---W@
+W-----------------W@
+W------           w@
+W-----            w@
+W----             w@
+w        w   r  d w@
+w     p  www    www@
+w     wwww   r  d w@
 w        w        w@
-w t  d d w  t     w@
-w   p    w        w@
+w        w ww     w@
+w t      w t      w@
+w                 w@
 wwwwwwwwwwwwwwwwwww@
-W--------W--------W@
-W--------W---R--D-W@
-W--------WWW-R--WWW@
-W--------W---R--D-W@
-W--------W---R--R-W@
-W--------W-WWR--R-W@
-W-T------W-T------W@
-W--------W--------W@
-WWWWWWWWWWWWWUWWVWW@
 
 #Level direction layout:
-rrrrrrrrrrruug
+rrrrrg
