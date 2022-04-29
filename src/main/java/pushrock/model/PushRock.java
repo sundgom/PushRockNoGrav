@@ -45,6 +45,7 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
     //gravity interval is paused/gravity application method is changed. This is done as to minimalize it's interference with the
     //rest of the code, as well as avoiding any thread related issues that interacting with that class could cause.
     private boolean ignoreIntervalNotifier;   
+    private int interval;
 
 
     //Constructors
@@ -132,7 +133,6 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
         }
         return null;
     }
-
     private String checkLayoutCompabillityWithLevel(String mapLayout, String directionLayout) {
         mapLayout = mapLayout.replaceAll("\\n|\\r\\n", "").stripTrailing();
         String levelMapLayout = this.levelMapLayout.replaceAll("\\n|\\r\\n", "").stripTrailing();
@@ -451,6 +451,7 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
         }
         return null;
     }
+    //Returns a copy of the given player block if it exists
     public MoveableBlock getPlayerCopy() {
         MoveableBlock player = this.getPlayer();
         MoveableBlock playerCopy = new MoveableBlock(player.getX(), player.getY(), player.getType(), player.getDirection());
@@ -567,7 +568,6 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
                 }
             }
         }
-        //Otherwise it must be a traversable block.
         else {
             blockCopy = new TraversableBlock(x, y, block.getType(), ((TraversableBlock) block).isBirdView());
         }
@@ -1227,7 +1227,6 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
             throw new IllegalStateException("Player can not move while the game is over.");
         }
         MoveableBlock player = this.getPlayer();
-        // String directionOld = player.getDirection();
         String oldPlayerDirection = player.getDirection();
         player.setDirection(direction);
         boolean wasMoved = false;
@@ -1534,6 +1533,13 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
                 int entryPorterIndex = blockChain.indexOf(transporters.get(1));
                 int[] exitPorterDirection = transporters.get(0).getDirectionXY();
                 int[] entryPorterDirection = transporters.get(1).getDirectionXY();
+                if (transporters.get(0).getType() == 't') {
+                    //teleporter entry and exit directions depend on the movement of the block that entered it, since the blocks are falling due to gravity then we have:
+                    //the teleporter's exit point direction for blocks falling out of it will be equal to gravity
+                    exitPorterDirection[1] = this.getGravityDirectionY();
+                    //the teleporter's entry point direction for blocks falling into it will be opposite of gravity
+                    entryPorterDirection[1] = -1 * this.getGravityDirectionY();
+                }
                 exitLength = getBlockChain(blockChain.get(entryPorterIndex - 1), exitPorterDirection[0], exitPorterDirection[1]).size();
                 List<BlockAbstract> exitChain = getBlockChain(blockChain.get(entryPorterIndex + 1), entryPorterDirection[0], entryPorterDirection[1]);
                 entryWeight = getBlockChainWeight(exitChain, entryPorterDirection[0], entryPorterDirection[1]);
@@ -1648,9 +1654,11 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
     //gravity application was chosen to be applied at an interval and the game is not paused. 
     public void setGravityApplicationInterval() { 
         this.gravityApplicationChoice = -1;
-        int interval = 1000; //Interval set to 1s
+        if (this.interval < 500 || this.interval > 10000) {
+            this.interval = 1000;
+        }
         if (this.intervalNotifierThread == null) { 
-            IntervalNotifier intervalNotifier = new IntervalNotifier(interval);
+            IntervalNotifier intervalNotifier = new IntervalNotifier(this.interval);
             intervalNotifier.addObserver(this);
             Thread intervalNotifierThread = new Thread(intervalNotifier);
             //The thread is set to Daemon as to make sure to close the thread once the application window is closed.
@@ -1660,15 +1668,30 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
         }
         this.ignoreIntervalNotifier = false;
     }
+    public void setGravityInterval(int interval) {
+        if (interval < 500 || interval > 10000) {
+            throw new IllegalArgumentException("Interval must be between 500 and 10,000 milliseconds. Interval was:" + interval);
+        }
+        else {
+            this.interval = interval;
+        }
+    }
     public boolean isGravityApplicationInterval() {
         return gravityApplicationChoice < 0;
     }
+
     //Experimental! The IntervalNotifier class runs on its own thread, 
     @Override
     public void update(IObservableIntervalNotifier observable) {
         //As to minimize potential issues that may be caused by interacting with the other thread, the 'ingoreIntervalNotifier' 
         //boolean will be used to ignore update-prompts from the observable intervalNotifier, rather than removing this PushRock
         //as an observer whenever this PushRock is no longer set to have gravity applied at an interval. 
+        if (observable == null) {
+            this.intervalNotifierThread = null;
+            if (this.isGravityApplicationInterval() && !ignoreIntervalNotifier) {
+                this.setGravityApplicationInterval();
+            }
+        }
         if (!ignoreIntervalNotifier) { 
             this.gravityStep();
         }
@@ -1678,10 +1701,16 @@ public class PushRock extends AbstractObservablePushRock implements IObserverInt
             if (this.isGravityApplicationInterval()) {
                 this.ignoreIntervalNotifier = true;
             }
+            if (this.intervalNotifierThread != null) {
+                this.intervalNotifierThread.interrupt();
+            }
         }
         else {
             if (this.isGravityApplicationInterval()) {
                 this.ignoreIntervalNotifier = false;
+                if (intervalNotifierThread != null) {
+                    this.intervalNotifierThread.interrupt();
+                }
             }
         }
     }

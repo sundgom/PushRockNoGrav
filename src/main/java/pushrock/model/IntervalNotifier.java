@@ -9,24 +9,28 @@ public class IntervalNotifier implements Runnable, IObservableIntervalNotifier{
     private boolean isActive;
 
     public IntervalNotifier(int interval) {
-        if (interval < 100) {
-            throw new IllegalArgumentException("Interval must be at least 100 milliseconds.");
+        if (interval < 500) {
+            throw new IllegalArgumentException("Interval must be at least 250 milliseconds.");
         }
         if (interval > 10000) {
             throw new IllegalArgumentException("Interval must be at most 10,000 milliseconds.");
         }
         this.interval = interval;
-        this.isActive = true;
+        this.isActive = false;
     }
 
     @Override
     public void run() {
+        this.isActive = true;
         while (this.isActive) {
             try {
                 Thread.sleep(this.interval);
                 this.notifyObservers();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                //notify all observers that the the class was interrupted by issuing them to update with the parameter set to null;
+                this.observers.forEach(observer -> observer.update(null));
+                this.isActive = false;
+                this.observers.clear();
                 return;
             }
         }

@@ -42,8 +42,8 @@ public class IntervalNotifierTest {
     public void testConstructorIntervalTooLow() {
         assertThrows(
             IllegalArgumentException.class, 
-            () -> new IntervalNotifier(99),
-            "Interval notifier should throw IllegalArgumentException when interval is set lower than the minimum value: 100.");
+            () -> new IntervalNotifier(499),
+            "Interval notifier should throw IllegalArgumentException when interval is set lower than the minimum value: 500.");
     }
     @Test
     @DisplayName("Check that setting the interval too high throws IllegalArgumentException.")
@@ -57,7 +57,7 @@ public class IntervalNotifierTest {
     @DisplayName("Check that setting the interval within bounds throws no exception.")
     public void testConstructorIntervalWithinBounds() {
         Assertions.assertDoesNotThrow(
-            () -> new IntervalNotifier(100),
+            () -> new IntervalNotifier(500),
             "Interval notifier should not throw any exceptions when interval is set to the lowest limit.");
         Assertions.assertDoesNotThrow(
             () -> new IntervalNotifier(10000),

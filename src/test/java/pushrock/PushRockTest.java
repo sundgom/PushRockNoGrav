@@ -5,12 +5,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.text.Normalizer;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import pushrock.model.AbstractObservablePushRock;
 import pushrock.model.BlockAbstract;
 import pushrock.model.IObserverPushRock;
+import pushrock.model.IntervalNotifier;
 import pushrock.model.MoveableBlock;
 import pushrock.model.PortalWallBlock;
 import pushrock.model.PushRock;
@@ -501,21 +504,6 @@ public class PushRockTest {
     }
 
 
-    // @Test
-    // @DisplayName("Check that the constructor ")
-    // public void testSaveConstructorValidInput() {
-    //     PushRock pushRock = new PushRock(levelName, levelMapLayout, levelDirectionLayout), jump while standing at falling rocks
-    // }
-
-
-
-    // @Test
-    // @DisplayName("Help me.")
-    // public void testToString() {
-        
-    // }
-
-
 
     @Test
     @DisplayName("Check that interacting with a block retrieved from the getTopBlockCopy(..) method does not alter the state of the game.")
@@ -789,7 +777,6 @@ public class PushRockTest {
             assertEquals(expected, pushRock.toString());
             MoveableBlock playerCopy = pushRock.getPlayerCopy();
             assertEquals("right", playerCopy.getDirection());
-
             assertDirectionAfterMovement(direction, pushRock, 1, -1, true);
         }
     }
@@ -811,7 +798,24 @@ public class PushRockTest {
         //..but their direction should have changed to match that of the movement direction.
         assertEquals("left", playerCopyAfterMove.getDirection(), "The player's direction should have been set to match the direction of the movement, even though the wall prevented a coordinate change.");
     }
-
+    @Test
+    @DisplayName("Check that successfully moving a player through move input increments the move count.")
+    public void testIncrementMoveCountSuccessfulMovement() {
+        String expected = "wp  d@";
+        PushRock pushRock = new PushRock("Test", expected, "rg");
+        assertEquals(0, pushRock.getMoveCount());
+        pushRock.movePlayer("right");
+        assertEquals(1, pushRock.getMoveCount());
+    }
+    @Test
+    @DisplayName("Check that only changing direction through move input does not increment the move count.")
+    public void testIncrementMoveCountUnSuccessfulMovement() {
+        String expected = "wp  d@";
+        PushRock pushRock = new PushRock("Test", expected, "rg");
+        assertEquals(0, pushRock.getMoveCount());
+        pushRock.movePlayer("left");
+        assertEquals(0, pushRock.getMoveCount());
+    }
     @Test
     @DisplayName("Check that attempting to move player out of bounds throws IllegalStateException")
     public void testMovePlayerOutOfBounds() {
@@ -1456,6 +1460,52 @@ public class PushRockTest {
     }
 
     @Test
+    @DisplayName("Check that a player standing on a falling moveable rock can move in all directions except down.")
+    public void testMainProtagonistPhysics() {
+        String map = """
+            ------D@
+            --P----@
+            --RR---@
+            -------@
+            """;
+        PushRock pushRock = new PushRock("Test", map, "rrrg");
+        pushRock.setGravityApplicationManual();
+        assertEqualsNoLineSeparator(map, pushRock.toString());
+        pushRock.movePlayer("down");
+        map = """
+            ------D@
+            --P----@
+            --RR---@
+            -------@
+            """;
+        assertEqualsNoLineSeparator(map, pushRock.toString());
+        pushRock.movePlayer("right");
+        map = """
+            ------D@
+            ---P---@
+            --RR---@
+            -------@
+            """;
+        assertEqualsNoLineSeparator(map, pushRock.toString());
+        pushRock.movePlayer("left");
+        map = """
+            ------D@
+            --P----@
+            --RR---@
+            -------@
+            """;
+        assertEqualsNoLineSeparator(map, pushRock.toString());
+        pushRock.movePlayer("up");
+        map = """
+            --P---D@
+            -------@
+            --RR---@
+            -------@
+            """;
+        assertEqualsNoLineSeparator(map, pushRock.toString());
+    }
+
+    @Test
     @DisplayName("Check that a player can carry around a block that is stacked ontop of them.") 
     public void testPlayerCanCarryABlock() {
         String mapLevelLayout = """
@@ -1476,8 +1526,8 @@ public class PushRockTest {
             assertEqualsNoLineSeparator(expected, pushRock.toString());
     }
     @Test
-    @DisplayName("Check that a player can jump one step up while carrying a block that is stacked ontop of them.") 
-    public void testPlayerCanJumpWhileCarryingABlock() {
+    @DisplayName("Check that a player can jump one step up while carrying a single block that is stacked ontop of them.") 
+    public void testPlayerCanJumpWhileCarryingOneBlock() {
         String mapLevelLayout = """
             ------D@
             -R-----@
@@ -2091,7 +2141,8 @@ public class PushRockTest {
     }
 
 
-
+    //TestObserverPushRock is a simple class implementing IObserverPushRock only as a tool to test that the methods PushRock
+    //inherits from AbstractObservablePushRock behave as expected.
     class TestObserverPushRock implements IObserverPushRock {
         private int updateCount;
         public TestObserverPushRock() {
@@ -2202,7 +2253,7 @@ public class PushRockTest {
         assertEquals(2, testObserverPushRock.getUpdateCount());
     }
     @Test
-    @DisplayName("Check that observers are notified if gravityStep moved any moveable block.") 
+    @DisplayName("Check that observers are not notified if gravityStep did not move any moveable blocks.") 
     public void testObserversGravityStepWithNoChange() {
         String map = """
                 o-d@
@@ -2221,18 +2272,146 @@ public class PushRockTest {
         assertEquals(0, testObserverPushRock.getUpdateCount());
     }
     @Test
-    @DisplayName("Check that observers are notified once a new portal is placed.")
-    public void testObserversMoveInputPlayerPortalPlacement() {
+    @DisplayName("Check that observers are notified once a portal placement changes the type representation of a block.")
+    public void testObserversPortalPlacementChangedType() {
         PushRock pushRock = new PushRock("test", "dpw@", "rg");
         assertEqualsNoLineSeparator("dpw@", pushRock.toString());
+        TestObserverPushRock testObserverPushRock = new TestObserverPushRock();
+        pushRock.addObserver(testObserverPushRock);
+        //Place a portal one
+        pushRock.placePortal(true);
+        assertEqualsNoLineSeparator("dpv@", pushRock.toString());
+        assertEquals(1, testObserverPushRock.getUpdateCount());
+        //Place a portal two to replace the old portal one.
+        pushRock.placePortal(false);
+        assertEqualsNoLineSeparator("dpu@", pushRock.toString());
+        //Observers should also be notified if a portal is placed by another portal type
+        assertEquals(2, testObserverPushRock.getUpdateCount());
+    }
+    @Test
+    @DisplayName("Check that observers are notified once portal placement results only in a change of the portal's direction.")
+    public void testObserversPortalPlacementChangedDirection() {
+        PushRock pushRock = new PushRock("test", "dpv@", "rug");
+        assertEqualsNoLineSeparator("dpv@", pushRock.toString());
         TestObserverPushRock testObserverPushRock = new TestObserverPushRock();
         pushRock.addObserver(testObserverPushRock);
         pushRock.placePortal(true);
         assertEqualsNoLineSeparator("dpv@", pushRock.toString());
         assertEquals(1, testObserverPushRock.getUpdateCount());
-        //If the portal is the same as before, then observers should not be notified.
+    }
+    @Test
+    @DisplayName("Check that observers are not notified once a portal placement results in no change.")
+    public void testObserversPortalPlacementNoChange() {
+        PushRock pushRock = new PushRock("test", "dpv@", "rlg");
+        assertEqualsNoLineSeparator("dpv@", pushRock.toString());
+        TestObserverPushRock testObserverPushRock = new TestObserverPushRock();
+        pushRock.addObserver(testObserverPushRock);
         pushRock.placePortal(true);
         assertEqualsNoLineSeparator("dpv@", pushRock.toString());
-        assertEquals(1, testObserverPushRock.getUpdateCount());
+        assertEquals(0, testObserverPushRock.getUpdateCount());
     }
+
+
+
+
+
+    @Nested
+    class TestObserverIntervalNotifier {
+
+        private IntervalNotifier intervalNotifier;
+        private PushRock pushRock;
+        private String levelMapLayout;
+
+        @BeforeEach
+        private void setup() {
+            this.levelMapLayout = """
+                -----@
+                --P-R@
+                -----@
+                d----@
+                """;
+            this.pushRock = new PushRock("test", levelMapLayout, "rrg");
+            this.intervalNotifier = new IntervalNotifier(1000);
+        }
+    
+        @Test
+        @DisplayName("Check that pushRock is only notified, and updates accordingly, once it has been added as an observer of the interval notifier.")
+        public void testUpdateAfterAddedObserverPushRock() {
+            assertEqualsNoLineSeparator(levelMapLayout, this.pushRock.toString());
+            //issue the interval notifier to notify its observers
+            intervalNotifier.notifyObservers();
+            //pushRock is not yet added as an observer of the interval notifier, and should thus not be issued to update once the interval notifier notifies its observers
+            assertEqualsNoLineSeparator(levelMapLayout, this.pushRock.toString());
+            //add pushRock as an observer of the interval notifier
+            this.intervalNotifier.addObserver(this.pushRock);
+            //issue the interval notifier to notify its observers
+            intervalNotifier.notifyObservers();
+            String expected = """
+                -----@
+                -----@
+                --P-R@
+                d----@
+                """;
+            //pushRock should now have been notified and thus been issued to update, which should call the gravityStep method which should update the game's state accordingly.
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+            //pushRock should then keep recieving notifications for as long as it remains an observer of the interval notifier
+            intervalNotifier.notifyObservers();
+            expected = """
+                -----@
+                -----@
+                -----@
+                d-P-R@
+                """;
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+        }
+        @Test
+        @DisplayName("Check that pushRock is no longer notified, and thus no longer udpates, once it has been removed as an observer from the interval notifier.")
+        public void testRemoveObserverPushRock() {
+            assertEqualsNoLineSeparator(levelMapLayout, this.pushRock.toString());
+            this.intervalNotifier.addObserver(this.pushRock);
+            intervalNotifier.notifyObservers();
+            String expected = """
+                -----@
+                -----@
+                --P-R@
+                d----@
+                """;
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+            this.intervalNotifier.removeObserver(this.pushRock);
+            expected = """
+                -----@
+                -----@
+                --P-R@
+                d----@
+                """;
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+        }
+        @Test
+        @DisplayName("Check that pushRock no longer applies gravity after 'pauseIntervalGravity(true)' has been called.")
+        public void testIgnoreIntervalNotifier() {
+            assertEqualsNoLineSeparator(levelMapLayout, this.pushRock.toString());
+            this.intervalNotifier.addObserver(this.pushRock);
+            //pause interval gravity to temporarily stop applying gravity once notified.
+            this.pushRock.pauseIntervalGravity(true);
+            intervalNotifier.notifyObservers();
+            String expected = """
+                -----@
+                -----@
+                --P-R@
+                d----@
+                """;
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+            //Unpause interval gravtiy to start applying gravity once notified again.
+            this.pushRock.pauseIntervalGravity(false);
+            intervalNotifier.notifyObservers();
+            expected = """
+                -----@
+                -----@
+                -----@
+                d-P-R@
+                """;
+            //pushRock should now continue to apply gravity once it is notified.
+            assertEqualsNoLineSeparator(expected, pushRock.toString());
+        }
+    } 
 }

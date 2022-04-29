@@ -13,6 +13,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.KeyCode;
@@ -94,6 +95,8 @@ public class PushRockController implements IObserverPushRock {
     private RadioButton menuGravityIntervalButton;
     @FXML
     private ToggleGroup gravityApplicationChoice;
+    @FXML 
+    private Slider menuGravityIntervalSlider;
    
     //STATUS PAGE
     @FXML
@@ -118,7 +121,7 @@ public class PushRockController implements IObserverPushRock {
     public void initialize() {
         String levelName = "Start-up level";
         String levelLayout1 = """
-            twwwwwwwwwwwwwwwwwd@
+            dwwwwwwwwwwwwwwwwwT@
                                @
                                @
             rrr  r  r  rrr r  r@
@@ -136,7 +139,7 @@ public class PushRockController implements IObserverPushRock {
             R--R-RRRR--RRR-R--R@
             -------------------@
             -------------------@
-            DWWWWWWWWWWWWWWVWWT@""";
+            TWWWWWWWWWWWWWWVWWD@""";
         String directionLayout1 = "ddddddddddddddddddddddddddddddddddddddddddddddddddduuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuug";
                                   
         menuPage.setVisible(true);
@@ -446,7 +449,6 @@ public class PushRockController implements IObserverPushRock {
         try {
             pushRock.gravityInverter();
             updateGravityButton();
-
         }
         catch (IllegalStateException e) {
             this.appInformationText.setVisible(true);
@@ -484,6 +486,9 @@ public class PushRockController implements IObserverPushRock {
         mapPage.setDisable(true);
         menuPage.setVisible(false);
         statusPage.setVisible(false);
+        if (menuGravityIntervalButton.isSelected()) {
+            menuGravityIntervalSlider.setDisable(false);
+        }
         gravityManualIncrementButton.setVisible(false);
         if (this.pushRock.isGravityApplicationInterval()) {
             this.pushRock.pauseIntervalGravity(true);
@@ -539,6 +544,14 @@ public class PushRockController implements IObserverPushRock {
         }
         else if (menuGravityIntervalButton.isSelected()) {
             System.out.println("Gravity: interval");
+            int interval = (int) Math.round(menuGravityIntervalSlider.getValue()* 1000);
+            System.out.println("Interval set to: "+ interval + "milliseconds.");
+            try {
+                pushRock.setGravityInterval(interval);  
+            } catch (IllegalArgumentException e) {
+                appInformationText.setVisible(true);
+                appInformationText.setText(e.getMessage());
+            }
             this.pushRock.setGravityApplicationInterval();
             System.out.println("gInterval" + this.pushRock.isGravityApplicationInterval());
             gravityManualIncrementButton.setVisible(false);
@@ -690,6 +703,16 @@ public class PushRockController implements IObserverPushRock {
         Path savePath = getFilePathBrowse(true);
         if (savePath != null) {
             menuSaveFileLocationField.setText(savePath.toString());
+        }
+    }
+
+    @FXML
+    private void handleGravityApplicationChoice() {
+        if (menuGravityIntervalButton.isSelected()) {
+            menuGravityIntervalSlider.setDisable(false);
+        }
+        else  {
+            menuGravityIntervalSlider.setDisable(true);
         }
     }
 

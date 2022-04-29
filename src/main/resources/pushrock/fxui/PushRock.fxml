@@ -215,7 +215,7 @@
                               <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="31.0" prefWidth="115.0" spacing="3.0" />
                            </children>
                         </HBox>
-                        <Slider fx:id="menuGravityIntervalSlider" disable="true" majorTickUnit="1.0" max="2.0" min="0.1" minorTickCount="0" prefHeight="22.0" prefWidth="226.0" showTickLabels="true" showTickMarks="true" value="1.0" visible="false" />
+                        <Slider fx:id="menuGravityIntervalSlider" disable="true" majorTickUnit="1.0" max="3.0" min="0.5" minorTickCount="0" prefHeight="22.0" prefWidth="226.0" showTickLabels="true" showTickMarks="true" value="1.0" />
                         <HBox alignment="CENTER" spacing="3.0">
                            <children>
                               <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="31.0" prefWidth="115.0" spacing="3.0" />
@@ -280,7 +280,7 @@
                            <children>
                               <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="84.0" prefWidth="70.0" spacing="3.0">
                                  <children>
-                                    <RadioButton fx:id="menuGravityManualButton" mnemonicParsing="false" prefHeight="17.0" prefWidth="0.0" selected="true">
+                                    <RadioButton fx:id="menuGravityManualButton" mnemonicParsing="false" onMouseClicked="#handleGravityApplicationChoice" prefHeight="17.0" prefWidth="0.0" selected="true">
                                        <toggleGroup>
                                           <ToggleGroup fx:id="menuGravityApplicationChoice" />
                                        </toggleGroup>
@@ -294,7 +294,7 @@
                            <children>
                               <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="76.0" prefWidth="83.0" spacing="3.0">
                                  <children>
-                                    <RadioButton fx:id="menuGravityMoveInputButton" mnemonicParsing="false" prefHeight="17.0" prefWidth="0.0" selected="true" toggleGroup="$menuGravityApplicationChoice" />
+                                    <RadioButton fx:id="menuGravityMoveInputButton" mnemonicParsing="false" onMouseClicked="#handleGravityApplicationChoice" prefHeight="17.0" prefWidth="0.0" selected="true" toggleGroup="$menuGravityApplicationChoice" />
                                     <Text fx:id="scoreMenuText11" strokeType="OUTSIDE" strokeWidth="0.0" text="Move input" textAlignment="CENTER" wrappingWidth="82.892578125" />
                                  </children>
                               </VBox>
@@ -304,7 +304,7 @@
                            <children>
                               <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="82.0" prefWidth="70.0" spacing="3.0">
                                  <children>
-                                    <RadioButton fx:id="menuGravityIntervalButton" mnemonicParsing="false" prefHeight="17.0" prefWidth="0.0" toggleGroup="$menuGravityApplicationChoice" />
+                                    <RadioButton fx:id="menuGravityIntervalButton" mnemonicParsing="false" onMouseClicked="#handleGravityApplicationChoice" prefHeight="17.0" prefWidth="0.0" toggleGroup="$menuGravityApplicationChoice" />
                                     <Text fx:id="scoreMenuText12" strokeType="OUTSIDE" strokeWidth="0.0" text="Interval" textAlignment="CENTER" wrappingWidth="56.892578125" />
                                  </children>
                               </VBox>
