@@ -2,7 +2,7 @@
 Save
 
 #Level name:
-PushRock
+Start-up level
 
 #Level map layout:
 twwwwwwwwwwwwwwwwwd@
@@ -23,7 +23,7 @@ R-R--R--R-R----R-R-@
 R--R-RRRR--RRR-R--R@
 -------------------@
 -------------------@
-DWWWWWWWWWWWWWWVWWT@
+TWWWWWWWWWWWWWWVWWD@
 
 #Level direction layout:
 ddddddddddddddddddddddddddddddddddddddddddddddddddduuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuug

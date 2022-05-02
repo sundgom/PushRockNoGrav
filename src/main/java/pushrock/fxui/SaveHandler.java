@@ -221,11 +221,11 @@ public class SaveHandler implements ISaveHandler {
 
         String typeSequence = mapLayoutSave.toLowerCase().replaceAll("\\n|\\r\\n|@","").stripTrailing();
         for (int i = 0; i < typeSequence.length(); i++) {
-            String type = mapLayoutSave.toLowerCase().charAt(i) + "";
+            String type = typeSequence.toLowerCase().charAt(i) + "";
             //these types are directed types, and as such should have their directions saved.
             if ("pqrovu".contains(type)) {
-                int x = i - i / width;
-                int y = i / width;
+                int x = Math.floorMod(i, width);
+                int y = - i / width;
                 BlockAbstract directedBlock = pushRock.getTopBlockCopy(x, y);
                 String direction = ((DirectedBlock) directedBlock).getDirection();
                 directionLayoutSave += direction.charAt(0);
