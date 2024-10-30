@@ -1,6 +1,5 @@
 package pushrock.model;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,13 +17,13 @@ public class PushRock extends AbstractObservablePushRock {
     private TransferBlock[][] transferBlocks;    
     //Moveable blocks are free to move around in traversable area, but are restricted by placements of directed blocks, 
     //which includes both transfer and other moveable blocks.     
-    private List<MoveableBlock> moveableBlocks = new ArrayList<MoveableBlock>();            
+    private List<MoveableBlock> moveableBlocks = new ArrayList<>();            
     //Teleporters, once activated, can transport an entering moveable block to their exit point. A set amount of these
     //are pre-placed based on the level.                                           
-    private List<TeleporterBlock> teleporters = new ArrayList<TeleporterBlock>();
+    private List<TeleporterBlock> teleporters = new ArrayList<>();
     //Portals, once activated, can transport an entering moveable block to their exit point. At most two of these
     //can exist at once, and can be placed/repositioned by the player at a wall in their line of sight.
-    private List<PortalWallBlock> portals = new ArrayList<PortalWallBlock>();
+    private List<PortalWallBlock> portals = new ArrayList<>();
 
     //Every time the player issues a move command that successfully changes the coordinates of the player-block the
     //move count is increased. The move count will serve as the game's score, where a lower score is better.
@@ -32,13 +31,17 @@ public class PushRock extends AbstractObservablePushRock {
     private int activePressurePlatesCount;
     private boolean isGameOver;
 
+    public String replaceLineSeparators(String layout) {
+        return layout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
+    }
+
     //Constructors
     public PushRock(String levelName, String levelMapLayout, String levelDirectionLayout) {
         if (levelName == null || levelMapLayout == null || levelDirectionLayout == null) {
             throw new IllegalArgumentException("Null is invalid for all constructor parameters.");
         }
         System.out.println("Constructor: build from level information");
-        levelMapLayout = levelMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
+        levelMapLayout = replaceLineSeparators(levelMapLayout);
         this.buildWorld(levelMapLayout, levelDirectionLayout, false);
         this.setLevelValues(levelName, levelMapLayout, levelDirectionLayout);
     }
@@ -50,8 +53,8 @@ public class PushRock extends AbstractObservablePushRock {
         if (saveMoveCount < 0) {
             throw new IllegalArgumentException("Negative values are invalid for saved move count.");
         }
-        levelMapLayout = levelMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
-        saveMapLayout = saveMapLayout.replaceAll("\\n|\\r\\n", System.getProperty("line.separator"));
+        levelMapLayout = replaceLineSeparators(levelMapLayout);
+        saveMapLayout = replaceLineSeparators(saveMapLayout);
         this.buildWorld(levelMapLayout, levelDirectionLayout, false);
         this.setLevelValues(levelName, levelMapLayout, levelDirectionLayout);
         this.checkLayoutCompabillityWithLevel(saveMapLayout, saveDirectionLayout);
@@ -240,12 +243,6 @@ public class PushRock extends AbstractObservablePushRock {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 char tangibleType = typeSequence.charAt(y*width + x);
-                boolean birdView = true; 
-                //An upper-case character or the symbol '-' indicates that bird's eye view should not be active
-                //for the blocks at this coordinate
-                if (Character.isUpperCase(tangibleType) || tangibleType == '-') {
-                    birdView = false;
-                }
                 tangibleType = Character.toLowerCase(tangibleType);
                 if(tangibleType == '-') {
                     tangibleType = ' ';
@@ -975,9 +972,6 @@ public class PushRock extends AbstractObservablePushRock {
                 else {
                     type = this.getTraversableBlock(x, y).toString();
                 }
-                // if (!this.getTraversableBlock(x, y).isBirdView()) {
-                //     type = type.toUpperCase();
-                // }
                 pushRockString += type;
             }
             pushRockString += "@\n";
