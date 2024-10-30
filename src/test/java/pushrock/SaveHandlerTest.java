@@ -122,10 +122,6 @@ public class SaveHandlerTest {
         int expectedHeight = expectedPushRock.getHeight();
         int actualHeight = actualPushRock.getHeight();
         assertEquals(expectedHeight, actualHeight);
-        //Check that gravity directions match.
-        boolean expectedIsGravityInverted = expectedPushRock.isGravityInverted();
-        boolean actualIsGravityInverted = actualPushRock.isGravityInverted();
-        assertEquals(expectedIsGravityInverted, actualIsGravityInverted);
         //Check that game's completion states match.
         boolean expectedIsGameOver = expectedPushRock.isGameOver();
         boolean actualIsGameOver = actualPushRock.isGameOver();

@@ -2,12 +2,9 @@ package pushrock.model;
 
 public class TraversableBlock extends BlockAbstract {
     
-    private boolean birdView;
-
     //Constructor
-    public TraversableBlock(int x, int y, char type, boolean birdView) {
+    public TraversableBlock(int x, int y, char type) {
         super(x, y, type);
-        this.birdView = birdView;
     }
 
     @Override
@@ -42,11 +39,7 @@ public class TraversableBlock extends BlockAbstract {
                 break;
         }
     }
-    public boolean isBirdView() {
-        return this.birdView;
-    }
-    //Traversable blocks do not have collision in the sense that they can share coordinates with 
-    //other blocks, not hindering movement/placement of others.
+
     @Override
     public boolean hasCollision() {
         return false;
@@ -56,19 +49,9 @@ public class TraversableBlock extends BlockAbstract {
     public String toString() {
         switch (this.getType()) {
             case ' ':
-                if (isBirdView()) {
-                    return " ";
-                }
-                else {
-                    return "-";
-                }
+                  return " ";
             case 'd':
-                if (isBirdView()) {
-                    return "d";
-                }
-                else {
-                    return "D";
-                }
+                  return "d";
             default:
                 return "";
         }

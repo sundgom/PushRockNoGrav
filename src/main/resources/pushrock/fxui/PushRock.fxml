@@ -3,10 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ChoiceBox?>
-<?import javafx.scene.control.RadioButton?>
-<?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -96,7 +93,7 @@
                            <children>
                               <VBox alignment="BOTTOM_CENTER" spacing="3.0">
                                  <children>
-                                    <Button fx:id="gravityButton" mnemonicParsing="false" onKeyPressed="#handlePlayerInput" onMouseClicked="#handleGravityInverter" prefWidth="71.0" text="Gravity ▼" />
+                                    <Button fx:id="actionButton" mnemonicParsing="false" onKeyPressed="#handlePlayerInput" onMouseClicked="#handleActionButton" prefWidth="71.0" text="&lt;action&gt;" />
                   
                                                                                                                                                             
                                                                                                                               
@@ -106,9 +103,6 @@
                            </children>
                         </HBox>
                         <VBox alignment="TOP_CENTER" prefHeight="43.0" prefWidth="25.0" spacing="3.0">
-                           <children>
-                              <Button fx:id="gravityManualIncrementButton" alignment="TOP_LEFT" mnemonicParsing="false" onKeyPressed="#handlePlayerInput" onMouseClicked="#handleManualGravityIncrement" prefHeight="25.0" prefWidth="28.0" text="➕" />
-                           </children>
                            <HBox.margin>
                               <Insets top="7.0" />
                            </HBox.margin>
@@ -215,7 +209,6 @@
                               <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="31.0" prefWidth="115.0" spacing="3.0" />
                            </children>
                         </HBox>
-                        <Slider fx:id="menuGravityIntervalSlider" disable="true" majorTickUnit="1.0" max="3.0" min="0.5" minorTickCount="0" prefHeight="22.0" prefWidth="226.0" showTickLabels="true" showTickMarks="true" value="1.0" />
                         <HBox alignment="CENTER" spacing="3.0">
                            <children>
                               <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="31.0" prefWidth="115.0" spacing="3.0" />
@@ -278,51 +271,24 @@
                      <children>
                         <HBox alignment="CENTER" spacing="3.0">
                            <children>
-                              <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="84.0" prefWidth="70.0" spacing="3.0">
-                                 <children>
-                                    <RadioButton fx:id="menuGravityManualButton" mnemonicParsing="false" onMouseClicked="#handleGravityApplicationChoice" prefHeight="17.0" prefWidth="0.0" selected="true">
-                                       <toggleGroup>
-                                          <ToggleGroup fx:id="menuGravityApplicationChoice" />
-                                       </toggleGroup>
-                                    </RadioButton>
-                                    <Text fx:id="scoreMenuText1" strokeType="OUTSIDE" strokeWidth="0.0" text="Manual" textAlignment="CENTER" wrappingWidth="61.892578125" />
-                                 </children>
-                              </VBox>
+                              <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="84.0" prefWidth="70.0" spacing="3.0" />
                            </children>
                         </HBox>
                         <HBox alignment="CENTER" spacing="3.0">
                            <children>
-                              <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="76.0" prefWidth="83.0" spacing="3.0">
-                                 <children>
-                                    <RadioButton fx:id="menuGravityMoveInputButton" mnemonicParsing="false" onMouseClicked="#handleGravityApplicationChoice" prefHeight="17.0" prefWidth="0.0" selected="true" toggleGroup="$menuGravityApplicationChoice" />
-                                    <Text fx:id="scoreMenuText11" strokeType="OUTSIDE" strokeWidth="0.0" text="Move input" textAlignment="CENTER" wrappingWidth="82.892578125" />
-                                 </children>
-                              </VBox>
+                              <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="76.0" prefWidth="83.0" spacing="3.0" />
                            </children>
                         </HBox>
                         <HBox alignment="CENTER" spacing="3.0">
                            <children>
-                              <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="82.0" prefWidth="70.0" spacing="3.0">
-                                 <children>
-                                    <RadioButton fx:id="menuGravityIntervalButton" mnemonicParsing="false" onMouseClicked="#handleGravityApplicationChoice" prefHeight="17.0" prefWidth="0.0" toggleGroup="$menuGravityApplicationChoice" />
-                                    <Text fx:id="scoreMenuText12" strokeType="OUTSIDE" strokeWidth="0.0" text="Interval" textAlignment="CENTER" wrappingWidth="56.892578125" />
-                                 </children>
-                              </VBox>
+                              <VBox alignment="BOTTOM_CENTER" maxHeight="-Infinity" prefHeight="82.0" prefWidth="70.0" spacing="3.0" />
                            </children>
                         </HBox>
                      </children>
                   </HBox>
                   <HBox fx:id="playerControls31" alignment="CENTER" prefWidth="166.0" spacing="3.0" GridPane.rowIndex="4">
                      <children>
-                        <VBox alignment="BOTTOM_CENTER" prefHeight="30.0" prefWidth="189.0" spacing="3.0">
-                           <children>
-                              <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Gravity application:" textAlignment="CENTER" wrappingWidth="188.892578125">
-                                 <font>
-                                    <Font size="14.0" />
-                                 </font>
-                              </Text>
-                           </children>
-                        </VBox>
+                        <VBox alignment="BOTTOM_CENTER" prefHeight="30.0" prefWidth="189.0" spacing="3.0" />
                      </children>
                   </HBox>
                </children>

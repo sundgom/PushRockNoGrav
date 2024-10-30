@@ -231,11 +231,6 @@ public class SaveHandler implements ISaveHandler {
                 directionLayoutSave += direction.charAt(0);
             }
         }
-        if (!pushRock.isGravityInverted()) {
-            directionLayoutSave += 'g';
-        } else {
-            directionLayoutSave += 'G';
-        }
         List<String> layoutList = new ArrayList<String>();
         layoutList.add(mapLayoutSave);
         layoutList.add(directionLayoutSave);
