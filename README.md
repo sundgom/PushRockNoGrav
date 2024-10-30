@@ -8,7 +8,7 @@ PushRock is a puzzle game inspired by the classic game Sokoban and blends in mec
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/sundgom/TDT4100_prosjekt_magnsu.git
+   git clone https://github.com/sundgom/PushRockNoGrav.git
    ```
 
 2. **Build and Run the Project:**
